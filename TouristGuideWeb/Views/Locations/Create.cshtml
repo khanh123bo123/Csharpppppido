@@ -1,0 +1,96 @@
+@model TouristGuideWeb.Models.Location
+
+@{
+    ViewData["Title"] = "Create Location";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10 col-xl-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h1 class="h3 mb-0">Create Location</h1>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+                    </div>
+
+                    <form asp-action="Create" method="post" class="row g-4">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="col-12">
+                            <label asp-for="Name" class="form-label fw-semibold"></label>
+                            <input asp-for="Name" class="form-control form-control-lg" placeholder="Enter location name" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label fw-semibold"></label>
+                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Describe this location"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <input asp-for="Latitude" id="latitudeInput" type="hidden" />
+                        <input asp-for="Longitude" id="longitudeInput" type="hidden" />
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Select Coordinates On Map</label>
+                            <div id="map" class="rounded border" style="height: 420px;"></div>
+                            <div class="mt-3 small text-muted">
+                                Current coordinates:
+                                <span id="coordinatesLabel" class="fw-semibold text-dark"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 d-flex gap-2 pt-2">
+                            <button type="submit" class="btn btn-primary px-4">Save</button>
+                            <a asp-action="Index" class="btn btn-light border">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const defaultLat = 21.0278;
+        const defaultLng = 105.8342;
+
+        const latInput = document.getElementById('latitudeInput');
+        const lngInput = document.getElementById('longitudeInput');
+
+        const startLat = parseFloat(latInput.value || defaultLat);
+        const startLng = parseFloat(lngInput.value || defaultLng);
+
+        const coordsLabel = document.getElementById('coordinatesLabel');
+
+        const map = L.map('map').setView([startLat, startLng], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        const marker = L.marker([startLat, startLng], { draggable: true }).addTo(map);
+
+        function setInputs(lat, lng) {
+            latInput.value = lat.toFixed(6);
+            lngInput.value = lng.toFixed(6);
+            coordsLabel.textContent = `${latInput.value}, ${lngInput.value}`;
+        }
+
+        setInputs(startLat, startLng);
+
+        marker.on('dragend', function (e) {
+            const pos = e.target.getLatLng();
+            setInputs(pos.lat, pos.lng);
+        });
+
+        map.on('click', function (e) {
+            marker.setLatLng(e.latlng);
+            setInputs(e.latlng.lat, e.latlng.lng);
+        });
+    </script>
+}

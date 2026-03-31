@@ -12,9 +12,9 @@ builder.Services.AddScoped<ITextToSpeechService, GoogleTextToSpeechService>();
 builder.Services.AddControllers();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("AllowAdminWeb", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("https://localhost:7001")
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -40,7 +40,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseCors("AllowAll");
+app.UseCors("AllowAdminWeb");
 
 app.UseAuthorization();
 

@@ -1,0 +1,85 @@
+@model TouristGuideWeb.Models.Location
+
+@{
+    ViewData["Title"] = "Edit Location";
+}
+
+<h1 class="h3 mb-3">Edit Location</h1>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="row g-3">
+    @Html.AntiForgeryToken()
+    <input asp-for="Id" type="hidden" />
+    <input asp-for="QrCodeData" type="hidden" />
+    <input asp-for="CreatedAt" type="hidden" />
+    <input asp-for="AudioUrl" type="hidden" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="col-md-6">
+        <label asp-for="Name" class="form-label"></label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Description" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Latitude" class="form-label"></label>
+        <input asp-for="Latitude" class="form-control" id="latitudeInput" />
+        <span asp-validation-for="Latitude" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Longitude" class="form-label"></label>
+        <input asp-for="Longitude" class="form-control" id="longitudeInput" />
+        <span asp-validation-for="Longitude" class="text-danger"></span>
+    </div>
+
+    <div class="col-12">
+        <label class="form-label">Adjust location on map</label>
+        <div id="map" style="height: 400px; border: 1px solid #ddd;"></div>
+    </div>
+
+    <div class="col-12 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const latInput = document.getElementById('latitudeInput');
+        const lngInput = document.getElementById('longitudeInput');
+
+        const startLat = parseFloat(latInput.value || '0');
+        const startLng = parseFloat(lngInput.value || '0');
+
+        const map = L.map('map').setView([startLat, startLng], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        const marker = L.marker([startLat, startLng], { draggable: true }).addTo(map);
+
+        function setInputs(lat, lng) {
+            latInput.value = lat.toFixed(6);
+            lngInput.value = lng.toFixed(6);
+        }
+
+        marker.on('dragend', function (e) {
+            const pos = e.target.getLatLng();
+            setInputs(pos.lat, pos.lng);
+        });
+
+        map.on('click', function (e) {
+            marker.setLatLng(e.latlng);
+            setInputs(e.latlng.lat, e.latlng.lng);
+        });
+    </script>
+}
