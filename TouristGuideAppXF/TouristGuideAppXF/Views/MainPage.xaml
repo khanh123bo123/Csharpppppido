@@ -2,10 +2,81 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="TouristGuideAppXF.Views.MainPage"
-             Title="{Binding Title}">
+             Title="Tour Guide"
+             BackgroundColor="White">
 
-    <StackLayout HorizontalOptions="CenterAndExpand" VerticalOptions="CenterAndExpand">
-        <Label Text="Welcome to Xamarin Forms and Prism!" />
-    </StackLayout>
+    <ScrollView>
+        <StackLayout Padding="20" Spacing="15">
+            <!-- Tiêu đề -->
+            <Label Text="Quét QR để khám phá" 
+                   FontSize="24" 
+                   FontAttributes="Bold" 
+                   TextColor="#333" />
+
+            <!-- Nút quét QR -->
+            <Button x:Name="ScanButton" 
+                    Text="Quét QR" 
+                    Clicked="OnScanClicked"
+                    BackgroundColor="#007AFF"
+                    TextColor="White"
+                    Padding="15" />
+
+            <!-- ActivityIndicator loading -->
+            <ActivityIndicator x:Name="LoadingIndicator"
+                               IsRunning="False"
+                               IsVisible="False"
+                               Color="#007AFF" />
+
+            <!-- Thông tin location -->
+            <StackLayout x:Name="LocationInfoLayout" 
+                         IsVisible="False" 
+                         Spacing="12"
+                         Padding="15"
+                         BackgroundColor="#F5F5F5">
+                
+                <Label Text="Thông tin điểm tham quan" 
+                       FontSize="18" 
+                       FontAttributes="Bold" 
+                       TextColor="#333" />
+
+                <Label x:Name="NameLabel" 
+                       FontSize="16" 
+                       FontAttributes="Bold" 
+                       TextColor="#007AFF" />
+
+                <Label x:Name="DescriptionLabel" 
+                       FontSize="14" 
+                       TextColor="#666"
+                       LineBreakMode="WordWrap" />
+
+                <Label x:Name="DistanceLabel" 
+                       FontSize="14" 
+                       TextColor="#FF6B00"
+                       FontAttributes="Bold" />
+
+                <!-- Nút Nghe thuyết minh -->
+                <Button x:Name="PlayAudioButton"
+                        Text="Nghe thuyết minh"
+                        Clicked="OnPlayAudioClicked"
+                        BackgroundColor="#FF6B00"
+                        TextColor="White"
+                        Padding="12" />
+
+                <!-- Activity indicator cho phát âm thanh -->
+                <ActivityIndicator x:Name="AudioIndicator"
+                                   IsRunning="False"
+                                   IsVisible="False"
+                                   Color="#FF6B00" />
+            </StackLayout>
+
+            <!-- Cảnh báo khoảng cách -->
+            <Label x:Name="WarningLabel"
+                   IsVisible="False"
+                   Text="⚠️ Vị trí của bạn xa hơn 100m từ điểm này"
+                   TextColor="#FF3B30"
+                   FontSize="12"
+                   LineBreakMode="WordWrap" />
+        </StackLayout>
+    </ScrollView>
 
 </ContentPage>
