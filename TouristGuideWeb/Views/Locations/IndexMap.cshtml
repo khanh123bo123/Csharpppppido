@@ -1,0 +1,70 @@
+@model IEnumerable<TouristGuideWeb.Models.Location>
+
+@{
+    ViewData["Title"] = "Locations Map";
+    var detailsUrlTemplate = Url.Action("Details", "Locations", new { id = "__id__" }) ?? "/Locations/Details/__id__";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Ban do dia diem</h1>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-outline-primary">
+            <i class="fa-solid fa-table me-1"></i>Xem dang bang
+        </a>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fa-solid fa-plus me-1"></i>Them moi
+        </a>
+    </div>
+</div>
+
+<div id="locationsMap" class="border rounded shadow-sm" style="height: 560px;"></div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const locations = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model));
+            const detailsUrlTemplate = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(detailsUrlTemplate));
+
+            const defaultLat = 10.776889;
+            const defaultLng = 106.700806;
+            const map = L.map('locationsMap').setView([defaultLat, defaultLng], 12);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            const bounds = [];
+
+            function escapeHtml(value) {
+                return String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/\"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+            }
+
+            locations.forEach(function (location) {
+                if (typeof location.latitude !== 'number' || typeof location.longitude !== 'number') {
+                    return;
+                }
+
+                const marker = L.marker([location.latitude, location.longitude]).addTo(map);
+                const detailsUrl = detailsUrlTemplate.replace('__id__', String(location.id));
+                const popupHtml = `
+                    <div style="min-width: 180px;">
+                        <div class="fw-semibold mb-2">${escapeHtml(location.name ?? '')}</div>
+                        <a class="btn btn-sm btn-primary" href="${detailsUrl}">Xem chi tiet</a>
+                    </div>`;
+
+                marker.bindPopup(popupHtml);
+                bounds.push([location.latitude, location.longitude]);
+            });
+
+            if (bounds.length > 0) {
+                map.fitBounds(bounds, { padding: [30, 30] });
+            }
+        })();
+    </script>
+}

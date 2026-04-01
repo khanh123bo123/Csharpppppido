@@ -1,6 +1,7 @@
 ﻿namespace TouristGuideApp;
 
 using Plugin.Maui.Audio;
+using TouristGuideApp.Services;
 using ZXing.Net.Maui;
 
 public static class MauiProgram
@@ -19,6 +20,10 @@ public static class MauiProgram
 			});
 
 		builder.Services.AddSingleton(AudioManager.Current);
+		builder.Services.AddHttpClient<IApiService, ApiService>(client =>
+		{
+			client.BaseAddress = new Uri("https://localhost:5090/");
+		});
 
 		return builder.Build();
 	}

@@ -1,4 +1,4 @@
-@model TouristGuideWeb.Models.Location
+@model TouristGuideWeb.Models.LocationCreateViewModel
 
 @{
     ViewData["Title"] = "Create Location";
@@ -40,6 +40,8 @@
                                 Current coordinates:
                                 <span id="coordinatesLabel" class="fw-semibold text-dark"></span>
                             </div>
+                            <span asp-validation-for="Latitude" class="text-danger d-block mt-1"></span>
+                            <span asp-validation-for="Longitude" class="text-danger d-block"></span>
                         </div>
 
                         <div class="col-12 d-flex gap-2 pt-2">
@@ -56,6 +58,24 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
+        if (window.jQuery && $.validator) {
+            $.validator.setDefaults({
+                onkeyup: function (element) {
+                    $(element).valid();
+                },
+                onfocusout: function (element) {
+                    $(element).valid();
+                }
+            });
+
+            const form = $('form');
+            if (form.length) {
+                form.removeData('validator');
+                form.removeData('unobtrusiveValidation');
+                $.validator.unobtrusive.parse(form);
+            }
+        }
+
         const defaultLat = 21.0278;
         const defaultLng = 105.8342;
 
@@ -79,6 +99,11 @@
             latInput.value = lat.toFixed(6);
             lngInput.value = lng.toFixed(6);
             coordsLabel.textContent = `${latInput.value}, ${lngInput.value}`;
+
+            if (window.jQuery) {
+                $(latInput).valid();
+                $(lngInput).valid();
+            }
         }
 
         setInputs(startLat, startLng);

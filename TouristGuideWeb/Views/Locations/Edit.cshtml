@@ -1,4 +1,4 @@
-@model TouristGuideWeb.Models.Location
+@model TouristGuideWeb.Models.LocationEditViewModel
 
 @{
     ViewData["Title"] = "Edit Location";
@@ -9,9 +9,6 @@
 <form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="row g-3">
     @Html.AntiForgeryToken()
     <input asp-for="Id" type="hidden" />
-    <input asp-for="QrCodeData" type="hidden" />
-    <input asp-for="CreatedAt" type="hidden" />
-    <input asp-for="AudioUrl" type="hidden" />
 
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
@@ -53,6 +50,24 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
+        if (window.jQuery && $.validator) {
+            $.validator.setDefaults({
+                onkeyup: function (element) {
+                    $(element).valid();
+                },
+                onfocusout: function (element) {
+                    $(element).valid();
+                }
+            });
+
+            const form = $('form');
+            if (form.length) {
+                form.removeData('validator');
+                form.removeData('unobtrusiveValidation');
+                $.validator.unobtrusive.parse(form);
+            }
+        }
+
         const latInput = document.getElementById('latitudeInput');
         const lngInput = document.getElementById('longitudeInput');
 
@@ -70,6 +85,11 @@
         function setInputs(lat, lng) {
             latInput.value = lat.toFixed(6);
             lngInput.value = lng.toFixed(6);
+
+            if (window.jQuery) {
+                $(latInput).valid();
+                $(lngInput).valid();
+            }
         }
 
         marker.on('dragend', function (e) {

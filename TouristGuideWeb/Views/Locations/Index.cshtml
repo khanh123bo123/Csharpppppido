@@ -6,15 +6,31 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="h3 mb-0">Danh sach dia diem</h1>
-    <a asp-action="Create" class="btn btn-primary">
-        <i class="fa-solid fa-plus me-1"></i>Them moi
-    </a>
+    <div class="d-flex gap-2">
+        <button type="submit" form="exportPdfForm" class="btn btn-outline-danger" id="exportSelectedBtn" disabled>
+            <i class="fa-solid fa-file-pdf me-1"></i>Xuat PDF da chon
+        </button>
+        <a asp-action="ExportQrPdf" class="btn btn-danger">
+            <i class="fa-solid fa-file-export me-1"></i>Xuat PDF tat ca
+        </a>
+        <a asp-action="IndexMap" class="btn btn-outline-success">
+            <i class="fa-solid fa-map-location-dot me-1"></i>Xem ban do
+        </a>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fa-solid fa-plus me-1"></i>Them moi
+        </a>
+    </div>
 </div>
+
+<form id="exportPdfForm" asp-action="ExportQrPdf" method="get"></form>
 
 <div class="table-responsive">
     <table id="locationsTable" class="table table-striped table-bordered align-middle">
         <thead>
             <tr>
+                <th class="text-center" style="width: 48px;">
+                    <input type="checkbox" id="selectAllRows" class="form-check-input" title="Chon tat ca" />
+                </th>
                 <th>Id</th>
                 <th>Ten</th>
                 <th>Toa do</th>
@@ -25,6 +41,13 @@
         @foreach (var item in Model)
         {
             <tr>
+                <td class="text-center">
+                    <input type="checkbox"
+                           class="form-check-input row-select"
+                           name="ids"
+                           value="@item.Id"
+                           form="exportPdfForm" />
+                </td>
                 <td>@item.Id</td>
                 <td>@item.Name</td>
                 <td>@item.Latitude.ToString("0.######"), @item.Longitude.ToString("0.######")</td>
@@ -77,7 +100,7 @@
 @section Scripts {
     <script>
         $(function () {
-            new DataTable('#locationsTable', {
+            const table = new DataTable('#locationsTable', {
                 language: {
                     search: 'Tim kiem:',
                     lengthMenu: 'Hien thi _MENU_ dong',
@@ -89,12 +112,40 @@
                         previous: 'Truoc'
                     },
                     emptyTable: 'Khong co du lieu'
-                }
+                },
+                columnDefs: [
+                    { targets: [0, 4], orderable: false, searchable: false }
+                ]
             });
 
             const deleteModalElement = document.getElementById('deleteConfirmModal');
             const deleteModal = new bootstrap.Modal(deleteModalElement);
             let selectedId = null;
+
+            function updateExportState() {
+                const hasSelected = $('.row-select:checked').length > 0;
+                $('#exportSelectedBtn').prop('disabled', !hasSelected);
+            }
+
+            $('#selectAllRows').on('change', function () {
+                const checked = $(this).is(':checked');
+                $('.row-select').prop('checked', checked);
+                updateExportState();
+            });
+
+            $(document).on('change', '.row-select', function () {
+                const total = $('.row-select').length;
+                const selected = $('.row-select:checked').length;
+                $('#selectAllRows').prop('checked', total > 0 && total === selected);
+                updateExportState();
+            });
+
+            table.on('draw', function () {
+                const total = $('.row-select').length;
+                const selected = $('.row-select:checked').length;
+                $('#selectAllRows').prop('checked', total > 0 && total === selected);
+                updateExportState();
+            });
 
             $('.btn-delete').on('click', function () {
                 selectedId = $(this).data('id');

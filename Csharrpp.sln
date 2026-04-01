@@ -6,6 +6,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TourGuideApi", "TourGuideAp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TouristGuideApp", "TouristGuideApp\TouristGuideApp.csproj", "{8B911253-E951-41E7-B996-02C0CD4051E4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TouristGuideWeb", "TouristGuideWeb\TouristGuideWeb.csproj", "{46E9C134-64AA-4918-828C-4D35588D3EEE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TouristGuideWeb.Tests", "TouristGuideWeb.Tests\TouristGuideWeb.Tests.csproj", "{6E2D2CAC-3367-4858-BEE1-00B8B64A041B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +24,14 @@ Global
 		{8B911253-E951-41E7-B996-02C0CD4051E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B911253-E951-41E7-B996-02C0CD4051E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B911253-E951-41E7-B996-02C0CD4051E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46E9C134-64AA-4918-828C-4D35588D3EEE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46E9C134-64AA-4918-828C-4D35588D3EEE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46E9C134-64AA-4918-828C-4D35588D3EEE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46E9C134-64AA-4918-828C-4D35588D3EEE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E2D2CAC-3367-4858-BEE1-00B8B64A041B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E2D2CAC-3367-4858-BEE1-00B8B64A041B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E2D2CAC-3367-4858-BEE1-00B8B64A041B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E2D2CAC-3367-4858-BEE1-00B8B64A041B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
