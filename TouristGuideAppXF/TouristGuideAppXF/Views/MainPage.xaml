@@ -69,11 +69,10 @@
                                    Color="#FF6B00" />
             </StackLayout>
 
-            <!-- Cảnh báo khoảng cách -->
+            <!-- Cảnh báo khoảng cách (động) -->
             <Label x:Name="WarningLabel"
                    IsVisible="False"
-                   Text="⚠️ Vị trí của bạn xa hơn 100m từ điểm này"
-                   TextColor="#FF3B30"
+                   Text=""
                    FontSize="12"
                    LineBreakMode="WordWrap" />
         </StackLayout>

@@ -57,6 +57,7 @@ namespace TouristGuideAppXF.Views
             LoadingIndicator.IsRunning = true;
             LoadingIndicator.IsVisible = true;
             LocationInfoLayout.IsVisible = false;
+            WarningLabel.IsVisible = false;
 
             try
             {
@@ -69,20 +70,8 @@ namespace TouristGuideAppXF.Views
                     return;
                 }
 
-                // Lấy vị trí hiện tại
-                var currentPosition = await Geolocation.GetLocationAsync(new GeolocationRequest
-                {
-                    DesiredAccuracy = GeolocationAccuracy.Best,
-                    Timeout = TimeSpan.FromSeconds(30)
-                });
-
-                double distance = 0;
-                if (currentPosition != null)
-                {
-                    distance = CalculateDistance(
-                        currentPosition.Latitude, currentPosition.Longitude,
-                        location.Latitude, location.Longitude);
-                }
+                // Lấy khoảng cách và xử lý exception
+                double distance = await GetDistanceToLocation(location);
 
                 currentLocation = location;
 
@@ -91,8 +80,25 @@ namespace TouristGuideAppXF.Views
                 DescriptionLabel.Text = location.Description;
                 DistanceLabel.Text = $"Cách bạn: {Math.Round(distance)} mét";
 
-                // Hiển thị cảnh báo nếu > 100m
-                WarningLabel.IsVisible = distance > 100;
+                // Hiển thị thông báo đề xuất chi tiết dựa trên khoảng cách
+                if (distance < 0)
+                {
+                    WarningLabel.Text = "❌ Không thể xác định vị trí của bạn. Vui lòng bật GPS và thử lại.";
+                    WarningLabel.TextColor = Color.FromHex("#FF3B30");
+                    WarningLabel.IsVisible = true;
+                }
+                else if (distance <= 200)
+                {
+                    WarningLabel.Text = "✅ Bạn đang ở gần điểm tham quan này. Thuyết minh phù hợp!";
+                    WarningLabel.TextColor = Color.FromHex("#34C759");
+                    WarningLabel.IsVisible = true;
+                }
+                else
+                {
+                    WarningLabel.Text = $"⚠️ Bạn đang ở xa điểm này (khoảng {distance:F0} mét). Nội dung thuyết minh có thể không phù hợp.";
+                    WarningLabel.TextColor = Color.FromHex("#FF9500");
+                    WarningLabel.IsVisible = true;
+                }
 
                 LocationInfoLayout.IsVisible = true;
                 LoadingIndicator.IsRunning = false;
@@ -154,6 +160,26 @@ namespace TouristGuideAppXF.Views
             // Tạm thời: hiển thị thông báo rằng file đã tải xuống
             // Khi chạy trên Android, platform-specific code sẽ xử lý phát audio
             await DisplayAlert("Âm thanh", "File thuyết minh đã tải xuống. Nhấn OK để phát.", "OK");
+        }
+
+        private async Task<double> GetDistanceToLocation(Models.Location location)
+        {
+            try
+            {
+                var request = new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(30));
+                var currentPosition = await Geolocation.GetLocationAsync(request);
+                if (currentPosition == null)
+                    return -1;
+
+                return CalculateDistance(
+                    currentPosition.Latitude, currentPosition.Longitude,
+                    location.Latitude, location.Longitude);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error getting location: {ex.Message}");
+                return -1;
+            }
         }
 
         private double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
