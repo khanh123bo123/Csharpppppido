@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -30,8 +31,15 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<DbContextOptions<AppIdentityDbContext>>();
+            services.RemoveAll<AppIdentityDbContext>();
+            services.RemoveAll<SqliteConnection>();
+
+            var sqliteConnection = new SqliteConnection("DataSource=:memory:");
+            sqliteConnection.Open();
+            services.AddSingleton(sqliteConnection);
+
             services.AddDbContext<AppIdentityDbContext>(options =>
-                options.UseInMemoryDatabase("IdentityTestDb"));
+                options.UseSqlite(sqliteConnection));
 
             services.RemoveAll<IHttpClientFactory>();
             services.AddSingleton(Store);
@@ -69,8 +77,7 @@ internal sealed class TestAuthHandler : AuthenticationHandler<AuthenticationSche
     public TestAuthHandler(
         IOptionsMonitor<AuthenticationSchemeOptions> options,
         ILoggerFactory logger,
-        System.Text.Encodings.Web.UrlEncoder encoder,
-        ISystemClock clock) : base(options, logger, encoder, clock)
+        System.Text.Encodings.Web.UrlEncoder encoder) : base(options, logger, encoder)
     {
     }
 
