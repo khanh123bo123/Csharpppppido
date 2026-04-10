@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TouristGuideApp.Views.POIDetailsPage"
+             Title="Chi tiết Địa điểm">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0">
+            
+            <!-- Image Area -->
+            <Image x:Name="imgLocation" 
+                   HeightRequest="250" 
+                   Aspect="AspectFill" 
+                   BackgroundColor="LightGray" />
+            
+            <VerticalStackLayout Padding="20" Spacing="15">
+                
+                <Label x:Name="lblName" 
+                       FontSize="24" 
+                       FontAttributes="Bold" 
+                       TextColor="#512BD4" />
+                
+                <HorizontalStackLayout Spacing="10">
+                    <Border Stroke="#512BD4" StrokeThickness="1" StrokeShape="RoundRectangle 20" Padding="15,5">
+                        <Label x:Name="lblCategory" TextColor="#512BD4" FontAttributes="Bold" />
+                    </Border>
+                    <Label x:Name="lblDistance" VerticalOptions="Center" TextColor="Gray" />
+                </HorizontalStackLayout>
+                
+                <BoxView HeightRequest="1" Color="LightGray" />
+
+                <!-- Contact Info -->
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" RowSpacing="10" ColumnSpacing="15">
+                    
+                    <Label Grid.Row="0" Grid.Column="0" Text="📍" FontSize="18" VerticalOptions="Start" />
+                    <Label x:Name="lblAddress" Grid.Row="0" Grid.Column="1" TextColor="Black" />
+
+                    <Label Grid.Row="1" Grid.Column="0" Text="📞" FontSize="18" VerticalOptions="Start" />
+                    <Label x:Name="lblPhone" Grid.Row="1" Grid.Column="1" TextColor="Black" />
+                    
+                </Grid>
+
+                <BoxView HeightRequest="1" Color="LightGray" />
+
+                <Label Text="Mô tả chi tiết" FontAttributes="Bold" FontSize="18" />
+                <Label x:Name="lblDescription" LineBreakMode="WordWrap" TextColor="Black" />
+
+                <!-- Action Button -->
+                <Button x:Name="btnListen"
+                        Text="Nghe thuyết minh"
+                        BackgroundColor="#512BD4"
+                        TextColor="White"
+                        CornerRadius="25"
+                        HeightRequest="50"
+                        Margin="0,20,0,0"
+                        Clicked="OnListenClicked" />
+
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

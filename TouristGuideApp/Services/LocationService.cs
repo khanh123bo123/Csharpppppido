@@ -6,14 +6,14 @@ namespace TouristGuideApp.Services
 {
     public interface ILocationService
     {
-        event EventHandler<Microsoft.Maui.Devices.Sensors.Location> LocationUpdated;
+        event EventHandler<Microsoft.Maui.Devices.Sensors.Location>? LocationUpdated;
         void StartTracking();
         void StopTracking();
     }
 
     public class LocationService : ILocationService
     {
-        public event EventHandler<Microsoft.Maui.Devices.Sensors.Location> LocationUpdated;
+        public event EventHandler<Microsoft.Maui.Devices.Sensors.Location>? LocationUpdated;
         private bool _isTracking;
 
         public async void StartTracking()

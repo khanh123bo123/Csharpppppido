@@ -22,6 +22,27 @@
                     <dt class="col-sm-4">Id</dt>
                     <dd class="col-sm-8">@Model.Id</dd>
 
+                    <dt class="col-sm-4">Category</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.Category) ? "-" : Model.Category)</dd>
+
+                    <dt class="col-sm-4">Phone</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.PhoneNumber) ? "-" : Model.PhoneNumber)</dd>
+
+                    <dt class="col-sm-4">Address</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.Address) ? "-" : Model.Address)</dd>
+
+                    <dt class="col-sm-4">Image URL</dt>
+                    <dd class="col-sm-8">
+                        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+                        {
+                            <a href="@Model.ImageUrl" target="_blank">View Image</a>
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                    </dd>
+
                     <dt class="col-sm-4">Latitude</dt>
                     <dd class="col-sm-8">@Model.Latitude</dd>
 

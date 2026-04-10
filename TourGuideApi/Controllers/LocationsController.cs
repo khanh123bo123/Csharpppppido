@@ -142,6 +142,10 @@ public class LocationsController : ControllerBase
         existingLocation.Longitude = location.Longitude;
         existingLocation.QrCodeData = location.QrCodeData;
         existingLocation.CreatedAt = location.CreatedAt;
+        existingLocation.Category = location.Category;
+        existingLocation.PhoneNumber = location.PhoneNumber;
+        existingLocation.Address = location.Address;
+        existingLocation.ImageUrl = location.ImageUrl;
 
         await _context.SaveChangesAsync();
 

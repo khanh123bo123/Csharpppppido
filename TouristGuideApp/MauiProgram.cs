@@ -1,35 +1,54 @@
-﻿namespace TouristGuideApp;
+namespace TouristGuideApp;
 
 using TouristGuideApp.Services;
+using TouristGuideApp.Views;
+using Microsoft.Maui.Controls.Hosting;
 
 public static class MauiProgram
 {
 	public static MauiApp CreateMauiApp()
 	{
-		var builder = MauiApp.CreateBuilder();
-		builder
-			.UseMauiApp<App>()
-			.UseMauiMaps()
-			.ConfigureFonts(fonts =>
+		try
+		{
+			var builder = MauiApp.CreateBuilder();
+			builder
+				.UseMauiApp<App>()
+				.UseMauiMaps()
+				.ConfigureFonts(fonts =>
+				{
+					fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+					fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+				});
+
+			// Register Services
+			builder.Services.AddSingleton<IDatabaseService, DatabaseService>();
+			builder.Services.AddSingleton<IAudioService, AudioService>();
+			builder.Services.AddSingleton<ILocationService, LocationService>();
+			builder.Services.AddSingleton<IGeofenceService, GeofenceService>();
+			builder.Services.AddSingleton<ISyncService, SyncService>();
+			builder.Services.AddSingleton<IOfflineMapService, OfflineMapService>();
+			builder.Services.AddSingleton<IMapHtmlGenerator, MapHtmlGenerator>();
+
+			builder.Services.AddHttpClient<IApiService, ApiService>(client =>
 			{
-				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+				// Android Emulator uses 10.0.2.2 to reach localhost on host machine
+				// TourGuideApi runs HTTP on port 5214 (HTTPS uses 7098)
+				client.BaseAddress = new Uri("http://10.0.2.2:5214/");
+				client.Timeout = TimeSpan.FromSeconds(30);
 			});
 
-		// Register Services
-		builder.Services.AddSingleton<IDatabaseService, DatabaseService>();
-		builder.Services.AddSingleton<IAudioService, AudioService>();
-		builder.Services.AddSingleton<ILocationService, LocationService>();
-		builder.Services.AddSingleton<IGeofenceService, GeofenceService>();
+			// Register Pages
+			builder.Services.AddSingleton<MainPage>();
+			builder.Services.AddSingleton<MapPage>();
+			builder.Services.AddSingleton<SettingsPage>();
+			builder.Services.AddTransient<POIDetailsPage>();
 
-		builder.Services.AddHttpClient<IApiService, ApiService>(client =>
+			return builder.Build();
+		}
+		catch (Exception ex)
 		{
-			client.BaseAddress = new Uri("https://localhost:5090/");
-		});
-
-		// Register Pages
-		builder.Services.AddSingleton<MainPage>();
-
-		return builder.Build();
+			System.Diagnostics.Debug.WriteLine($"!!!FATAL ERROR during app initialization: {ex}");
+			throw;
+		}
 	}
 }

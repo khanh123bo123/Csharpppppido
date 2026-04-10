@@ -30,6 +30,30 @@
                             <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
 
+                        <div class="col-md-6">
+                            <label asp-for="Category" class="form-label fw-semibold">Loại món/Danh mục</label>
+                            <input asp-for="Category" class="form-control" placeholder="VD: Phở, Bánh Mì..." />
+                            <span asp-validation-for="Category" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="PhoneNumber" class="form-label fw-semibold">Số điện thoại</label>
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="0123456789" />
+                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Address" class="form-label fw-semibold">Địa chỉ cụ thể</label>
+                            <input asp-for="Address" class="form-control" placeholder="VD: 123 Đường Nam Kỳ Khởi Nghĩa, Quận 1..." />
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="ImageUrl" class="form-label fw-semibold">Link Hình ảnh (URL)</label>
+                            <input asp-for="ImageUrl" class="form-control" placeholder="https://..." />
+                            <span asp-validation-for="ImageUrl" class="text-danger"></span>
+                        </div>
+
                         <input asp-for="Latitude" id="latitudeInput" type="hidden" />
                         <input asp-for="Longitude" id="longitudeInput" type="hidden" />
 
@@ -57,6 +81,8 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script>
         if (window.jQuery && $.validator) {
             $.validator.setDefaults({
@@ -94,6 +120,24 @@
         }).addTo(map);
 
         const marker = L.marker([startLat, startLng], { draggable: true }).addTo(map);
+
+        // Add Geocoder
+        L.Control.geocoder({
+            defaultMarkGeocode: false,
+            placeholder: "Tìm kiếm địa điểm..."
+        })
+        .on('markgeocode', function(e) {
+            const bbox = e.geocode.bbox;
+            const center = e.geocode.center;
+            
+            // Move marker and map
+            marker.setLatLng(center);
+            map.fitBounds(bbox);
+            
+            // Set inputs
+            setInputs(center.lat, center.lng);
+        })
+        .addTo(map);
 
         function setInputs(lat, lng) {
             latInput.value = lat.toFixed(6);

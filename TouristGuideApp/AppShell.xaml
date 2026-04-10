@@ -4,11 +4,21 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:TouristGuideApp"
+    xmlns:views="clr-namespace:TouristGuideApp.Views"
     Shell.FlyoutBehavior="Disabled">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+
+    <TabBar>
+        <!-- Chuyển Tab Địa điểm lên đầu để tránh crash do Bản đồ khi khởi động -->
+        <Tab Title="Địa điểm" Icon="dotnet_bot.png">
+            <ShellContent x:Name="listContent" />
+        </Tab>
+        <Tab Title="Bản đồ" Icon="dotnet_bot.png">
+            <ShellContent x:Name="mapContent" />
+        </Tab>
+        <Tab Title="Cài đặt" Icon="dotnet_bot.png">
+            <ShellContent x:Name="settingsContent" />
+        </Tab>
+    </TabBar>
 
 </Shell>

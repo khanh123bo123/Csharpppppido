@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TouristGuideApp.Views.SettingsPage"
+             Title="Cài đặt">
+
+    <VerticalStackLayout Padding="20" Spacing="20">
+        <Label Text="CÀI ĐẶT ỨNG DỤNG" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" />
+
+        <Frame CornerRadius="10">
+            <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                <Label Text="Cập nhật vị trí mỗi 5 giây" VerticalOptions="Center" />
+                <Switch IsToggled="True" IsEnabled="False" />
+            </HorizontalStackLayout>
+        </Frame>
+
+        <Frame CornerRadius="10">
+            <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                <Label Text="Tự động phát âm thuyết minh" VerticalOptions="Center" />
+                <Switch x:Name="swAutoAudio" IsToggled="True" />
+            </HorizontalStackLayout>
+        </Frame>
+
+        <Button Text="Xóa lịch sử đã phát"
+                BackgroundColor="Red"
+                TextColor="White"
+                Clicked="OnClearHistoryClicked" />
+
+        <Label Text="Phiên bản 1.0.0" HorizontalOptions="Center" TextColor="Gray" />
+    </VerticalStackLayout>
+</ContentPage>

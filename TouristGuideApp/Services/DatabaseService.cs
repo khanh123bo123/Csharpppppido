@@ -9,6 +9,7 @@ namespace TouristGuideApp.Services
         Task<List<POI>> GetPOIsAsync();
         Task<int> SavePOIAsync(POI poi);
         Task<int> DeletePOIAsync(POI poi);
+        Task ClearAllPOIsAsync();
     }
 
     public class DatabaseService : IDatabaseService
@@ -23,16 +24,7 @@ namespace TouristGuideApp.Services
             _database = new SQLiteAsyncConnection(dbPath);
             await _database.CreateTableAsync<POI>();
 
-            // Seed data if empty
-            var count = await _database.Table<POI>().CountAsync();
-            if (count == 0)
-            {
-                await _database.InsertAllAsync(new List<POI>
-                {
-                    new POI { Name = "Hồ Hoàn Kiếm", Latitude = 21.0285, Longitude = 105.8522, Radius = 100, Description = "Chào mừng bạn đến với Hồ Hoàn Kiếm, trái tim của thủ đô Hà Nội." },
-                    new POI { Name = "Nhà Thờ Lớn", Latitude = 21.0287, Longitude = 105.8490, Radius = 50, Description = "Bạn đang đứng trước Nhà Thờ Lớn Hà Nội, kiến trúc Gothic tuyệt đẹp." }
-                });
-            }
+            // Không chèn dữ liệu tĩnh ở đây nữa để đảm bảo danh sách sạch
         }
 
         public async Task<List<POI>> GetPOIsAsync()
@@ -44,7 +36,17 @@ namespace TouristGuideApp.Services
         public async Task<int> SavePOIAsync(POI poi)
         {
             await Init();
-            if (poi.Id != 0) return await _database!.UpdateAsync(poi);
+            // Kiểm tra xem đã tồn tại POI này chưa (dựa trên tên hoặc tọa độ) để tránh trùng lặp khi sync
+            var existing = await _database!.Table<POI>()
+                .Where(p => p.Name == poi.Name)
+                .FirstOrDefaultAsync();
+
+            if (existing != null)
+            {
+                poi.Id = existing.Id;
+                return await _database!.UpdateAsync(poi);
+            }
+
             return await _database!.InsertAsync(poi);
         }
 
@@ -52,6 +54,12 @@ namespace TouristGuideApp.Services
         {
             await Init();
             return await _database!.DeleteAsync(poi);
+        }
+
+        public async Task ClearAllPOIsAsync()
+        {
+            await Init();
+            await _database!.DeleteAllAsync<POI>();
         }
     }
 }

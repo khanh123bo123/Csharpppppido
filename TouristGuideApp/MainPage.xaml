@@ -14,7 +14,7 @@
                    TextColor="#512BD4" />
 
             <!-- User Location Info -->
-            <Frame CornerRadius="10" HasShadow="True" BorderColor="#512BD4">
+            <Border StrokeShape="RoundRectangle 10" Stroke="#512BD4" Padding="15">
                 <VerticalStackLayout Spacing="5">
                     <Label Text="Vị trí của bạn hiện tại:" FontAttributes="Bold" FontSize="16" />
                     <Label x:Name="lblUserLocation"
@@ -22,15 +22,15 @@
                            FontSize="18"
                            TextColor="DarkSlateGray" />
                 </VerticalStackLayout>
-            </Frame>
+            </Border>
 
             <!-- Active POI / Notification Area -->
             <Label Text="ĐIỂM ĐẾN ĐANG HOẠT ĐỘNG" FontAttributes="Bold" Margin="0,10,0,0"/>
-            <Frame x:Name="frameActivePOI"
-                   CornerRadius="10"
-                   HasShadow="True"
-                   BackgroundColor="LightGray"
-                   HeightRequest="100">
+            <Border x:Name="frameActivePOI"
+                    StrokeShape="RoundRectangle 10"
+                    BackgroundColor="LightGray"
+                    HeightRequest="100"
+                    Padding="10">
                 <VerticalStackLayout VerticalOptions="Center">
                     <Label x:Name="lblActivePOI"
                            Text="Không có điểm nào gần đây"
@@ -39,7 +39,7 @@
                            FontAttributes="Bold"
                            HorizontalTextAlignment="Center"/>
                 </VerticalStackLayout>
-            </Frame>
+            </Border>
 
             <!-- POI List -->
             <Label Text="DANH SÁCH CÁC ĐIỂM THAM QUAN" FontAttributes="Bold" Margin="0,10,0,0" />
@@ -60,18 +60,21 @@
                                     </VisualState>
                                 </VisualStateGroup>
                             </VisualStateManager.VisualStateGroups>
-                            <Frame Padding="15" CornerRadius="5" HasShadow="False" BorderColor="LightGray">
-                                <Frame.GestureRecognizers>
+                            <Border StrokeShape="RoundRectangle 5" Stroke="LightGray" Padding="15">
+                                <Border.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnPOITapped" CommandParameter="{Binding .}" />
-                                </Frame.GestureRecognizers>
+                                </Border.GestureRecognizers>
                                 <HorizontalStackLayout Spacing="15">
                                     <BoxView Color="#512BD4" WidthRequest="5" HeightRequest="40" VerticalOptions="Center"/>
                                     <VerticalStackLayout VerticalOptions="Center">
-                                        <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="16" InputTransparent="True" />
+                                        <HorizontalStackLayout Spacing="10">
+                                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="16" InputTransparent="True" />
+                                            <Label Text="{Binding DistanceText}" FontSize="14" TextColor="#512BD4" VerticalOptions="Center" InputTransparent="True" />
+                                        </HorizontalStackLayout>
                                         <Label Text="{Binding Description}" FontSize="12" MaxLines="1" LineBreakMode="TailTruncation" InputTransparent="True" />
                                     </VerticalStackLayout>
                                 </HorizontalStackLayout>
-                            </Frame>
+                            </Border>
                         </Grid>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>

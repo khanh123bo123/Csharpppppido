@@ -44,12 +44,24 @@ public class LocationsController : Controller
             return View(model);
         }
 
+        // Chuyển đổi chuỗi tọa độ sang double một cách an toàn
+        if (!double.TryParse(model.Latitude.Replace(',', '.'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double lat) ||
+            !double.TryParse(model.Longitude.Replace(',', '.'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double lng))
+        {
+            ModelState.AddModelError(string.Empty, "Định dạng tọa độ không hợp lệ.");
+            return View(model);
+        }
+
         var request = new Location
         {
             Name = model.Name,
             Description = model.Description,
-            Latitude = model.Latitude,
-            Longitude = model.Longitude
+            Latitude = lat,
+            Longitude = lng,
+            Category = model.Category,
+            PhoneNumber = model.PhoneNumber,
+            Address = model.Address,
+            ImageUrl = model.ImageUrl
         };
 
         var (created, createErrorMessage) = await _locationApiService.CreateLocationAsync(request, cancellationToken);
@@ -84,7 +96,11 @@ public class LocationsController : Controller
             Name = location.Name,
             Description = location.Description,
             Latitude = location.Latitude,
-            Longitude = location.Longitude
+            Longitude = location.Longitude,
+            Category = location.Category,
+            PhoneNumber = location.PhoneNumber,
+            Address = location.Address,
+            ImageUrl = location.ImageUrl
         });
     }
 
@@ -112,6 +128,10 @@ public class LocationsController : Controller
         existing.Description = model.Description;
         existing.Latitude = model.Latitude;
         existing.Longitude = model.Longitude;
+        existing.Category = model.Category;
+        existing.PhoneNumber = model.PhoneNumber;
+        existing.Address = model.Address;
+        existing.ImageUrl = model.ImageUrl;
 
         var (updated, updateErrorMessage) = await _locationApiService.UpdateLocationAsync(id, existing, cancellationToken);
         if (!updated)
