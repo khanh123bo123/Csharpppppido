@@ -28,6 +28,10 @@ public interface IApiService
     Task<string?> LoginAsync(string email, string password, CancellationToken cancellationToken = default);
     Task<bool> VerifyTokenAsync(string token, CancellationToken cancellationToken = default);
     
+    // Tours
+    Task<List<Tour>> GetToursAsync(CancellationToken cancellationToken = default);
+    Task<List<TourLocation>> GetTourLocationsAsync(int tourId, CancellationToken cancellationToken = default);
+    
 
 }
 
@@ -276,6 +280,33 @@ public class ApiService : IApiService
         return response.IsSuccessStatusCode;
     }
 
+    // --- Tour Methods ---
+    public async Task<List<Tour>> GetToursAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var result = await _httpClient.GetFromJsonAsync<List<Tour>>("api/tours", cancellationToken);
+            return result ?? new List<Tour>();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to fetch tours: {ex.Message}");
+            return new List<Tour>();
+        }
+    }
 
+    public async Task<List<TourLocation>> GetTourLocationsAsync(int tourId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var result = await _httpClient.GetFromJsonAsync<List<TourLocation>>($"api/tours/{tourId}/locations", cancellationToken);
+            return result ?? new List<TourLocation>();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to fetch tour locations: {ex.Message}");
+            return new List<TourLocation>();
+        }
+    }
 }
 

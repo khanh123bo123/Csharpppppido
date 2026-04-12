@@ -146,6 +146,7 @@ public class LocationsController : ControllerBase
         existingLocation.PhoneNumber = location.PhoneNumber;
         existingLocation.Address = location.Address;
         existingLocation.ImageUrl = location.ImageUrl;
+        existingLocation.OwnerEmail = location.OwnerEmail;
 
         await _context.SaveChangesAsync();
 

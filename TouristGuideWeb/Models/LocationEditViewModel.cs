@@ -15,13 +15,16 @@ public class LocationEditViewModel
     [StringLength(1000, ErrorMessage = "Mo ta khong duoc vuot qua 1000 ky tu")]
     public string Description { get; set; } = string.Empty;
 
-    [Range(-90, 90, ErrorMessage = "Latitude phai trong khoang -90 den 90")]
-    public double Latitude { get; set; }
+    [Required(ErrorMessage = "Latitude khong duoc de trong")]
+    public string Latitude { get; set; } = string.Empty;
 
-    [Range(-180, 180, ErrorMessage = "Longitude phai trong khoang -180 den 180")]
-    public double Longitude { get; set; }
+    [Required(ErrorMessage = "Longitude khong duoc de trong")]
+    public string Longitude { get; set; } = string.Empty;
 
     public string? Category { get; set; }
+
+    [Required(ErrorMessage = "Vui lòng nhập số điện thoại")]
+    [RegularExpression(@"^\d{10}$", ErrorMessage = "Số điện thoại bắt buộc phải bao gồm đúng 10 số")]
     public string? PhoneNumber { get; set; }
     public string? Address { get; set; }
     public string? ImageUrl { get; set; }

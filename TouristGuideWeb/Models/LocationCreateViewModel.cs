@@ -17,6 +17,9 @@ public class LocationCreateViewModel
     public string Longitude { get; set; } = string.Empty;
 
     public string? Category { get; set; }
+
+    [Required(ErrorMessage = "Vui lòng nhập số điện thoại")]
+    [RegularExpression(@"^\d{10}$", ErrorMessage = "Số điện thoại bắt buộc phải bao gồm đúng 10 số")]
     public string? PhoneNumber { get; set; }
     public string? Address { get; set; }
     public string? ImageUrl { get; set; }

@@ -31,4 +31,7 @@ public class Location
     public string? ImageUrl { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Field to isolate POIs per owner
+    public string? OwnerEmail { get; set; }
 }

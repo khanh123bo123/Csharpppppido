@@ -1,0 +1,122 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+
+namespace TouristGuideWeb.Controllers;
+
+[AllowAnonymous]
+public class AuthController : Controller
+{
+    private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly UserManager<IdentityUser> _userManager;
+
+    public AuthController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
+    {
+        _signInManager = signInManager;
+        _userManager = userManager;
+    }
+
+    [HttpGet]
+    public IActionResult Login(string role = "Admin", string returnUrl = null)
+    {
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            return RedirectToAction("Index", "Dashboard");
+        }
+
+        ViewBag.Role = role;
+        ViewBag.ReturnUrl = returnUrl;
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Login(string email, string password, bool rememberMe, string role = "Admin", string returnUrl = null)
+    {
+        returnUrl ??= Url.Content("~/Dashboard");
+
+        // Verify role before logging in
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user != null)
+        {
+            var isRoleCorrect = await _userManager.IsInRoleAsync(user, role);
+            if (!isRoleCorrect)
+            {
+                ModelState.AddModelError(string.Empty, $"Tài khoản này không có quyền truy cập cổng {role}.");
+                ViewBag.Role = role;
+                return View();
+            }
+        }
+
+        var result = await _signInManager.PasswordSignInAsync(email, password, rememberMe, lockoutOnFailure: false);
+        if (result.Succeeded)
+        {
+            return LocalRedirect(returnUrl);
+        }
+
+        ModelState.AddModelError(string.Empty, "Tài khoản hoặc mật khẩu không đúng.");
+        ViewBag.Role = role;
+        return View();
+    }
+
+    [HttpGet]
+    public IActionResult Register()
+    {
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            return RedirectToAction("Index", "Dashboard");
+        }
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Register(string email, string password, string confirmPassword)
+    {
+        if (password != confirmPassword)
+        {
+            ModelState.AddModelError(string.Empty, "Mật khẩu xác nhận không khớp.");
+            return View();
+        }
+
+        var user = new IdentityUser { UserName = email, Email = email };
+        var result = await _userManager.CreateAsync(user, password);
+
+        if (result.Succeeded)
+        {
+            // Auto assign as Owner since Admin is manual/seeded
+            await _userManager.AddToRoleAsync(user, "Owner");
+            
+            await _signInManager.SignInAsync(user, isPersistent: false);
+            return RedirectToAction("Index", "Dashboard");
+        }
+
+        foreach (var error in result.Errors)
+        {
+            string message = error.Code switch
+            {
+                "PasswordRequiresNonAlphanumeric" => "Mật khẩu phải chứa ký tự đặc biệt (vd: @, #, $...).",
+                "PasswordRequiresDigit" => "Mật khẩu phải chứa ít nhất một chữ số (0-9).",
+                "PasswordRequiresLower" => "Mật khẩu phải chứa ít nhất một chữ cái thường (a-z).",
+                "PasswordRequiresUpper" => "Mật khẩu phải chứa ít nhất một chữ cái in hoa (A-Z).",
+                "PasswordTooShort" => "Mật khẩu phải có độ dài tối thiểu 6 ký tự.",
+                "DuplicateUserName" => "Tên đăng nhập hoặc Email này đã được sử dụng.",
+                "DuplicateEmail" => "Email này đã được sử dụng.",
+                "InvalidEmail" => "Định dạng Email không hợp lệ.",
+                "InvalidUserName" => "Tên đăng nhập không hợp lệ.",
+                _ => error.Description
+            };
+            ModelState.AddModelError(string.Empty, message);
+        }
+
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Logout()
+    {
+        await _signInManager.SignOutAsync();
+        return RedirectToAction("Index", "Home");
+    }
+}

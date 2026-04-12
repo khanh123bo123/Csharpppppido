@@ -28,4 +28,7 @@ public class Location
     public string? PhoneNumber { get; set; }
     public string? Address { get; set; }
     public string? ImageUrl { get; set; }
+    
+    // Multi-tenant owner tracking
+    public string? OwnerEmail { get; set; }
 }

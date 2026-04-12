@@ -1,0 +1,92 @@
+@{
+    ViewData["Title"] = "Thống Kê Dữ Liệu";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fa-solid fa-chart-simple text-primary"></i> Phân tích Biểu đồ Học Máy</h2>
+</div>
+
+<div class="row">
+    <!-- Chart 1: Categories -->
+    <div class="col-md-6 mb-4">
+        <div class="card card-premium h-100">
+            <div class="card-header bg-white">
+                <i class="fa-solid fa-chart-bar text-warning me-1"></i> Số lượng Quán Ăn theo Phân Loại
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 2: Audio TTS -->
+    <div class="col-md-6 mb-4">
+        <div class="card card-premium h-100">
+            <div class="card-header bg-white">
+                <i class="fa-solid fa-chart-pie text-pink me-1"></i> Trạng thái Render Giọng Đọc (TTS)
+            </div>
+            <div class="card-body">
+                <canvas id="audioChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 3: Languages -->
+    <div class="col-md-12 mb-4">
+        <div class="card card-premium h-100">
+            <div class="card-header bg-white">
+                <i class="fa-solid fa-chart-line text-success me-1"></i> Tỷ trọng Phủ Sóng Đa Ngôn Ngữ (Localization)
+            </div>
+            <div class="card-body" style="max-height: 400px; display:flex; justify-content:center;">
+                <canvas id="langChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Category Bar Chart
+            new Chart(document.getElementById('categoryChart'), {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(ViewBag.CategoryLabels)),
+                    datasets: [{
+                        label: 'Số lượng quán',
+                        data: @Html.Raw(Json.Serialize(ViewBag.CategoryData)),
+                        backgroundColor: '#ff9800',
+                        borderRadius: 5
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+
+            // Audio TTS Doughnut Chart
+            new Chart(document.getElementById('audioChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(ViewBag.AudioLabels)),
+                    datasets: [{
+                        data: @Html.Raw(Json.Serialize(ViewBag.AudioData)),
+                        backgroundColor: ['#4caf50', '#ffeb3b', '#f44336']
+                    }]
+                },
+                options: { responsive: true }
+            });
+
+            // Languages Pie Chart
+            new Chart(document.getElementById('langChart'), {
+                type: 'pie',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(ViewBag.LangLabels)),
+                    datasets: [{
+                        data: @Html.Raw(Json.Serialize(ViewBag.LangData)),
+                        backgroundColor: ['#2196f3', '#9c27b0', '#00bcd4', '#e91e63', '#4caf50']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI.Controls"
+             x:Class="TouristGuideApp.Views.QRScanPage"
+             Title="Quét mã QR">
+
+    <Grid>
+        <!-- The Barcode Reader View -->
+        <zxing:CameraBarcodeReaderView
+            x:Name="barcodeReader"
+            BarcodesDetected="CameraBarcodeReaderView_BarcodesDetected"
+            IsDetecting="True"
+            HorizontalOptions="FillAndExpand"
+            VerticalOptions="FillAndExpand" />
+
+        <!-- Overlay overlay elements to guide user -->
+        <Grid Padding="20">
+            <Label Text="Đưa camera vào mã QR"
+                   TextColor="White"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Start"
+                   Margin="0,40,0,0">
+                <Label.Shadow>
+                    <Shadow Brush="Black" Offset="1,1" Radius="2" />
+                </Label.Shadow>
+            </Label>
+        </Grid>
+    </Grid>
+
+</ContentPage>

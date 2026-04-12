@@ -1,0 +1,57 @@
+@model IEnumerable<TouristGuideWeb.Models.Tour>
+
+@{
+    ViewData["Title"] = "Lộ Trình";
+}
+
+<div class="card-premium">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold m-0 text-dark"><i class="fa-solid fa-route me-2 text-primary"></i> Lộ Trình</h5>
+        <a asp-action="Create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus me-1"></i>Tạo Lộ trình</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tên Lộ Trình</th>
+                        <th>Thời lượng</th>
+                        <th>Khoảng cách</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-bold">@item.Name</div>
+                                <div class="text-muted small">@item.Description</div>
+                            </td>
+                            <td>@item.EstimatedDurationMinutes phút</td>
+                            <td>@item.EstimatedDistanceKm km</td>
+                            <td>
+                                @if(item.IsActive) { <span class="badge bg-success">Active</span> }
+                                else { <span class="badge bg-secondary">Inactive</span> }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="Xâu chuỗi địa điểm"><i class="fa-solid fa-link"></i> Biên tập</a>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen"></i></a>
+                                <form asp-action="Delete" asp-route-id="@item.Id" style="display:inline;" onsubmit="return confirm('Chắc chắn xóa?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">Chưa có lộ trình nào.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

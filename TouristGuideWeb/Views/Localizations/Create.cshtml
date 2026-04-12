@@ -1,0 +1,42 @@
+@model TouristGuideWeb.Models.CreateLocalizationRequest
+@{
+    var loc = ViewBag.Location as TouristGuideWeb.Models.Location;
+    ViewData["Title"] = "Thêm Bản Dịch";
+}
+
+<div class="card-premium" style="max-width: 800px; margin: 0 auto;">
+    <div class="card-header bg-white">
+        <h5 class="fw-bold m-0"><i class="fa-solid fa-earth-americas text-primary me-2"></i> Thêm ngôn ngữ cho: <span class="text-danger">@loc?.Name</span></h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <input type="hidden" asp-for="LocationId" />
+            
+            <div class="mb-3">
+                <label asp-for="LanguageCode" class="form-label fw-semibold">Chọn ngôn ngữ đích</label>
+                <select asp-for="LanguageCode" asp-items="ViewBag.Languages" class="form-select" required>
+                    <option value="">-- Chọn ngôn ngữ --</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label asp-for="LocalizedName" class="form-label fw-semibold">Tên quán ăn (đã dịch)</label>
+                <input asp-for="LocalizedName" class="form-control" placeholder="VD: The best Pho in district 4..." required />
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="LocalizedDescription" class="form-label fw-semibold">
+                    Kịch bản Thuyết minh (Nội dung Voice TTS)
+                </label>
+                <div class="text-muted small mb-2"><i class="fa-solid fa-robot"></i> AI sẽ tự động đọc đoạn text này để phát cho khách du lịch. Hãy viết thật truyền cảm!</div>
+                <textarea asp-for="LocalizedDescription" class="form-control" rows="6" required></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-language me-2"></i>Lưu và Tạo Audio</button>
+                <a asp-action="Manage" asp-route-id="@Model.LocationId" class="btn btn-light border">Hủy thao tác</a>
+            </div>
+        </form>
+    </div>
+</div>

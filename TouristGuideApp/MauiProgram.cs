@@ -3,6 +3,7 @@ namespace TouristGuideApp;
 using TouristGuideApp.Services;
 using TouristGuideApp.Views;
 using Microsoft.Maui.Controls.Hosting;
+using ZXing.Net.Maui.Controls;
 
 public static class MauiProgram
 {
@@ -14,6 +15,7 @@ public static class MauiProgram
 			builder
 				.UseMauiApp<App>()
 				.UseMauiMaps()
+                .UseBarcodeReader()
 				.ConfigureFonts(fonts =>
 				{
 					fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -42,6 +44,9 @@ public static class MauiProgram
 			builder.Services.AddSingleton<MapPage>();
 			builder.Services.AddSingleton<SettingsPage>();
 			builder.Services.AddTransient<POIDetailsPage>();
+            builder.Services.AddTransient<ToursPage>();
+            builder.Services.AddTransient<QRScanPage>();
+            builder.Services.AddTransient<TourMapPage>();
 
 			return builder.Build();
 		}

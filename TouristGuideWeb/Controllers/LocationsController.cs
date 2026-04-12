@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -8,6 +9,7 @@ using TouristGuideWeb.Services;
 
 namespace TouristGuideWeb.Controllers;
 
+[Authorize(Roles = "Admin,Owner")]
 public class LocationsController : Controller
 {
     private readonly LocationApiService _locationApiService;
@@ -20,12 +22,20 @@ public class LocationsController : Controller
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
         var locations = await _locationApiService.GetAllAsync(cancellationToken);
+        if (User.IsInRole("Owner") && !User.IsInRole("Admin"))
+        {
+            locations = locations.Where(l => string.Equals(l.OwnerEmail, User.Identity?.Name, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
         return View(locations);
     }
 
     public async Task<IActionResult> IndexMap(CancellationToken cancellationToken)
     {
         var locations = await _locationApiService.GetAllAsync(cancellationToken);
+        if (User.IsInRole("Owner") && !User.IsInRole("Admin"))
+        {
+            locations = locations.Where(l => string.Equals(l.OwnerEmail, User.Identity?.Name, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
         return View(locations);
     }
 
@@ -61,7 +71,8 @@ public class LocationsController : Controller
             Category = model.Category,
             PhoneNumber = model.PhoneNumber,
             Address = model.Address,
-            ImageUrl = model.ImageUrl
+            ImageUrl = model.ImageUrl,
+            OwnerEmail = User.Identity?.Name
         };
 
         var (created, createErrorMessage) = await _locationApiService.CreateLocationAsync(request, cancellationToken);
@@ -90,13 +101,18 @@ public class LocationsController : Controller
             return NotFound();
         }
 
+        if (User.IsInRole("Owner") && !User.IsInRole("Admin") && !string.Equals(location.OwnerEmail, User.Identity?.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            return Forbid();
+        }
+
         return View(new LocationEditViewModel
         {
             Id = location.Id,
             Name = location.Name,
             Description = location.Description,
-            Latitude = location.Latitude,
-            Longitude = location.Longitude,
+            Latitude = location.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            Longitude = location.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture),
             Category = location.Category,
             PhoneNumber = location.PhoneNumber,
             Address = location.Address,
@@ -124,14 +140,28 @@ public class LocationsController : Controller
             return NotFound();
         }
 
+        if (User.IsInRole("Owner") && !User.IsInRole("Admin") && !string.Equals(existing.OwnerEmail, User.Identity?.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            return Forbid();
+        }
+
+        if (!double.TryParse(model.Latitude.Replace(',', '.'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double lat) ||
+            !double.TryParse(model.Longitude.Replace(',', '.'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double lng))
+        {
+            ModelState.AddModelError(string.Empty, "Định dạng tọa độ không hợp lệ.");
+            return View(model);
+        }
+
         existing.Name = model.Name;
         existing.Description = model.Description;
-        existing.Latitude = model.Latitude;
-        existing.Longitude = model.Longitude;
+        existing.Latitude = lat;
+        existing.Longitude = lng;
         existing.Category = model.Category;
         existing.PhoneNumber = model.PhoneNumber;
         existing.Address = model.Address;
         existing.ImageUrl = model.ImageUrl;
+        // Do not update OwnerEmail arbitrarily
+
 
         var (updated, updateErrorMessage) = await _locationApiService.UpdateLocationAsync(id, existing, cancellationToken);
         if (!updated)
@@ -153,6 +183,14 @@ public class LocationsController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
+        var existing = await _locationApiService.GetLocationByIdAsync(id, cancellationToken);
+        if (existing == null) return NotFound();
+
+        if (User.IsInRole("Owner") && !User.IsInRole("Admin") && !string.Equals(existing.OwnerEmail, User.Identity?.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            return Forbid();
+        }
+
         var deleted = await _locationApiService.DeleteLocationAsync(id, cancellationToken);
         TempData[deleted ? "SuccessMessage" : "ErrorMessage"] = deleted
             ? "Xoa dia diem thanh cong."
@@ -167,6 +205,11 @@ public class LocationsController : Controller
         if (location is null)
         {
             return NotFound();
+        }
+
+        if (User.IsInRole("Owner") && !User.IsInRole("Admin") && !string.Equals(location.OwnerEmail, User.Identity?.Name, StringComparison.OrdinalIgnoreCase))
+        {
+            return Forbid();
         }
 
         if (string.IsNullOrWhiteSpace(location.QrCodeData) && TempData.TryGetValue("QrCodeData", out var qrData))

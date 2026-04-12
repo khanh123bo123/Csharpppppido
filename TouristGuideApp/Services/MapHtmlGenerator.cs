@@ -13,6 +13,7 @@ namespace TouristGuideApp.Services
     public interface IMapHtmlGenerator
     {
         string GenerateMapHtml(IEnumerable<POI> pois, double userLat, double userLon);
+        string GenerateTourMapHtml(string tourName, IEnumerable<POI> tourPois, double userLat, double userLon);
         string GetMapHtmlFilePath();
     }
 
@@ -142,6 +143,81 @@ namespace TouristGuideApp.Services
             var cacheDir = FileSystem.Current.CacheDirectory;
             var htmlPath = Path.Combine(cacheDir, "map.html");
             return htmlPath;
+        }
+
+        public string GenerateTourMapHtml(string tourName, IEnumerable<POI> tourPois, double userLat, double userLon)
+        {
+            var poiList = tourPois?.ToList() ?? new List<POI>();
+            var sb = new StringBuilder();
+
+            sb.AppendLine("<!DOCTYPE html>");
+            sb.AppendLine("<html>");
+            sb.AppendLine("<head>");
+            sb.AppendLine("    <meta charset='utf-8' />");
+            sb.AppendLine("    <meta name='viewport' content='width=device-width, initial-scale=1.0'>");
+            sb.AppendLine("    <title>Lộ Trình</title>");
+            sb.AppendLine("    <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css' />");
+            sb.AppendLine("    <style>");
+            sb.AppendLine("        body { margin: 0; padding: 0; font-family: Arial, sans-serif; }");
+            sb.AppendLine("        #map { position: absolute; top: 0; bottom: 0; width: 100%; }");
+            sb.AppendLine("        .stop-popup b { color: #e65100; font-size: 14px; }");
+            sb.AppendLine("        .stop-popup .order { background:#e65100; color:white; border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; font-weight:bold; margin-right:6px; }");
+            sb.AppendLine("    </style>");
+            sb.AppendLine("</head>");
+            sb.AppendLine("<body>");
+            sb.AppendLine("    <div id='map'></div>");
+            sb.AppendLine("    <script src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js'></script>");
+            sb.AppendLine("    <script>");
+
+            // Center map on first POI or user location
+            double centerLat = poiList.Count > 0 ? poiList[0].Latitude : userLat;
+            double centerLon = poiList.Count > 0 ? poiList[0].Longitude : userLon;
+            sb.AppendLine($"        var map = L.map('map').setView([{centerLat.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {centerLon.ToString(System.Globalization.CultureInfo.InvariantCulture)}], 15);");
+            sb.AppendLine("        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '\u00a9 OSM' }).addTo(map);");
+
+            // User marker
+            sb.AppendLine($"        L.circleMarker([{userLat.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {userLon.ToString(System.Globalization.CultureInfo.InvariantCulture)}], {{ color:'#0088FF', fillColor:'#0088FF', fillOpacity:0.9, radius:8 }}).addTo(map).bindPopup('Vị trí của bạn');");
+
+            if (poiList.Count > 0)
+            {
+                // Build polyline coordinates array
+                sb.Append("        var routeCoords = [");
+                for (int i = 0; i < poiList.Count; i++)
+                {
+                    sb.Append($"[{poiList[i].Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {poiList[i].Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}]");
+                    if (i < poiList.Count - 1) sb.Append(",");
+                }
+                sb.AppendLine("];");
+
+                // Draw polyline route
+                sb.AppendLine("        L.polyline(routeCoords, { color: '#e65100', weight: 5, opacity: 0.85, dashArray: '8, 6' }).addTo(map);");
+
+                // Fit bounds to route
+                sb.AppendLine("        map.fitBounds(routeCoords, { padding: [50, 50] });");
+
+                // Numbered markers for each stop
+                for (int i = 0; i < poiList.Count; i++)
+                {
+                    var poi = poiList[i];
+                    var safeName = poi.Name?.Replace("'", "\\'").Replace("\n", " ") ?? "";
+                    var safeDesc = poi.Description?.Replace("'", "\\'").Replace("\n", " ") ?? "";
+                    var lat = poi.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    var lon = poi.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    int stopNum = i + 1;
+
+                    sb.AppendLine($"        var icon{i} = L.divIcon({{ className:'', html:'<div style=\"background:#e65100;color:white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:15px;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4);\">{stopNum}</div>', iconSize:[32,32], iconAnchor:[16,16] }});");
+                    sb.AppendLine($"        L.marker([{lat}, {lon}], {{icon: icon{i}}}).addTo(map).bindPopup('<b>{stopNum}. {safeName}</b><br/>{safeDesc}').openPopup();");
+                }
+            }
+            else
+            {
+                sb.AppendLine("        L.circleMarker([" + centerLat.ToString(System.Globalization.CultureInfo.InvariantCulture) + "," + centerLon.ToString(System.Globalization.CultureInfo.InvariantCulture) + "], {radius:10, color:'gray'}).addTo(map).bindPopup('Chưa có địa điểm nào trong lộ trình này.');");
+            }
+
+            sb.AppendLine("    </script>");
+            sb.AppendLine("</body>");
+            sb.AppendLine("</html>");
+            return sb.ToString();
         }
     }
 }

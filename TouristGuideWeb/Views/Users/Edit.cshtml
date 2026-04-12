@@ -1,0 +1,63 @@
+@using Microsoft.AspNetCore.Identity
+@model IdentityUser
+@{
+    ViewData["Title"] = "Chỉnh sửa Tài khoản";
+    var currentRole = ViewBag.CurrentRole as string;
+}
+
+<div class="card-premium" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-header bg-white">
+        <h5 class="fw-bold m-0"><i class="fa-solid fa-user-pen text-primary me-2"></i> Cập nhật User: <span class="text-danger">@Model.Email</span></h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <input type="hidden" name="id" value="@Model.Id" />
+            
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Địa chỉ Email</label>
+                <input type="email" class="form-control bg-light" value="@Model.Email" disabled />
+                <div class="text-muted small">Email (Username) không thể thay đổi sau khi tạo.</div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Phân quyền (Role)</label>
+                <select name="role" class="form-select" required>
+                    @if (Model.Email == "pipizxc05@gmail.com")
+                    {
+                        <option value="Admin">Quản Trị Viên (Admin) - Cố định</option>
+                    }
+                    else
+                    {
+                        @if (currentRole == "Owner")
+                        {
+                            <option value="Owner" selected>Chủ Quán (Owner)</option>
+                            <option value="Admin">Quản Trị Viên (Admin)</option>
+                        }
+                        else if (currentRole == "Admin")
+                        {
+                            <option value="Owner">Chủ Quán (Owner)</option>
+                            <option value="Admin" selected>Quản Trị Viên (Admin)</option>
+                        }
+                        else
+                        {
+                            <option value="">-- Cấp quyền User --</option>
+                            <option value="Owner">Chủ Quán (Owner)</option>
+                            <option value="Admin">Quản Trị Viên (Admin)</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="mb-4 p-3 bg-light rounded border">
+                <label class="form-label fw-semibold text-danger"><i class="fa-solid fa-key me-1"></i>Đổi mật khẩu mới (Tùy chọn)</label>
+                <input type="text" name="newPassword" class="form-control" placeholder="Để trống nếu không muốn đổi mật khẩu" />
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-save me-2"></i>Lưu thay đổi</button>
+                <a asp-action="Index" class="btn btn-light border">Hủy thao tác</a>
+            </div>
+        </form>
+    </div>
+</div>

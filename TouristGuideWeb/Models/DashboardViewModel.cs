@@ -5,6 +5,8 @@ namespace TouristGuideWeb.Models;
 public class DashboardViewModel
 {
     public int TotalLocations { get; set; }
+    public int TotalTours { get; set; }
+    public int TotalAudios { get; set; }
     public List<ProvinceStatItem> ProvinceStats { get; set; } = new();
     public List<NearestLocationItem> NearestToHanoi { get; set; } = new();
 }

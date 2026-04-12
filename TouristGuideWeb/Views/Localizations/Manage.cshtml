@@ -1,0 +1,72 @@
+@model IEnumerable<TouristGuideWeb.Models.LocalizationDto>
+@{
+    var loc = ViewBag.Location as TouristGuideWeb.Models.Location;
+    ViewData["Title"] = $"Bản dịch của {loc?.Name}";
+}
+
+<div class="mb-3">
+    <a asp-action="Index" class="btn btn-light border btn-sm"><i class="fa-solid fa-arrow-left me-1"></i>Về danh sách</a>
+</div>
+
+<div class="card-premium">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold m-0"><i class="fa-solid fa-list text-primary me-2"></i> Bản dịch: <span class="text-danger">@loc?.Name</span></h5>
+        <a asp-action="Create" asp-route-locationId="@loc?.Id" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-plus me-1"></i>Thêm ngôn ngữ
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ngôn ngữ</th>
+                        <th>Tên bản dịch</th>
+                        <th>Mô tả ngắn</th>
+                        <th>Voice AI</th>
+                        <th class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <span class="badge bg-info text-dark" style="font-size:0.85rem">@item.LanguageCode</span>
+                            </td>
+                            <td class="fw-bold">@item.LocalizedName</td>
+                            <td class="text-muted small">
+                                @(item.LocalizedDescription?.Length > 50 ? item.LocalizedDescription.Substring(0, 50) + "..." : item.LocalizedDescription)
+                            </td>
+                            <td>
+                                @if (item.AudioGenerationStatus == "generated" || item.AudioGenerationStatus == "cached")
+                                {
+                                    <span class="badge bg-success"><i class="fa-solid fa-check"></i> Đã tạo Audio</span>
+                                }
+                                else if (item.AudioGenerationStatus == "pending")
+                                {
+                                    <span class="badge bg-warning text-dark"><i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Lỗi Audio</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Xoá bản dịch này?');">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <input type="hidden" name="locationId" value="@item.LocationId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="5" class="text-center py-4 text-muted">Chưa có bản dịch nào.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

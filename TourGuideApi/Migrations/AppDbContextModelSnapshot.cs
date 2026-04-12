@@ -110,6 +110,9 @@ namespace TourGuideApi.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("OwnerEmail")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("TEXT");
 
@@ -119,6 +122,68 @@ namespace TourGuideApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Locations");
+                });
+
+            modelBuilder.Entity("TourGuideApi.Models.Tour", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("EstimatedDistanceKm")
+                        .HasColumnType("REAL");
+
+                    b.Property<int>("EstimatedDurationMinutes")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OwnerEmail")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Tours");
+                });
+
+            modelBuilder.Entity("TourGuideApi.Models.TourLocation", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("LocationId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("TourId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("TourId");
+
+                    b.ToTable("TourLocations");
                 });
 
             modelBuilder.Entity("TourGuideApi.Models.User", b =>
@@ -182,6 +247,25 @@ namespace TourGuideApi.Migrations
                         .IsRequired();
 
                     b.Navigation("Location");
+                });
+
+            modelBuilder.Entity("TourGuideApi.Models.TourLocation", b =>
+                {
+                    b.HasOne("TourGuideApi.Models.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TourGuideApi.Models.Tour", "Tour")
+                        .WithMany()
+                        .HasForeignKey("TourId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Location");
+
+                    b.Navigation("Tour");
                 });
 #pragma warning restore 612, 618
         }

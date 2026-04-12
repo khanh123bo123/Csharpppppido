@@ -1,0 +1,67 @@
+@{
+    ViewData["Title"] = ViewBag.Role == "Admin" ? "Đăng nhập Quản Trị" : "Đăng nhập Chủ Quán";
+    ViewData["IsLandingPage"] = true; // Use empty layout
+}
+
+<div class="d-flex align-items-center justify-content-center min-vh-100" style="background: linear-gradient(135deg, #f0f4f8 0%, #ffffff 100%);">
+    <div class="card p-5" style="border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); border: none; max-width: 420px; width: 100%;">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold" style="color: #1a1d2d;">@ViewData["Title"]</h2>
+            <p class="text-muted">Nhập thông tin tài khoản của bạn</p>
+        </div>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger" style="border-radius: 8px;">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <div><i class="fa-solid fa-circle-exclamation"></i> @error.ErrorMessage</div>
+                }
+            </div>
+        }
+
+        <form method="post" asp-action="Login">
+            <input type="hidden" name="role" value="@ViewBag.Role" />
+            <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+            
+            <div class="mb-3">
+                <label class="form-label text-muted fw-semibold" style="font-size: 0.9rem;">Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fa-regular fa-envelope"></i></span>
+                    <input type="email" name="email" class="form-control border-start-0 ps-0" placeholder="@(ViewBag.Role == "Admin" ? "admin@tourguidequan4.com" : "chuquan@example.com")" required style="box-shadow: none;" />
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label text-muted fw-semibold" style="font-size: 0.9rem;">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-lock"></i></span>
+                    <input type="password" name="password" class="form-control border-start-0 ps-0" placeholder="••••••••" required style="box-shadow: none;" />
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mb-4">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" name="rememberMe" id="rememberMe" value="true" />
+                    <label class="form-check-label text-muted" for="rememberMe" style="font-size: 0.9rem;">Ghi nhớ đăng nhập</label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn w-100 fw-bold py-2 mb-3" style="background-color: #ff5722; color: white; border-radius: 8px;">
+                Đăng Nhập
+            </button>
+            
+            @if (ViewBag.Role == "Owner")
+            {
+                <div class="text-center mt-3">
+                    <span class="text-muted" style="font-size: 0.9rem;">Chưa có tài khoản?</span>
+                    <a href="/Auth/Register" class="text-decoration-none fw-semibold" style="color: #ff5722;">Đăng ký ngay</a>
+                </div>
+            }
+            
+            <div class="text-center mt-3">
+                <a href="/" class="text-decoration-none text-muted" style="font-size: 0.85rem;">&larr; Trở về Trang chủ</a>
+            </div>
+        </form>
+    </div>
+</div>

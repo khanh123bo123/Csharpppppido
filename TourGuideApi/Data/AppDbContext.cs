@@ -13,6 +13,8 @@ public class AppDbContext : DbContext
     public DbSet<Location> Locations { get; set; }
     public DbSet<Localization> Localizations { get; set; }
     public DbSet<User> Users { get; set; }
+    public DbSet<Tour> Tours { get; set; }
+    public DbSet<TourLocation> TourLocations { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

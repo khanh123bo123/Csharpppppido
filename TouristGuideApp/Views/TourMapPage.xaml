@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TouristGuideApp.Views.TourMapPage"
+             Title="Bản đồ Lộ trình"
+             Shell.NavBarIsVisible="True">
+
+    <Grid RowDefinitions="Auto, *">
+
+        <!-- Tour info header -->
+        <Frame Grid.Row="0" BackgroundColor="#e65100" Padding="16,10" CornerRadius="0" HasShadow="False">
+            <StackLayout Spacing="2">
+                <Label x:Name="lblTourName" Text="Đang tải..." FontSize="18"
+                       FontAttributes="Bold" TextColor="White" />
+                <Label x:Name="lblTourInfo" Text="" FontSize="13"
+                       TextColor="#FFCCBC" />
+            </StackLayout>
+        </Frame>
+
+        <!-- Map WebView -->
+        <WebView x:Name="tourMapWebView" Grid.Row="1" />
+
+    </Grid>
+
+</ContentPage>

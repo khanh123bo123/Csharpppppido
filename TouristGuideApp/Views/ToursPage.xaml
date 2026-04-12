@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TouristGuideApp.Views.ToursPage"
+             Title="Lộ Trình Đề Xuất">
+
+    <Grid RowDefinitions="Auto,*">
+        
+        <StackLayout Grid.Row="0" Padding="20">
+            <Label Text="Khám Phá" FontSize="28" FontAttributes="Bold" TextColor="#333"/>
+            <Label Text="Danh sách các lộ trình ẩm thực được thiết kế sẵn cho bạn." FontSize="14" TextColor="#666" Margin="0,5,0,0"/>
+        </StackLayout>
+
+        <RefreshView Grid.Row="1" x:Name="RefreshTours" IsRefreshing="{Binding IsBusy}">
+            <CollectionView x:Name="ToursList" SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Frame Margin="20,10" Padding="0" CornerRadius="12" HasShadow="True" BorderColor="Transparent">
+                            
+                            <Frame.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnTourTapped" CommandParameter="{Binding .}" />
+                            </Frame.GestureRecognizers>
+
+                            <Grid RowDefinitions="Auto, Auto" ColumnDefinitions="*, Auto" Padding="15" BackgroundColor="White">
+                                
+                                <Label Grid.Row="0" Grid.Column="0" Text="{Binding Name}" FontSize="18" FontAttributes="Bold" TextColor="#333"/>
+                                
+                                <HorizontalStackLayout Grid.Row="0" Grid.Column="1" VerticalOptions="Center" Spacing="5">
+                                    <Label Text="📍" FontSize="14"/>
+                                    <Label Text="{Binding EstimatedDistanceKm, StringFormat='{0} km'}" FontSize="14" TextColor="#ff5722" FontAttributes="Bold"/>
+                                </HorizontalStackLayout>
+
+                                <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding Description}" FontSize="14" TextColor="#555" Margin="0,8,0,0"/>
+                            </Grid>
+                        </Frame>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+
+    </Grid>
+
+</ContentPage>

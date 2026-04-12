@@ -16,6 +16,12 @@
         <Tab Title="Bản đồ" Icon="dotnet_bot.png">
             <ShellContent x:Name="mapContent" />
         </Tab>
+        <Tab Title="Lộ trình" Icon="dotnet_bot.png">
+            <ShellContent x:Name="toursContent" />
+        </Tab>
+        <Tab Title="Quét QR" Icon="dotnet_bot.png">
+            <ShellContent x:Name="qrScanContent" />
+        </Tab>
         <Tab Title="Cài đặt" Icon="dotnet_bot.png">
             <ShellContent x:Name="settingsContent" />
         </Tab>

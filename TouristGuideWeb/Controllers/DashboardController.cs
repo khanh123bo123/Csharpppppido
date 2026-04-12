@@ -1,23 +1,45 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using TouristGuideWeb.Models;
 using TouristGuideWeb.Services;
 
 namespace TouristGuideWeb.Controllers;
 
+[Authorize(Roles = "Admin,Owner")]
 public class DashboardController : Controller
 {
     private const double HanoiLatitude = 21.027763;
     private const double HanoiLongitude = 105.83416;
     private readonly LocationApiService _locationApiService;
+    private readonly TourApiService _tourApiService;
+    private readonly LocalizationApiService _localizationApiService;
 
-    public DashboardController(LocationApiService locationApiService)
+    public DashboardController(LocationApiService locationApiService, TourApiService tourApiService, LocalizationApiService localizationApiService)
     {
         _locationApiService = locationApiService;
+        _tourApiService = tourApiService;
+        _localizationApiService = localizationApiService;
     }
 
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        var locations = await _locationApiService.GetAllAsync(cancellationToken);
+        var locationsRaw = await _locationApiService.GetAllAsync(cancellationToken);
+        
+        var locations = User.IsInRole("Owner") && !User.IsInRole("Admin")
+            ? locationsRaw.Where(l => string.Equals(l.OwnerEmail, User.Identity?.Name, StringComparison.OrdinalIgnoreCase)).ToList()
+            : locationsRaw.ToList();
+
+        var toursRaw = await _tourApiService.GetAllAsync(cancellationToken);
+        var tours = User.IsInRole("Owner") && !User.IsInRole("Admin")
+            ? toursRaw.Where(t => string.Equals(t.OwnerEmail, User.Identity?.Name, StringComparison.OrdinalIgnoreCase)).ToList()
+            : toursRaw.ToList();
+
+        var totalAudios = 0;
+        foreach(var loc in locations)
+        {
+            var locals = await _localizationApiService.GetLocalizationsByLocationAsync(loc.Id, cancellationToken);
+            totalAudios += locals.Count(l => l.AudioGenerationStatus == "generated" || l.AudioGenerationStatus == "cached");
+        }
 
         var provinceStats = locations
             .GroupBy(InferProvince)
@@ -48,6 +70,8 @@ public class DashboardController : Controller
         var model = new DashboardViewModel
         {
             TotalLocations = locations.Count,
+            TotalTours = tours.Count,
+            TotalAudios = totalAudios,
             ProvinceStats = provinceStats,
             NearestToHanoi = nearestToHanoi
         };

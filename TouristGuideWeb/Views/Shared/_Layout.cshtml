@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - TouristGuideWeb</title>
+    <title>@ViewData["Title"] - Vĩnh Khánh Admin</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.min.css" />
@@ -12,46 +12,110 @@
     <link rel="stylesheet" href="~/TouristGuideWeb.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">TouristGuideWeb</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Locations" asp-action="Index">Locations</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
-                        </li>
+    @if (ViewData["IsLandingPage"] as bool? == true)
+    {
+        @RenderBody()
+    }
+    else
+    {
+        <div class="wrapper">
+            <!-- Sidebar -->
+            <nav class="sidebar">
+                <div class="sidebar-header">
+                    <a asp-area="" asp-controller="Dashboard" asp-action="Index">
+                        <div class="icon-logo">
+                            <i class="fa-solid fa-camera-retro"></i>
+                        </div>
+                        Vĩnh Khánh
+                        <span style="color: #ff5722; font-size: 0.9rem;">
+                            @(User.IsInRole("Admin") ? "Admin" : (User.IsInRole("Owner") ? "Chủ Quán" : ""))
+                        </span>
+                    </a>
+                </div>
 
-                    </ul>
-                    <partial name="_LoginPartial" />
+                <ul class="list-unstyled components">
+                    @if (User.IsInRole("Admin") || User.IsInRole("Owner"))
+                    {
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Dashboard" ? "active" : "")">
+                            <a asp-area="" asp-controller="Dashboard" asp-action="Index">
+                                <i class="fa-solid fa-border-all"></i> Tổng Quan
+                            </a>
+                        </li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Locations" && ViewContext.RouteData.Values["Action"]?.ToString() != "IndexMap" ? "active" : "")">
+                            <a asp-area="" asp-controller="Locations" asp-action="Index">
+                                <i class="fa-solid fa-store"></i> Quán Ăn
+                            </a>
+                        </li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Locations" && ViewContext.RouteData.Values["Action"]?.ToString() == "IndexMap" ? "active" : "")">
+                            <a asp-area="" asp-controller="Locations" asp-action="IndexMap">
+                                <i class="fa-solid fa-map-location-dot"></i> Bản Đồ
+                            </a>
+                        </li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Tours" ? "active" : "")">
+                            <a asp-area="" asp-controller="Tours" asp-action="Index"><i class="fa-solid fa-route"></i> Lộ Trình</a>
+                        </li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Localizations" ? "active" : "")">
+                            <a asp-area="" asp-controller="Localizations" asp-action="Index"><i class="fa-solid fa-language"></i> Bản Dịch</a>
+                        </li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Audio" ? "active" : "")">
+                            <a asp-area="" asp-controller="Audio" asp-action="Index"><i class="fa-solid fa-microphone"></i> Giọng Đọc</a>
+                        </li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Statistics" ? "active" : "")">
+                            <a asp-area="" asp-controller="Statistics" asp-action="Index"><i class="fa-solid fa-chart-simple"></i> Thống Kê</a>
+                        </li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "History" ? "active" : "")">
+                            <a asp-area="" asp-controller="History" asp-action="Index"><i class="fa-solid fa-clock-rotate-left"></i> Lịch Sử</a>
+                        </li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Users" ? "active" : "")">
+                            <a asp-area="" asp-controller="Users" asp-action="Index">
+                                <i class="fa-solid fa-user"></i> Tài Khoản
+                            </a>
+                        </li>
+                        <li><a href="#"><i class="fa-solid fa-key"></i> Đổi Mật Khẩu</a></li>
+                    }
+                    else if (User.Identity?.IsAuthenticated == true)
+                    {
+                         <li>
+                            <a href="#"><i class="fa-solid fa-circle-exclamation"></i> Chờ duyệt</a>
+                        </li>
+                    }
+                </ul>
+                
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="sidebar-footer">
+                        <div class="user-info">
+                            <div class="user-details">
+                                <span class="user-label" style="text-transform: uppercase;">
+                                    TÀI KHOẢN
+                                </span>
+                                <span class="user-role">
+                                    @(User.IsInRole("Admin") ? "Quản trị viên" : (User.IsInRole("Owner") ? "Chủ quán" : User.Identity?.Name))
+                                </span>
+                            </div>
+                            <form class="form-inline" asp-controller="Auth" asp-action="Logout" method="post">
+                                <button type="submit" class="btn-logout" title="Đăng xuất">
+                                    <i class="fa-solid fa-right-from-bracket"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </nav>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Content Body -->
+                <div class="content-body">
+                    <main role="main">
+                        @RenderBody()
+                    </main>
                 </div>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - TouristGuideWeb - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
-    </footer>
+    }
+
+    <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@4.0.0/dist/jquery.validate.unobtrusive.min.js"></script>
@@ -60,13 +124,23 @@
     <script src="https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#sidebarCollapse').on('click', function () {
+                $('.sidebar').toggleClass('active');
+            });
+        });
+    </script>
+
     @if (TempData["SuccessMessage"] is string successMessage && !string.IsNullOrWhiteSpace(successMessage))
     {
         <script>
             Swal.fire({
                 icon: 'success',
-                title: 'Thanh cong',
+                title: 'Thành công',
                 text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(successMessage)),
                 timer: 2200,
                 showConfirmButton: false
@@ -78,7 +152,7 @@
         <script>
             Swal.fire({
                 icon: 'error',
-                title: 'Loi',
+                title: 'Lỗi',
                 text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(errorMessage))
             });
         </script>

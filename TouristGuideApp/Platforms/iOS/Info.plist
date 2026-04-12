@@ -28,5 +28,9 @@
 	</array>
 	<key>XSAppIconAssets</key>
 	<string>Assets.xcassets/appicon.appiconset</string>
+	<key>UILaunchStoryboardName</key>
+	<string>MauiSplash</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Ứng dụng cần quyền sử dụng camera để quét mã QR các địa điểm.</string>
 </dict>
 </plist>

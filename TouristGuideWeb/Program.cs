@@ -17,7 +17,13 @@ builder.Services
         options.Password.RequireDigit = false;
         options.Password.RequiredLength = 6;
     })
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppIdentityDbContext>();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Auth/Login";
+});
 
 builder.Services.AddControllersWithViews(options =>
 {
@@ -31,7 +37,8 @@ builder.Services.AddRazorPages();
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<TouristGuideWeb.Services.LocationApiService>();
-
+builder.Services.AddScoped<TouristGuideWeb.Services.TourApiService>();
+builder.Services.AddScoped<TouristGuideWeb.Services.LocalizationApiService>();
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -40,9 +47,20 @@ using (var scope = app.Services.CreateScope())
     await dbContext.Database.MigrateAsync();
 
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-    const string adminEmail = "pipizxc05@gmail.com";
-    const string adminPassword = "Zxcmnb@1029";
+    var roles = new[] { "Admin", "Owner" };
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
+
+
+    const string adminEmail = "admin@gmail.com";
+    const string adminPassword = "Admin@123";
 
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
     if (adminUser is null)
@@ -80,6 +98,11 @@ using (var scope = app.Services.CreateScope())
             adminUser.EmailConfirmed = true;
             await userManager.UpdateAsync(adminUser);
         }
+    }
+
+    if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
+    {
+        await userManager.AddToRoleAsync(adminUser, "Admin");
     }
 }
 
