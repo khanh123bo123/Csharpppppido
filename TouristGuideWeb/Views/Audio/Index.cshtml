@@ -38,6 +38,10 @@
                                 {
                                     <span class="badge bg-warning text-dark px-2 py-1"><i class="fa-solid fa-spinner fa-spin me-1"></i> Đang xử lý</span>
                                 }
+                                else if (item.AudioGenerationStatus == "deleted")
+                                {
+                                    <span class="badge bg-secondary px-2 py-1"><i class="fa-solid fa-trash me-1"></i> Đã xoá</span>
+                                }
                                 else
                                 {
                                     <span class="badge bg-danger px-2 py-1"><i class="fa-solid fa-triangle-exclamation me-1"></i> Lỗi</span>
@@ -55,6 +59,12 @@
                                     <input type="hidden" name="id" value="@item.Id" />
                                     <button type="submit" class="btn btn-sm btn-outline-primary" title="Yêu cầu AI đọc lại">
                                         <i class="fa-solid fa-rotate-right"></i>
+                                    </button>
+                                </form>
+                                <form asp-action="DeleteAudio" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Xoá audio để giải phóng dung lượng">
+                                        <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </form>
                             </td>

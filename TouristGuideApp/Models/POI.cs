@@ -8,6 +8,12 @@ namespace TouristGuideApp.Models
         [PrimaryKey, AutoIncrement]
         public int Id { get; set; }
 
+        // Backend Location ID (used to fetch localization + audio from API)
+        public int ServerLocationId { get; set; }
+
+        // QR code payload (matches TourGuideApi Location.QrCodeData)
+        public string? QrCodeData { get; set; }
+
         // Thông tin cơ bản
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;

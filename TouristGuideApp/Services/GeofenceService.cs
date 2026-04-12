@@ -67,11 +67,10 @@ namespace TouristGuideApp.Services
                 
                 // Use localized description if available, otherwise use default
                 var textToPlay = poi.Description;
-                var audioUrl = poi.AudioUrl;
 
                 await _audioService.EnqueueSpeechAsync(
                     textToPlay,
-                    cachedAudioUrl: audioUrl,
+                    serverLocationId: poi.ServerLocationId > 0 ? poi.ServerLocationId : null,
                     onStarted: () => { poi.IsCurrentlyPlaying = true; },
                     onEnded: () => {
                         poi.IsCurrentlyPlaying = false;

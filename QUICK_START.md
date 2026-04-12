@@ -13,6 +13,22 @@ dotnet add package System.IdentityModel.Tokens.Jwt
 dotnet add package Microsoft.IdentityModel.Tokens
 ```
 
+### Step 1.5 (Recommended): Install FREE Tier-2 TTS (Edge-TTS)
+
+This project supports a **free Tier-2 TTS provider** that does **not** require any API key: `EdgeTts`.
+
+On Windows (PowerShell):
+
+```powershell
+winget install -e --id Python.Python.3.12 --scope user --silent --accept-package-agreements --accept-source-agreements
+
+# Install edge-tts (creates edge-tts.exe under your Python Scripts folder)
+$py = Join-Path $env:LOCALAPPDATA 'Programs\\Python\\Python312\\python.exe'
+& $py -m pip install edge-tts
+```
+
+Note: `EdgeTts` needs **internet access** (it uses Microsoft Edge's online voices), but it does **not** require payment or API keys.
+
 ### Step 2: Configure appsettings.json
 
 Edit `appsettings.json`:
@@ -23,7 +39,11 @@ Edit `appsettings.json`:
     "ExpirationMinutes": 1440
   },
   "TextToSpeech": {
-    "Provider": "Azure"
+    "Provider": "EdgeTts"
+  },
+  "EdgeTts": {
+    "ExecutablePath": "",
+    "TimeoutSeconds": 90
   },
   "AzureSpeech": {
     "SubscriptionKey": "",
@@ -241,8 +261,8 @@ Csharpppppido/
 │   │   ├── User.cs ✅ NEW
 │   │   └── POI.cs
 │   ├── Services/
-│   │   ├── ITextToSpeechService.cs ✅ ENHANCED
-│   │   ├── AzureTextToSpeechService.cs ✅
+│   │   ├── ITextToSpeechService.cs ✅ ENHANCED (includes AzureTextToSpeechService)
+│   │   ├── EdgeTtsTextToSpeechService.cs ✅ NEW
 │   │   └── GoogleTextToSpeechService.cs ✅
 │   ├── Data/
 │   │   └── AppDbContext.cs ✅ UPDATED

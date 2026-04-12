@@ -12,6 +12,7 @@ public interface IApiService
     // Backward compatibility
     Task<IReadOnlyList<TouristGuideApp.Models.Location>> GetLocationsAsync(CancellationToken cancellationToken = default);
     Task<TouristGuideApp.Models.Location?> GetLocationAsync(int id, CancellationToken cancellationToken = default);
+    Task<TouristGuideApp.Models.Location?> GetLocationByQrAsync(string code, CancellationToken cancellationToken = default);
     Task<bool> CreateLocationAsync(TouristGuideApp.Models.Location location, CancellationToken cancellationToken = default);
     Task<bool> UpdateLocationAsync(TouristGuideApp.Models.Location location, CancellationToken cancellationToken = default);
     Task<bool> DeleteLocationAsync(int id, CancellationToken cancellationToken = default);
@@ -19,7 +20,7 @@ public interface IApiService
     // Localization support (multilingual)
     Task<List<LocalizationModel>> GetLocalizationsAsync(int locationId, CancellationToken cancellationToken = default);
     Task<LocalizationModel?> GetLocalizationAsync(int locationId, string languageCode, CancellationToken cancellationToken = default);
-    Task<string?> GetLocalizationAudioAsync(int localizationId, CancellationToken cancellationToken = default);
+    Task<byte[]?> GetLocalizationAudioBytesAsync(int localizationId, CancellationToken cancellationToken = default);
 
     // Connectivity check
     Task<bool> PingAsync(CancellationToken cancellationToken = default);
@@ -76,6 +77,8 @@ public class ApiService : IApiService
 
             return locations.Select(l => new POI
             {
+                ServerLocationId = l.Id,
+                QrCodeData = string.IsNullOrWhiteSpace(l.QrCodeData) ? null : l.QrCodeData.Trim(),
                 Name = l.Name ?? "Chưa đặt tên",
                 Description = l.Description ?? "Không có mô tả",
                 Latitude = l.Latitude,
@@ -165,16 +168,14 @@ public class ApiService : IApiService
     /// <summary>
     /// Download cached audio file (TIER 1)
     /// </summary>
-    public async Task<string?> GetLocalizationAudioAsync(int localizationId, CancellationToken cancellationToken = default)
+    public async Task<byte[]?> GetLocalizationAudioBytesAsync(int localizationId, CancellationToken cancellationToken = default)
     {
         try
         {
             var response = await _httpClient.GetAsync($"api/localizations/{localizationId}/audio", cancellationToken);
             if (response.IsSuccessStatusCode)
             {
-                var audioBytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
-                // Save to device storage or return as base64
-                return Convert.ToBase64String(audioBytes);
+                return await response.Content.ReadAsByteArrayAsync(cancellationToken);
             }
             return null;
         }
@@ -260,6 +261,23 @@ public class ApiService : IApiService
     public Task<Models.Location?> GetLocationAsync(int id, CancellationToken cancellationToken = default)
     {
         return _httpClient.GetFromJsonAsync<Models.Location>($"api/locations/{id}", cancellationToken);
+    }
+
+    public async Task<Models.Location?> GetLocationByQrAsync(string code, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return null;
+
+        try
+        {
+            var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var url = $"api/locations/by-qr?code={Uri.EscapeDataString(code.Trim())}";
+            return await _httpClient.GetFromJsonAsync<Models.Location>(url, options, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"GetLocationByQr failed: {ex.Message}");
+            return null;
+        }
     }
 
     public async Task<bool> CreateLocationAsync(Models.Location location, CancellationToken cancellationToken = default)

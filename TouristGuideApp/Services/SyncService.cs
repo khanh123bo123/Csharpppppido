@@ -91,11 +91,17 @@ namespace TouristGuideApp.Services
                 {
                     var poi = new POI
                     {
+                        ServerLocationId = location.Id,
+                        QrCodeData = string.IsNullOrWhiteSpace(location.QrCodeData) ? null : location.QrCodeData.Trim(),
                         Name = location.Name,
                         Description = location.Description,
                         Latitude = location.Latitude,
                         Longitude = location.Longitude,
                         AudioUrl = location.AudioUrl,
+                        Category = string.IsNullOrWhiteSpace(location.Category) ? string.Empty : location.Category,
+                        PhoneNumber = location.PhoneNumber,
+                        Address = location.Address,
+                        ImageUrl = location.ImageUrl,
                         LanguageCode = "vi-VN"
                     };
 
@@ -144,11 +150,17 @@ namespace TouristGuideApp.Services
 
                 var poi = new POI
                 {
+                    ServerLocationId = location.Id,
+                    QrCodeData = string.IsNullOrWhiteSpace(location.QrCodeData) ? null : location.QrCodeData.Trim(),
                     Name = location.Name,
                     Description = location.Description,
                     Latitude = location.Latitude,
                     Longitude = location.Longitude,
                     AudioUrl = location.AudioUrl,
+                    Category = string.IsNullOrWhiteSpace(location.Category) ? string.Empty : location.Category,
+                    PhoneNumber = location.PhoneNumber,
+                    Address = location.Address,
+                    ImageUrl = location.ImageUrl,
                     LanguageCode = "vi-VN"
                 };
 

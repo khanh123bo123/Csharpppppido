@@ -48,13 +48,19 @@ else
 
 // Register Text-to-Speech Service (4-tier hybrid system)
 var ttsProvider = builder.Configuration["TextToSpeech:Provider"] ?? "Azure";
-if (ttsProvider == "Google")
+switch (ttsProvider.Trim().ToLowerInvariant())
 {
-    builder.Services.AddScoped<ITextToSpeechService, GoogleTextToSpeechService>();
-}
-else
-{
-    builder.Services.AddScoped<ITextToSpeechService, AzureTextToSpeechService>();
+    case "google":
+        builder.Services.AddScoped<ITextToSpeechService, GoogleTextToSpeechService>();
+        break;
+    case "edgetts":
+    case "edge-tts":
+    case "edge_tts":
+        builder.Services.AddScoped<ITextToSpeechService, EdgeTtsTextToSpeechService>();
+        break;
+    default:
+        builder.Services.AddScoped<ITextToSpeechService, AzureTextToSpeechService>();
+        break;
 }
 
 builder.Services.AddControllers();

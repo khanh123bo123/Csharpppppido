@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,6 +21,7 @@ public class LocalizationsController : ControllerBase
     private readonly AppDbContext _context;
     private readonly ITextToSpeechService _textToSpeechService;
     private readonly ILogger<LocalizationsController> _logger;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     // Supported languages for the tour guide system
     private static readonly string[] SupportedLanguages = { "vi-VN", "en-US", "zh-CN", "ja-JP", "ko-KR" };
@@ -27,11 +29,13 @@ public class LocalizationsController : ControllerBase
     public LocalizationsController(
         AppDbContext context,
         ITextToSpeechService textToSpeechService,
-        ILogger<LocalizationsController> logger)
+        ILogger<LocalizationsController> logger,
+        IServiceScopeFactory scopeFactory)
     {
         _context = context;
         _textToSpeechService = textToSpeechService;
         _logger = logger;
+        _scopeFactory = scopeFactory;
     }
 
     /// <summary>
@@ -134,7 +138,7 @@ public class LocalizationsController : ControllerBase
             // Trigger TTS generation if audio is not cached
             if (string.IsNullOrWhiteSpace(existing.CachedAudioUrl))
             {
-                _ = GenerateAudioAsync(existing);
+                QueueAudioGeneration(existing.Id);
             }
 
             return Ok(MapToDto(existing));
@@ -156,8 +160,8 @@ public class LocalizationsController : ControllerBase
         _context.Localizations.Add(localization);
         await _context.SaveChangesAsync();
 
-        // Trigger async TTS generation (TIER 2 or 3)
-        _ = GenerateAudioAsync(localization);
+        // Trigger async TTS generation (TIER 2)
+        QueueAudioGeneration(localization.Id);
 
         _logger.LogInformation($"Created localization for location {request.LocationId} in {request.LanguageCode}");
         return CreatedAtAction(nameof(GetLocalization), new { locationId = localization.LocationId, languageCode = localization.LanguageCode }, MapToDto(localization));
@@ -178,27 +182,16 @@ public class LocalizationsController : ControllerBase
             return NotFound($"Localization {request.LocalizationId} not found");
         }
 
+        // Reset state and enqueue background generation
+        localization.CachedAudioBase64 = null;
+        localization.CachedAudioUrl = null;
         localization.AudioGenerationStatus = "pending";
+        localization.UpdatedAt = DateTime.UtcNow;
         _context.Localizations.Update(localization);
         await _context.SaveChangesAsync();
 
-        // Trigger async generation
-        var audioBase64 = await _textToSpeechService.GenerateSpeechAsync(
-            localization.LocalizedDescription,
-            localization.LanguageCode,
-            localization.TtsVoiceCode ?? GetDefaultVoice(localization.LanguageCode));
-
-        if (!string.IsNullOrWhiteSpace(audioBase64))
-        {
-            localization.CachedAudioBase64 = audioBase64;
-            localization.AudioGenerationStatus = audioBase64.Contains("EDGE_TTS") ? "pending" : "generated";
-            localization.CachedAudioUrl = $"/api/localizations/{localization.Id}/audio";
-            localization.UpdatedAt = DateTime.UtcNow;
-            _context.Localizations.Update(localization);
-            await _context.SaveChangesAsync();
-        }
-
-        return Ok(new GenerateAudioResponse { Status = localization.AudioGenerationStatus, Message = "Audio generation started" });
+        QueueAudioGeneration(localization.Id);
+        return Ok(new GenerateAudioResponse { Status = "pending", Message = "Audio generation queued" });
     }
 
     /// <summary>
@@ -216,6 +209,30 @@ public class LocalizationsController : ControllerBase
 
         var audioBytes = Convert.FromBase64String(localization.CachedAudioBase64);
         return File(audioBytes, "audio/mpeg", $"poi_{localization.LocationId}_{localization.LanguageCode}.mp3");
+    }
+
+    /// <summary>
+    /// Delete cached audio for a localization (free up DB storage)
+    /// DELETE: api/localizations/123/audio
+    /// </summary>
+    [HttpDelete("{localizationId}/audio")]
+    public async Task<IActionResult> DeleteAudio(int localizationId)
+    {
+        var localization = await _context.Localizations.FindAsync(localizationId);
+        if (localization == null)
+        {
+            return NotFound();
+        }
+
+        localization.CachedAudioBase64 = null;
+        localization.CachedAudioUrl = null;
+        localization.AudioGenerationStatus = "deleted";
+        localization.UpdatedAt = DateTime.UtcNow;
+
+        _context.Localizations.Update(localization);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
     }
 
     /// <summary>
@@ -253,33 +270,76 @@ public class LocalizationsController : ControllerBase
         };
     }
 
-    private async Task GenerateAudioAsync(Localization localization)
+    private void QueueAudioGeneration(int localizationId)
     {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var tts = scope.ServiceProvider.GetRequiredService<ITextToSpeechService>();
+
+                await GenerateAudioWithFreshScopeAsync(context, tts, localizationId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Queued audio generation failed for localization {LocalizationId}", localizationId);
+            }
+        });
+    }
+
+    private async Task GenerateAudioWithFreshScopeAsync(AppDbContext context, ITextToSpeechService tts, int localizationId)
+    {
+        var localization = await context.Localizations.FirstOrDefaultAsync(l => l.Id == localizationId);
+        if (localization is null)
+        {
+            return;
+        }
+
         try
         {
             var voiceCode = localization.TtsVoiceCode ?? GetDefaultVoice(localization.LanguageCode);
-            var audioBase64 = await _textToSpeechService.GenerateSpeechAsync(
+            var audioBase64 = await tts.GenerateSpeechAsync(
                 localization.LocalizedDescription,
                 localization.LanguageCode,
                 voiceCode);
 
-            if (!string.IsNullOrWhiteSpace(audioBase64) && !audioBase64.Contains("EDGE_TTS"))
+            // Some providers may return a JSON instruction instead of actual audio.
+            // For the web/admin Tier-2 use-case, treat this as a failure.
+            if (string.IsNullOrWhiteSpace(audioBase64)
+                || audioBase64.Contains("EDGE_TTS", StringComparison.OrdinalIgnoreCase))
             {
-                localization.CachedAudioBase64 = audioBase64;
-                localization.AudioGenerationStatus = "generated";
-                localization.CachedAudioUrl = $"/api/localizations/{localization.Id}/audio";
+                localization.AudioGenerationStatus = "failed";
                 localization.UpdatedAt = DateTime.UtcNow;
-                _context.Localizations.Update(localization);
-                await _context.SaveChangesAsync();
-                _logger.LogInformation($"Audio generated for localization {localization.Id}");
+                context.Localizations.Update(localization);
+                await context.SaveChangesAsync();
+                return;
             }
+
+            localization.CachedAudioBase64 = audioBase64;
+            localization.AudioGenerationStatus = "generated";
+            localization.CachedAudioUrl = $"/api/localizations/{localization.Id}/audio";
+            localization.UpdatedAt = DateTime.UtcNow;
+
+            context.Localizations.Update(localization);
+            await context.SaveChangesAsync();
+            _logger.LogInformation("Audio generated for localization {LocalizationId}", localization.Id);
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Failed to generate audio for localization {localization.Id}: {ex.Message}");
-            localization.AudioGenerationStatus = "failed";
-            _context.Localizations.Update(localization);
-            await _context.SaveChangesAsync();
+            _logger.LogError(ex, "Failed to generate audio for localization {LocalizationId}", localization.Id);
+            try
+            {
+                localization.AudioGenerationStatus = "failed";
+                localization.UpdatedAt = DateTime.UtcNow;
+                context.Localizations.Update(localization);
+                await context.SaveChangesAsync();
+            }
+            catch
+            {
+                // ignore
+            }
         }
     }
 

@@ -58,4 +58,21 @@ public class AudioController : Controller
         }
         return RedirectToAction(nameof(Index));
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteAudio(int id, CancellationToken cancellationToken)
+    {
+        var ok = await _localizationApiService.DeleteAudioAsync(id, cancellationToken);
+        if (ok)
+        {
+            TempData["SuccessMessage"] = "Đã xoá audio cache (giải phóng dung lượng).";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Không thể xoá audio cache.";
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
 }

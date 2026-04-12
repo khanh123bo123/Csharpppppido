@@ -72,6 +72,13 @@ public class LocalizationApiService
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<bool> DeleteAudioAsync(int localizationId, CancellationToken cancellationToken = default)
+    {
+        using var client = CreateClient();
+        var response = await client.DeleteAsync($"api/localizations/{localizationId}/audio", cancellationToken);
+        return response.IsSuccessStatusCode;
+    }
+
     public async Task<GenerateAudioResponse?> GenerateAudioAsync(int localizationId, CancellationToken cancellationToken = default)
     {
         using var client = CreateClient();
