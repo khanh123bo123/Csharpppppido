@@ -1,11 +1,42 @@
 @model IEnumerable<TouristGuideWeb.Models.LocalizationDto>
 @{
     ViewData["Title"] = "Quản lý Giọng Đọc (TTS)";
+
+    double? speechRate = null;
+    try
+    {
+        speechRate = (double?)ViewBag.EdgeTtsSpeechRate;
+    }
+    catch
+    {
+        speechRate = null;
+    }
 }
 
 <div class="card-premium">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="fw-bold m-0"><i class="fa-solid fa-microphone-lines text-danger me-2"></i> Trình quản lý Giọng Đọc AI (TTS)</h5>
+
+        @if (User.IsInRole("Admin"))
+        {
+            <form asp-action="UpdateSpeechRate" method="post" class="d-flex align-items-center gap-2">
+                <span class="small text-muted">Tốc độ đọc</span>
+                <input type="number"
+                       name="speechRate"
+                       step="0.05"
+                       min="0.1"
+                       max="4.0"
+                       value="@(speechRate ?? 1.0)"
+                       class="form-control form-control-sm"
+                       style="width: 90px;" />
+                <button type="submit" class="btn btn-sm btn-outline-primary">Lưu</button>
+            </form>
+        }
+    </div>
+    <div class="px-3 py-2 bg-white border-top border-bottom">
+        <div class="small text-muted">
+            1.0 = bình thường. Thay đổi áp dụng cho audio tạo mới; audio cũ cần bấm “đọc lại”.
+        </div>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
