@@ -14,7 +14,7 @@ namespace TouristGuideApp.Services
     {
         Task InitAsync();
         Task CheckProximity(Microsoft.Maui.Devices.Sensors.Location userLocation);
-        Task PlaySpeechAsync(POI poi, bool ignoreCooldown = false);
+        Task PlaySpeechAsync(POI poi, bool ignoreCooldown = false, bool forceOfflineTts = false);
         List<POI> GetPOIs();
         POI? ActivePOI { get; }
         Task SetLanguageAsync(string languageCode);
@@ -57,7 +57,7 @@ namespace TouristGuideApp.Services
         /// <summary>
         /// Play audio narration for a POI with 4-tier fallback system
         /// </summary>
-        public async Task PlaySpeechAsync(POI poi, bool ignoreCooldown = false)
+        public async Task PlaySpeechAsync(POI poi, bool ignoreCooldown = false, bool forceOfflineTts = false)
         {
             double secondsSinceLastPlay = (DateTime.Now - poi.LastPlayedTime).TotalSeconds;
 
@@ -70,7 +70,8 @@ namespace TouristGuideApp.Services
 
                 await _audioService.EnqueueSpeechAsync(
                     textToPlay,
-                    serverLocationId: poi.ServerLocationId > 0 ? poi.ServerLocationId : null,
+                    serverLocationId: forceOfflineTts ? null : (poi.ServerLocationId > 0 ? poi.ServerLocationId : null),
+                    forceOfflineTts: forceOfflineTts,
                     onStarted: () => { poi.IsCurrentlyPlaying = true; },
                     onEnded: () => {
                         poi.IsCurrentlyPlaying = false;

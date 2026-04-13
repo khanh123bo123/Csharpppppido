@@ -85,7 +85,7 @@ public class HistoryController : Controller
                         Timestamp = loc.CreatedAt.AddHours(1).AddSeconds(5), 
                         ActionType = "Audio_Generated",
                         Description = $"AI trả kết quả Audio TTS cho {loc.Name} ({l.LanguageCode})",
-                        User = "Azure Edge TTS",
+                        User = "Edge TTS",
                         Icon = "fa-robot",
                         ColorClass = "text-pink"
                     });

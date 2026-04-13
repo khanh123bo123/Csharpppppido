@@ -16,6 +16,7 @@ namespace TouristGuideApp.Views
         private readonly IApiService _apiService;
         private readonly IDatabaseService _databaseService;
         private bool _autoPlayAfterLoad;
+        private bool _openedFromQr;
 
         public POI POIItem
         {
@@ -54,6 +55,7 @@ namespace TouristGuideApp.Views
                 OnPropertyChanged();
                 if (!string.IsNullOrWhiteSpace(_qr))
                 {
+                    _openedFromQr = true;
                     _autoPlayAfterLoad = true;
                     _ = LoadPoiFromQrAsync(Uri.UnescapeDataString(_qr));
                 }
@@ -105,13 +107,34 @@ namespace TouristGuideApp.Views
 
         private async Task LoadPoiFromQrAsync(string rawQr)
         {
-            var qrCodeData = ExtractQrCodeData(rawQr);
-            if (string.IsNullOrWhiteSpace(qrCodeData))
+            if (string.IsNullOrWhiteSpace(rawQr))
             {
                 return;
             }
 
-            // OFFLINE-FIRST: resolve from SQLite by QrCodeData
+            // QR requirement: OFFLINE-ONLY. Do not call API when scanning.
+            // Support both legacy numeric ids and real QR payloads (LOC_*).
+            var serverLocationId = TryExtractServerLocationId(rawQr);
+            if (serverLocationId is > 0)
+            {
+                var localById = await _databaseService.GetPoiByServerLocationIdAsync(serverLocationId.Value);
+                if (localById != null)
+                {
+                    await SetPoiAndMaybeAutoPlayAsync(localById);
+                    return;
+                }
+
+                await DisplayAlert("Offline", "Điểm này chưa được lưu offline. Hãy mở app khi có wifi để tải dữ liệu trước.", "OK");
+                return;
+            }
+
+            var qrCodeData = ExtractQrCodeData(rawQr);
+            if (string.IsNullOrWhiteSpace(qrCodeData))
+            {
+                await DisplayAlert("Lỗi QR", "Mã QR không hợp lệ.", "OK");
+                return;
+            }
+
             var localPoi = await _databaseService.GetPoiByQrCodeDataAsync(qrCodeData);
             if (localPoi != null)
             {
@@ -119,24 +142,32 @@ namespace TouristGuideApp.Views
                 return;
             }
 
-            // Online fallback: ask API to resolve QR -> Location
-            try
-            {
-                var location = await _apiService.GetLocationByQrAsync(qrCodeData);
-                if (location != null)
-                {
-                    var poi = MapLocationToPoi(location);
-                    await _databaseService.SavePOIAsync(poi);
-                    await SetPoiAndMaybeAutoPlayAsync(poi);
-                    return;
-                }
+            await DisplayAlert("Offline", "Mã QR hợp lệ nhưng địa điểm chưa được lưu offline. Hãy mở app khi có wifi để tải dữ liệu trước.", "OK");
+        }
 
-                await DisplayAlert("Không tìm thấy", "Không tìm thấy địa điểm cho mã QR này.", "OK");
-            }
-            catch
+        private static int? TryExtractServerLocationId(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return null;
+
+            var trimmed = value.Trim();
+            if (trimmed.StartsWith("poi:", StringComparison.OrdinalIgnoreCase))
             {
-                await DisplayAlert("Offline", "Không có dữ liệu địa điểm trong máy và cũng không thể tải từ Internet.", "OK");
+                var rest = trimmed.Substring(4);
+                if (int.TryParse(rest, out var id)) return id;
             }
+
+            if (Regex.IsMatch(trimmed, @"^\d+$") && int.TryParse(trimmed, out var direct))
+            {
+                return direct;
+            }
+
+            var match = Regex.Match(trimmed, @"\b(\d+)\b");
+            if (match.Success && int.TryParse(match.Groups[1].Value, out var extracted))
+            {
+                return extracted;
+            }
+
+            return null;
         }
 
         private static string? ExtractQrCodeData(string raw)
@@ -191,7 +222,7 @@ namespace TouristGuideApp.Views
             if (_autoPlayAfterLoad)
             {
                 _autoPlayAfterLoad = false;
-                await _geofenceService.PlaySpeechAsync(poi, ignoreCooldown: true);
+                await _geofenceService.PlaySpeechAsync(poi, ignoreCooldown: true, forceOfflineTts: _openedFromQr);
             }
         }
 

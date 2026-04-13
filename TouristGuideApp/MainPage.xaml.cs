@@ -1,4 +1,5 @@
 using Microsoft.Maui.Controls;
+using TouristGuideApp.Models;
 using TouristGuideApp.Services;
 using Location = Microsoft.Maui.Devices.Sensors.Location;
 
@@ -51,6 +52,10 @@ public partial class MainPage : ContentPage
 
         try
         {
+            // First launch: choose narration language pack
+            var languageCode = await EnsureNarrationLanguageSelectedAsync();
+            await _geofenceService.SetLanguageAsync(languageCode);
+
             // 1. Hiển thị dữ liệu cũ từ SQLite ngay lập tức
             await _geofenceService.InitAsync();
             UpdateUIList();
@@ -66,7 +71,7 @@ public partial class MainPage : ContentPage
             _ = Task.Run(async () => {
                 try
                 {
-                    await _apiService.SyncPOIsToLocalAsync(_databaseService);
+                    await _apiService.SyncPOIsToLocalAsync(_databaseService, languageCode);
                     await _geofenceService.InitAsync();
 
                     // Ép giao diện cập nhật sau khi tải xong từ Web
@@ -84,6 +89,38 @@ public partial class MainPage : ContentPage
         {
             System.Diagnostics.Debug.WriteLine($"Appearing Error: {ex.Message}");
         }
+    }
+
+    private async Task<string> EnsureNarrationLanguageSelectedAsync()
+    {
+        if (AppPreferences.HasNarrationLanguageCode())
+        {
+            return AppPreferences.GetNarrationLanguageCode();
+        }
+
+        var options = SupportedLanguages.AllLanguages
+            .Where(code => SupportedLanguages.LanguageNames.ContainsKey(code))
+            .Select(code => SupportedLanguages.LanguageNames[code])
+            .ToArray();
+
+        var choice = await DisplayActionSheet(
+            "Chọn ngôn ngữ thuyết minh",
+            "Huỷ",
+            null,
+            options);
+
+        var selectedCode = SupportedLanguages.Vietnamese;
+        if (!string.IsNullOrWhiteSpace(choice))
+        {
+            var match = SupportedLanguages.LanguageNames.FirstOrDefault(kvp => string.Equals(kvp.Value, choice, StringComparison.Ordinal));
+            if (!string.IsNullOrWhiteSpace(match.Key))
+            {
+                selectedCode = match.Key;
+            }
+        }
+
+        AppPreferences.SetNarrationLanguageCode(selectedCode);
+        return selectedCode;
     }
 
     private void UpdateUIList()

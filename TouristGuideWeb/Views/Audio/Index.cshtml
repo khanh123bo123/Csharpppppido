@@ -1,7 +1,6 @@
 @model IEnumerable<TouristGuideWeb.Models.LocalizationDto>
 @{
     ViewData["Title"] = "Quản lý Giọng Đọc (TTS)";
-    string baseUrl = ViewBag.ApiBaseUrl as string ?? "http://localhost:5214";
 }
 
 <div class="card-premium">
@@ -51,7 +50,7 @@
                                 @if (item.AudioGenerationStatus == "generated" || item.AudioGenerationStatus == "cached")
                                 {
                                     <audio controls class="me-2" style="height: 30px; width: 200px;">
-                                        <source src="@($"{baseUrl}{item.CachedAudioUrl}")" type="audio/mpeg">
+                                        <source src="@Url.Action("Stream", "Audio", new { id = item.Id })" type="audio/mpeg">
                                         Trình duyệt không hỗ trợ audio.
                                     </audio>
                                 }

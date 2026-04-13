@@ -21,6 +21,15 @@
             </HorizontalStackLayout>
         </Frame>
 
+        <Frame CornerRadius="10">
+            <VerticalStackLayout Spacing="10">
+                <Label Text="Pack ngôn ngữ thuyết minh" />
+                <Picker x:Name="pickerLanguage"
+                        Title="Chọn ngôn ngữ"
+                        SelectedIndexChanged="OnLanguageSelectedIndexChanged" />
+            </VerticalStackLayout>
+        </Frame>
+
         <Button Text="Xóa lịch sử đã phát"
                 BackgroundColor="Red"
                 TextColor="White"

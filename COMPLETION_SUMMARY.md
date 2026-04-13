@@ -34,22 +34,19 @@
 
 ---
 
-### 2. **4-Tier Hybrid Audio System** [DONE]
+### 2. **Hybrid Audio System** [DONE]
 
 **Files Created/Modified**:
-- ✅ `Services/ITextToSpeechService.cs` - Refactored with 4-tier architecture
-- ✅ `Services/AzureTextToSpeechService.cs` - TIER 2 implementation (Primary)
-- ✅ `Services/GoogleTextToSpeechService.cs` - TIER 2 fallback (Alternative)
+- ✅ `Services/ITextToSpeechService.cs` - TTS interface
+- ✅ `Services/EdgeTtsTextToSpeechService.cs` - Free MP3 generation via `edge-tts` (no API key)
 
-**Audio Fallback Strategy**:
+**Audio Strategy**:
 ```
 TIER 1: Local Cache (MP3 on device)
   ↓ (miss)
-TIER 2: Cloud TTS (Azure/Google)
-  ↓ (fail/offline)
-TIER 3: Edge-TTS (Offline, zero-cost)
+TIER 2: Edge-TTS CLI (no API key; requires internet)
   ↓ (unavailable)
-TIER 4: Device TTS (MAUI TextToSpeech)
+TIER 3: Device TTS (MAUI TextToSpeech)
 ```
 
 **Default Voices**:
@@ -57,14 +54,13 @@ TIER 4: Device TTS (MAUI TextToSpeech)
 Vietnamese:    vi-VN-HoaiMyNeural
 English:       en-US-AriaNeural
 Chinese:       zh-CN-XiaoxiaoNeural
-Japanese:      ja-JP-NanomiNeural
+Japanese:      ja-JP-NanamiNeural
 Korean:        ko-KR-SunHiNeural
 ```
 
 **Fallback Behavior**:
-- If Azure key missing → uses client-side EDGE_TTS instruction
-- If offline → manual audio file playback or device TTS
-- Automatic retry with exponential backoff
+- If Edge-TTS isn't installed / fails → audio generation is marked failed (admin can retry)
+- Mobile app can fall back to device TTS for offline narration
 - Cache strategy with configurable expiration (30 days)
 
 ---
@@ -216,7 +212,7 @@ GET    /api/auth/users/{id}
 ### Backend
 - `Models/Localization.cs` (190 lines)
 - `Models/User.cs` (60 lines)
-- `Models/IAiAdvisorService.cs` (90 lines - template for Gemini)
+- `Services/IAiAdvisorService.cs` (template for optional local AI advisor)
 - `Controllers/LocalizationsController.cs` (320 lines)
 - `Controllers/AuthController.cs` (280 lines)
 - `DATABASE_SEED.sql` (SQL initialization script)
@@ -247,14 +243,16 @@ GET    /api/auth/users/{id}
     "ExpirationMinutes": 1440
   },
   "TextToSpeech": {
-    "Provider": "Azure" // or "Google"
+    "Provider": "EdgeTts"
   },
-  "AzureSpeech": {
-    "SubscriptionKey": "YOUR_AZURE_KEY",
-    "Region": "southeastasia"
+  "EdgeTts": {
+    "ExecutablePath": "",
+    "TimeoutSeconds": 90,
+    "SpeechRate": 0.25
   },
-  "GoogleCloud": {
-    "TextToSpeechApiKey": "YOUR_GOOGLE_KEY"
+  "Ollama": {
+    "BaseUrl": "http://localhost:11434",
+    "Model": "qwen2.5:3b"
   }
 }
 ```
@@ -270,9 +268,9 @@ dotnet add package Microsoft.IdentityModel.Tokens
 
 ## 🚀 Next Steps (Not Yet Implemented)
 
-### 1. **Gemini AI Advisor** [TEMPLATE PROVIDED]
+### 1. **Local AI Advisor (Optional)** [TEMPLATE PROVIDED]
    - Location: `Services/IAiAdvisorService.cs`
-   - Status: Scaffold only, needs Gemini SDK integration
+  - Status: Scaffold only
    - Task: Implement food recommendation engine
    - Endpoint: `POST /api/advisor/recommend`
 
@@ -339,11 +337,11 @@ dotnet add package Microsoft.IdentityModel.Tokens
 │  │ Services                                                  │  │
 │  │  ┌────────────────┐  ┌──────────────────────────────┐   │  │
 │  │  │ TextToSpeech   │  │ Auth (JWT + RBAC)            │   │  │
-│  │  │ (4-tier)       │  │                              │   │  │
-│  │  │ ├─ Azure TTS   │  │ Roles: Admin/Editor/Viewer   │   │  │
-│  │  │ ├─ Google TTS  │  │                              │   │  │
-│  │  │ ├─ Edge TTS    │  │ Features:                    │   │  │
-│  │  │ └─ Client TTS  │  │ • Token generation           │   │  │
+│  │  │ (Edge-TTS)     │  │                              │   │  │
+│  │  │ └─ edge-tts CLI│  │ Roles: Admin/Editor/Viewer   │   │  │
+│  │  │               │  │                              │   │  │
+│  │  │               │  │ Features:                    │   │  │
+│  │  │               │  │ • Token generation           │   │  │
 │  │  └────────────────┘  │ • Password hashing (BCrypt)  │   │  │
 │  │                       │ • User management            │   │  │
 │  │                       └──────────────────────────────┘   │  │
@@ -383,7 +381,7 @@ dotnet add package Microsoft.IdentityModel.Tokens
 - ✅ CORS configured
 - ✅ Role-based access control
 - ⚠️ TODO: Encrypt PII in production
-- ⚠️ TODO: Use Azure Key Vault for secrets
+- ⚠️ TODO: Use a secrets manager for production secrets
 - ⚠️ TODO: Implement API rate limiting
 - ⚠️ TODO: Add audit logging
 
@@ -447,5 +445,5 @@ This implementation demonstrates:
 - ✅ Entity Framework Core relationships
 - ✅ Service-oriented architecture
 
-**Ready to extend with Gemini AI Advisor? 🚀**
+**Ready to extend with a local AI Advisor?**
 

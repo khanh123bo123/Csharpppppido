@@ -76,7 +76,8 @@ public partial class QRScanPage : ContentPage
             var serverId = TryExtractServerLocationId(trimmed);
             if (serverId is > 0)
             {
-                await Shell.Current.GoToAsync($"{nameof(POIDetailsPage)}?poiId={serverId.Value}");
+                var encoded = Uri.EscapeDataString(serverId.Value.ToString());
+                await Shell.Current.GoToAsync($"{nameof(POIDetailsPage)}?qr={encoded}");
                 return;
             }
 

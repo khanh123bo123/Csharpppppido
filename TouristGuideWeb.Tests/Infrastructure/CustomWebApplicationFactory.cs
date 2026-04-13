@@ -65,7 +65,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
             using var scope = serviceProvider.CreateScope();
             var identityDb = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
             identityDb.Database.EnsureDeleted();
-            identityDb.Database.EnsureCreated();
+            identityDb.Database.Migrate();
         });
     }
 }
@@ -86,7 +86,8 @@ internal sealed class TestAuthHandler : AuthenticationHandler<AuthenticationSche
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, "integration-test-user"),
-            new Claim(ClaimTypes.Name, "integration-test-user")
+            new Claim(ClaimTypes.Name, "integration-test-user"),
+            new Claim(ClaimTypes.Role, "Admin")
         };
 
         var identity = new ClaimsIdentity(claims, SchemeName);

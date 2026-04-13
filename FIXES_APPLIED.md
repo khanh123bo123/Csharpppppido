@@ -8,22 +8,22 @@ All 6 compilation errors have been resolved:
 
 ## ✅ Fixed Issues
 
-### 1. **Duplicate GoogleTextToSpeechService Definition**
-**Error**: `The namespace 'TourGuideApi.Services' already contains a definition for 'GoogleTextToSpeechService'`
+### 1. **Duplicate TTS Service Definition**
+**Error**: Duplicate TTS service class definition in `TourGuideApi.Services`
 
 **Solution**: 
-- Removed duplicate `GoogleTextToSpeechService` class from `ITextToSpeechService.cs`
-- Updated `GoogleTextToSpeechService.cs` to properly implement `ITextToSpeechService`
-- Both are now correctly separated with Google implementation in its own file
+- Removed duplicate TTS class from `ITextToSpeechService.cs`
+- Kept implementations in dedicated service files
+- Standardized on a free provider implementation (`EdgeTtsTextToSpeechService`)
 
 **Files Modified**:
 - `TourGuideApi/Services/ITextToSpeechService.cs` - Removed duplicate class
-- `TourGuideApi/Services/GoogleTextToSpeechService.cs` - Updated to match interface
+- `TourGuideApi/Services/EdgeTtsTextToSpeechService.cs` - Free TTS provider
 
 ---
 
 ### 2. **Duplicate SynthesizeAsync Method**
-**Error**: `Type 'GoogleTextToSpeechService' already defines a member called 'SynthesizeAsync' with the same parameter types`
+**Error**: Duplicate `SynthesizeAsync` method signature
 
 **Solution**: 
 - Removed duplicate method definition
@@ -146,7 +146,7 @@ INSTALL_PACKAGES.bat
     "ExpirationMinutes": 1440
   },
   "TextToSpeech": {
-    "Provider": "Azure"
+    "Provider": "EdgeTts"
   }
 }
 ```
@@ -175,8 +175,8 @@ dotnet run
 
 | File | Change | Line |
 |------|--------|------|
-| `ITextToSpeechService.cs` | Removed duplicate GoogleTextToSpeechService class | - |
-| `GoogleTextToSpeechService.cs` | Updated to use new interface properly | All |
+| `ITextToSpeechService.cs` | Simplified to interface-only (removed paid cloud providers) | - |
+| `EdgeTtsTextToSpeechService.cs` | Free TTS provider via edge-tts | All |
 | `Program.cs` | Made JWT optional with graceful fallback | 1-50 |
 | `AudioService.cs` | Fixed Locale constructor | 67 |
 | `SettingsPage.xaml.cs` | Changed to DisplayAlertAsync | 13 |

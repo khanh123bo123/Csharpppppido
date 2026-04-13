@@ -52,8 +52,8 @@ public class Localization
     public string? CachedAudioUrl { get; set; }
 
     /// <summary>
-    /// TIER 2: TTS-generated audio endpoint (Azure or Google)
-    /// Legacy fallback if cache is missing
+    /// TIER 2: TTS-generated audio endpoint (server-generated)
+    /// Fallback if cache is missing
     /// </summary>
     public string? TextToSpeechEndpoint { get; set; }
 
@@ -65,7 +65,7 @@ public class Localization
 
     /// <summary>
     /// Edge-TTS or Offline TTS voice code (for TIER 2-3 fallback)
-    /// Example: "vi-VN-HoaiMyNeural" (Microsoft), "ja-JP-NanomiNeural"
+    /// Example: "vi-VN-HoaiMyNeural" (Microsoft), "ja-JP-NanamiNeural"
     /// </summary>
     public string? TtsVoiceCode { get; set; }
 

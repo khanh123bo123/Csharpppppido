@@ -17,13 +17,17 @@ public class EdgeTtsTextToSpeechService : ITextToSpeechService
     private readonly IConfiguration _config;
     private readonly ILogger<EdgeTtsTextToSpeechService> _logger;
 
+    // Edge-TTS can fail when invoked concurrently (multiple processes at once).
+    // Serialize executions to keep pack generation stable.
+    private static readonly SemaphoreSlim EdgeTtsConcurrencyGate = new(1, 1);
+
     // Voice mappings for the 5 key languages used in this project.
     private static readonly Dictionary<string, string> DefaultVoiceMapping = new()
     {
         { "vi-VN", "vi-VN-HoaiMyNeural" },
         { "en-US", "en-US-AriaNeural" },
         { "zh-CN", "zh-CN-XiaoxiaoNeural" },
-        { "ja-JP", "ja-JP-NanomiNeural" },
+        { "ja-JP", "ja-JP-NanamiNeural" },
         { "ko-KR", "ko-KR-SunHiNeural" }
     };
 
@@ -48,12 +52,22 @@ public class EdgeTtsTextToSpeechService : ITextToSpeechService
             ? DefaultVoiceMapping.GetValueOrDefault(languageCode, "en-US-AriaNeural")
             : voiceCode;
 
+        if (string.Equals(selectedVoice, "ja-JP-NanomiNeural", StringComparison.OrdinalIgnoreCase))
+        {
+            selectedVoice = "ja-JP-NanamiNeural";
+        }
+
         var timeoutSeconds = _config.GetValue<int?>("EdgeTts:TimeoutSeconds") ?? 90;
+        var rateArg = ResolveRateArgument();
         var outputPath = Path.Combine(Path.GetTempPath(), $"edge_tts_{Guid.NewGuid():N}.mp3");
         var textFilePath = Path.Combine(Path.GetTempPath(), $"edge_tts_{Guid.NewGuid():N}.txt");
 
+        var gateAcquired = false;
+
         try
         {
+            await EdgeTtsConcurrencyGate.WaitAsync();
+            gateAcquired = true;
             await File.WriteAllTextAsync(textFilePath, text);
 
             var startInfo = new ProcessStartInfo
@@ -72,6 +86,11 @@ public class EdgeTtsTextToSpeechService : ITextToSpeechService
             startInfo.ArgumentList.Add(selectedVoice);
             startInfo.ArgumentList.Add("--write-media");
             startInfo.ArgumentList.Add(outputPath);
+
+            if (!string.IsNullOrWhiteSpace(rateArg))
+            {
+                startInfo.ArgumentList.Add($"--rate={rateArg}");
+            }
 
             using var process = Process.Start(startInfo);
             if (process is null)
@@ -120,6 +139,10 @@ public class EdgeTtsTextToSpeechService : ITextToSpeechService
         }
         finally
         {
+            if (gateAcquired)
+            {
+                EdgeTtsConcurrencyGate.Release();
+            }
             SafeDeleteFile(outputPath);
             SafeDeleteFile(textFilePath);
         }
@@ -179,6 +202,36 @@ public class EdgeTtsTextToSpeechService : ITextToSpeechService
         }
 
         return null;
+    }
+
+    private string? ResolveRateArgument()
+    {
+        // Option A: direct edge-tts rate string, e.g. "+0%", "-75%".
+        var configuredRate = (_config["EdgeTts:Rate"] ?? string.Empty).Trim();
+        if (!string.IsNullOrWhiteSpace(configuredRate))
+        {
+            return configuredRate;
+        }
+
+        // Option B: multiplier (x1.0 = normal, x0.25 = very slow).
+        var speechRate = _config.GetValue<double?>("EdgeTts:SpeechRate");
+        if (speechRate is null)
+        {
+            return null;
+        }
+
+        var multiplier = speechRate.Value;
+        if (double.IsNaN(multiplier) || double.IsInfinity(multiplier))
+        {
+            return null;
+        }
+
+        // Clamp to a reasonable range before converting to percent.
+        multiplier = Math.Clamp(multiplier, 0.1, 4.0);
+
+        var percent = (multiplier - 1.0) * 100.0;
+        var rounded = (int)Math.Round(percent, MidpointRounding.AwayFromZero);
+        return rounded >= 0 ? $"+{rounded}%" : $"{rounded}%";
     }
 
     private static string? TryFindOnPath(string executableName)

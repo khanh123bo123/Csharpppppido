@@ -27,12 +27,17 @@ Replace the JWT and TTS sections:
     "Issuer": "http://localhost:5214",
     "Audience": "TourGuideApi"
   },
-  "AzureSpeech": {
-    "SubscriptionKey": "YOUR_AZURE_KEY_HERE",
-    "Region": "eastasia"
+  "TextToSpeech": {
+    "Provider": "EdgeTts"
   },
-  "GoogleCloud": {
-    "TextToSpeechApiKey": "YOUR_GOOGLE_KEY_HERE"
+  "EdgeTts": {
+    "ExecutablePath": "",
+    "TimeoutSeconds": 90,
+    "SpeechRate": 0.25
+  },
+  "Ollama": {
+    "BaseUrl": "http://localhost:11434",
+    "Model": "qwen2.5:3b"
   },
   "Cors": {
     "AllowedOrigins": ["http://localhost:3000", "http://10.0.2.2:5214"]
@@ -200,9 +205,17 @@ curl -X POST http://localhost:5214/api/localizations/1/generate-audio \
     "Issuer": "https://yourdomain.com",
     "Audience": "TourGuideApi"
   },
-  "AzureSpeech": {
-    "SubscriptionKey": "PROD_AZURE_KEY",
-    "Region": "eastasia"
+  "TextToSpeech": {
+    "Provider": "EdgeTts"
+  },
+  "EdgeTts": {
+    "ExecutablePath": "",
+    "TimeoutSeconds": 90,
+    "SpeechRate": 0.25
+  },
+  "Ollama": {
+    "BaseUrl": "http://localhost:11434",
+    "Model": "qwen2.5:3b"
   },
   "Cors": {
     "AllowedOrigins": ["https://yourdomain.com"]
@@ -238,7 +251,8 @@ docker run -p 5214:5214 tourguide-api:1.0
 - [ ] All tests passing
 - [ ] Database backup created
 - [ ] JWT key updated to production value
-- [ ] API keys configured (Azure, Google)
+- [ ] Edge-TTS installed (pip install edge-tts)
+- [ ] Ollama running locally (optional: for auto-translate)
 - [ ] CORS origins updated
 - [ ] SSL certificate configured
 - [ ] Load balancer configured
@@ -251,7 +265,7 @@ docker run -p 5214:5214 tourguide-api:1.0
 ## Phase 6: Continuous Development (Ongoing)
 
 ### Remaining Features (Not Yet Implemented)
-1. **Gemini AI Advisor**
+1. **Local AI Advisor (Optional)**
    - Template: `IAiAdvisorService.cs`
    - Endpoint: `POST /api/advisor/recommend`
    - Status: Ready for integration
@@ -372,8 +386,8 @@ Your project is ready when:
 - [ASP.NET Core Docs](https://learn.microsoft.com/en-us/aspnet/core/)
 - [MAUI Docs](https://learn.microsoft.com/en-us/dotnet/maui/)
 - [Entity Framework Core](https://learn.microsoft.com/en-us/ef/core/)
-- [Azure Cognitive Services](https://learn.microsoft.com/en-us/azure/cognitive-services/)
-- [Google Cloud Text-to-Speech](https://cloud.google.com/text-to-speech)
+- [Edge-TTS (GitHub)](https://github.com/rany2/edge-tts)
+- [Ollama (Docs)](https://ollama.com/)
 
 ---
 

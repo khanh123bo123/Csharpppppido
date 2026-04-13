@@ -36,3 +36,18 @@ public class GenerateAudioResponse
     public string Status { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
 }
+
+public class GenerateLocalizationPackRequest
+{
+    public int LocationId { get; set; }
+    public string VietnameseName { get; set; } = string.Empty;
+    public string VietnameseDescription { get; set; } = string.Empty;
+}
+
+public class GenerateLocalizationPackResponse
+{
+    public string Status { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public int LocationId { get; set; }
+    public string[] Languages { get; set; } = Array.Empty<string>();
+}

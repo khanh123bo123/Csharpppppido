@@ -39,8 +39,19 @@ public class AudioController : Controller
             }
         }
 
-        ViewBag.ApiBaseUrl = _config["ApiSettings:BaseUrl"];
         return View(allAudios.OrderByDescending(a => a.Id).ToList());
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Stream(int id, CancellationToken cancellationToken)
+    {
+        var audioBytes = await _localizationApiService.GetAudioBytesAsync(id, cancellationToken);
+        if (audioBytes is null || audioBytes.Length == 0)
+        {
+            return NotFound();
+        }
+
+        return File(audioBytes, "audio/mpeg");
     }
 
     [HttpPost]

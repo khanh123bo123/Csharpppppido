@@ -6,6 +6,9 @@ using TourGuideApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Local (gitignored) overrides for machine-specific settings.
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -46,22 +49,21 @@ else
     builder.Services.AddAuthentication();
 }
 
-// Register Text-to-Speech Service (4-tier hybrid system)
-var ttsProvider = builder.Configuration["TextToSpeech:Provider"] ?? "Azure";
-switch (ttsProvider.Trim().ToLowerInvariant())
+// Register Text-to-Speech Service (free, no paid cloud providers)
+builder.Services.AddScoped<ITextToSpeechService, EdgeTtsTextToSpeechService>();
+
+// Sequential audio generation queue (avoids running edge-tts concurrently)
+builder.Services.AddSingleton<IAudioGenerationQueue, InMemoryAudioGenerationQueue>();
+builder.Services.AddScoped<LocalizationAudioGenerator>();
+builder.Services.AddHostedService<AudioGenerationWorker>();
+
+// Translation service (Vietnamese -> 4 languages) for localization pack generation
+builder.Services.AddHttpClient("OllamaTranslation", client =>
 {
-    case "google":
-        builder.Services.AddScoped<ITextToSpeechService, GoogleTextToSpeechService>();
-        break;
-    case "edgetts":
-    case "edge-tts":
-    case "edge_tts":
-        builder.Services.AddScoped<ITextToSpeechService, EdgeTtsTextToSpeechService>();
-        break;
-    default:
-        builder.Services.AddScoped<ITextToSpeechService, AzureTextToSpeechService>();
-        break;
-}
+    client.Timeout = TimeSpan.FromSeconds(120);
+});
+
+builder.Services.AddScoped<ILocalizationTranslationService, OllamaLocalizationTranslationService>();
 
 builder.Services.AddControllers();
 
@@ -83,6 +85,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+var ollamaBaseUrl = app.Configuration["Ollama:BaseUrl"];
+var ollamaModel = app.Configuration["Ollama:Model"];
+app.Logger.LogInformation(
+    "Ollama translation configured: {Configured}. BaseUrl: {BaseUrl}. Model: {Model}",
+    !string.IsNullOrWhiteSpace(ollamaBaseUrl) && !string.IsNullOrWhiteSpace(ollamaModel),
+    ollamaBaseUrl,
+    ollamaModel);
 
 // Initialize database
 using (var scope = app.Services.CreateScope())

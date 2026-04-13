@@ -152,7 +152,7 @@ else
 
 ## 📊 Comparison with Original
 
-| Feature | Before (Google Maps) | After (Leaflet) |
+| Feature | Before (Online Maps SDK) | After (Leaflet) |
 |---------|:---:|:---:|
 | **API Key Required** | ✅ Yes | ❌ No |
 | **Offline Support** | ❌ No | ✅ Yes |
@@ -160,7 +160,7 @@ else
 | **Custom Tiles** | ❌ No | ✅ Yes (OSM) |
 | **Web-based** | ❌ Native | ✅ WebView |
 | **Open Source** | ❌ Proprietary | ✅ Yes (MIT) |
-| **Cost** | 💰 $7/1000 requests | 🆓 Free |
+| **Cost** | 💰 Requires billing | 🆓 Free |
 
 ---
 
