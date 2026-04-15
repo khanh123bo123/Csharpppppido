@@ -223,7 +223,7 @@ public class ApiService : IApiService
     {
         try
         {
-            var response = await _httpClient.GetAsync("api/locations?limit=1", cancellationToken);
+            var response = await _httpClient.GetAsync("api/health", cancellationToken);
             return response.IsSuccessStatusCode;
         }
         catch

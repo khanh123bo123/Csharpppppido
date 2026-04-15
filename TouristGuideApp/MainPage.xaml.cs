@@ -60,6 +60,27 @@ public partial class MainPage : ContentPage
             await _geofenceService.InitAsync();
             UpdateUIList();
 
+            // If there are no cached POIs yet, ensure the API is reachable.
+            // On physical Android devices, this commonly requires:
+            //   adb reverse tcp:5214 tcp:5214
+            // and TourGuideApi running on: http://localhost:5214
+            if (!_geofenceService.GetPOIs().Any())
+            {
+                using var pingCts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+                var canReachApi = await _apiService.PingAsync(pingCts.Token);
+                if (!canReachApi)
+                {
+                    await DisplayAlert(
+                        "Không kết nối được máy chủ",
+                        "App chưa tải được dữ liệu địa điểm (POIs).\n\n" +
+                        "Nếu chạy trên điện thoại thật qua USB:\n" +
+                        "1) Chạy TourGuideApi (HTTP) trên PC: http://localhost:5214\n" +
+                        "2) Terminal chạy: adb reverse tcp:5214 tcp:5214\n\n" +
+                        "Nếu chạy Emulator thì API phải chạy port 5214 và app sẽ tự dùng 10.0.2.2.",
+                        "OK");
+                }
+            }
+
             // 2. Kiểm tra quyền GPS
             var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
             if (status != PermissionStatus.Granted)

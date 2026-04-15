@@ -7,6 +7,8 @@ using ZXing.Net.Maui.Controls;
 
 public static class MauiProgram
 {
+	private const int DefaultApiPort = 5214;
+
 	public static MauiApp CreateMauiApp()
 	{
 		try
@@ -33,9 +35,11 @@ public static class MauiProgram
 
 			builder.Services.AddHttpClient<IApiService, ApiService>(client =>
 			{
-				// Android Emulator uses 10.0.2.2 to reach localhost on host machine
 				// TourGuideApi runs HTTP on port 5214 (HTTPS uses 7098)
-				client.BaseAddress = new Uri("http://10.0.2.2:5214/");
+				// Android:
+				// - Emulator: use 10.0.2.2 to reach host machine localhost
+				// - Physical device over USB (adb reverse): use 127.0.0.1
+				client.BaseAddress = ResolveApiBaseAddress();
 				client.Timeout = TimeSpan.FromSeconds(30);
 			});
 
@@ -55,5 +59,16 @@ public static class MauiProgram
 			System.Diagnostics.Debug.WriteLine($"!!!FATAL ERROR during app initialization: {ex}");
 			throw;
 		}
+	}
+
+	private static Uri ResolveApiBaseAddress()
+	{
+#if ANDROID
+		var isEmulator = Microsoft.Maui.Devices.DeviceInfo.Current.DeviceType == Microsoft.Maui.Devices.DeviceType.Virtual;
+		var host = isEmulator ? "10.0.2.2" : "127.0.0.1";
+		return new Uri($"http://{host}:{DefaultApiPort}/");
+#else
+		return new Uri($"http://localhost:{DefaultApiPort}/");
+#endif
 	}
 }
