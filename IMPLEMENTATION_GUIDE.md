@@ -25,23 +25,20 @@ ja-JP - 日本語 (Japanese)
 ko-KR - 한국어 (Korean)
 ```
 
-### 2. **4-Tier Hybrid Audio System** ✅
+### 2. **Hybrid Audio System** ✅
 The system automatically falls back through audio tiers to ensure content is always available:
 
 ```
 TIER 1: Cached MP3 (Local device storage)
         ↓ (if not cached)
-TIER 2: API TTS (Azure Cognitive Services or Google Cloud)
-        ↓ (if offline or unavailable)
-TIER 3: Edge-TTS (Microsoft offline, no API cost)
-        ↓ (if unavailable)
-TIER 4: Device TTS (MAUI TextToSpeech.Default)
+TIER 2: Edge-TTS CLI (free, no API key; requires internet)
+  ↓ (if unavailable)
+TIER 3: Device TTS (MAUI TextToSpeech.Default)
 ```
 
 **Implementation**:
-- `AzureTextToSpeechService`: Uses Azure Cognitive Services (recommended)
-- `GoogleTextToSpeechService`: Fallback using Google Cloud TTS
-- Both services implement `ITextToSpeechService` interface
+- `EdgeTtsTextToSpeechService`: Generates MP3 via the open-source `edge-tts` CLI
+- Implements `ITextToSpeechService`
 
 **Voice Setup**:
 ```csharp
@@ -49,7 +46,7 @@ TIER 4: Device TTS (MAUI TextToSpeech.Default)
 "vi-VN" => "vi-VN-HoaiMyNeural"
 "en-US" => "en-US-AriaNeural"
 "zh-CN" => "zh-CN-XiaoxiaoNeural"
-"ja-JP" => "ja-JP-NanomiNeural"
+"ja-JP" => "ja-JP-NanamiNeural"
 "ko-KR" => "ko-KR-SunHiNeural"
 ```
 
@@ -116,11 +113,16 @@ dotnet add package Microsoft.IdentityModel.Tokens
     "ExpirationMinutes": 1440
   },
   "TextToSpeech": {
-    "Provider": "Azure"
+    "Provider": "EdgeTts"
   },
-  "AzureSpeech": {
-    "SubscriptionKey": "your-azure-key",
-    "Region": "southeastasia"
+  "EdgeTts": {
+    "ExecutablePath": "",
+    "TimeoutSeconds": 90,
+    "SpeechRate": 0.25
+  },
+  "Ollama": {
+    "BaseUrl": "http://localhost:11434",
+    "Model": "qwen2.5:3b"
   }
 }
 ```
@@ -253,27 +255,30 @@ Response: {
 
 ### Text-to-Speech Provider
 
-#### Option 1: Azure Cognitive Services (Recommended)
+This project uses **Edge-TTS** (free, no API key). It requires Python + `edge-tts`.
+
 ```json
 {
   "TextToSpeech": {
-    "Provider": "Azure"
+    "Provider": "EdgeTts"
   },
-  "AzureSpeech": {
-    "SubscriptionKey": "your-key-here",
-    "Region": "southeastasia"
+  "EdgeTts": {
+    "ExecutablePath": "",
+    "TimeoutSeconds": 90,
+    "SpeechRate": 0.25
   }
 }
 ```
 
-#### Option 2: Google Cloud
+### Auto-translation (Vietnamese → other languages)
+
+Uses a local/self-hosted **Ollama** server:
+
 ```json
 {
-  "TextToSpeech": {
-    "Provider": "Google"
-  },
-  "GoogleCloud": {
-    "TextToSpeechApiKey": "your-key-here"
+  "Ollama": {
+    "BaseUrl": "http://localhost:11434",
+    "Model": "qwen2.5:3b"
   }
 }
 ```
@@ -375,9 +380,10 @@ TourGuideApi/
 │   ├── LocalizationsController.cs [NEW]
 │   └── AuthController.cs         [NEW]
 ├── Services/
-│   ├── ITextToSpeechService.cs   [ENHANCED]
-│   ├── AzureTextToSpeechService.cs
-│   └── GoogleTextToSpeechService.cs
+│   ├── ITextToSpeechService.cs   [UPDATED]
+│   ├── EdgeTtsTextToSpeechService.cs
+│   ├── ILocalizationTranslationService.cs
+│   └── OllamaLocalizationTranslationService.cs
 ├── Data/
 │   └── AppDbContext.cs           [UPDATED]
 └── Program.cs                    [UPDATED]
@@ -405,8 +411,8 @@ TouristGuideApp/
 
 ## ⚠️ Next Steps (Not Yet Implemented)
 
-### 1. **Gemini AI Advisor** 🚧
-- Integrate Google Gemini 2.0 Flash for food recommendations
+### 1. **Local AI Advisor (Optional)** 🚧
+- Optional AI advisor using a local/self-hosted model (e.g., Ollama)
 - Service to suggest dishes based on user preferences or mood
 - Endpoint: `POST /api/advisor/recommend`
 
@@ -470,11 +476,11 @@ curl -X POST http://localhost:5214/api/localizations \
 
 ## 🔐 Security Notes
 
-1. **JWT Token**: Protect the signing key in production (use Azure Key Vault)
+1. **JWT Token**: Protect the signing key in production (use environment variables / a secret manager)
 2. **Password**: Always hash with BCrypt (never store plaintext)
 3. **CORS**: Update AllowedOrigins for production domains
 4. **PII**: Encrypt restaurant owner information in database
-5. **API Keys**: Store TTS keys in environment variables, not config files
+5. **Secrets**: Store sensitive values in environment variables, not config files
 
 ---
 
@@ -537,7 +543,8 @@ CREATE TABLE Users (
 
 - **Entity Framework Core**: https://docs.microsoft.com/ef/core/
 - **JWT Authentication**: https://jwt.io/
-- **Azure Cognitive Services TTS**: https://azure.microsoft.com/services/cognitive-services/text-to-speech/
+- **Edge-TTS**: https://github.com/rany2/edge-tts
+- **Ollama**: https://ollama.com/
 - **MAUI Geolocation**: https://learn.microsoft.com/maui/platform-integration/device/geolocation/
 - **AsyncIO Best Practices**: https://docs.microsoft.com/dotnet/csharp/async
 

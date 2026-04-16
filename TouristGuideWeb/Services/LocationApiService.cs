@@ -36,12 +36,23 @@ public class LocationApiService
         }
 
         using var client = CreateClient();
-        var result = await client.GetFromJsonAsync<List<Location>>("api/locations", cancellationToken);
+        try
+        {
+            var result = await client.GetFromJsonAsync<List<Location>>("api/locations", cancellationToken);
 
-        var locations = result ?? new List<Location>();
-        _memoryCache.Set(LocationsListCacheKey, locations, TimeSpan.FromMinutes(5));
+            var locations = result ?? new List<Location>();
+            _memoryCache.Set(LocationsListCacheKey, locations, TimeSpan.FromMinutes(5));
 
-        return locations;
+            return locations;
+        }
+        catch (OperationCanceledException)
+        {
+            return new List<Location>();
+        }
+        catch (HttpRequestException)
+        {
+            return new List<Location>();
+        }
     }
 
     public Task<List<Location>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -52,47 +63,91 @@ public class LocationApiService
     public async Task<Location?> GetLocationByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         using var client = CreateClient();
-        return await client.GetFromJsonAsync<Location>($"api/locations/{id}", cancellationToken);
+        try
+        {
+            return await client.GetFromJsonAsync<Location>($"api/locations/{id}", cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
+        catch (HttpRequestException)
+        {
+            return null;
+        }
     }
 
     public async Task<(Location? Location, string? ErrorMessage)> CreateLocationAsync(Location location, CancellationToken cancellationToken = default)
     {
         using var client = CreateClient();
-        var response = await client.PostAsJsonAsync("api/locations", location, cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            return (null, await ReadErrorMessageAsync(response, cancellationToken));
-        }
+            var response = await client.PostAsJsonAsync("api/locations", location, cancellationToken);
 
-        var created = await response.Content.ReadFromJsonAsync<Location>(cancellationToken: cancellationToken);
-        _memoryCache.Remove(LocationsListCacheKey);
-        return (created, null);
+            if (!response.IsSuccessStatusCode)
+            {
+                return (null, await ReadErrorMessageAsync(response, cancellationToken));
+            }
+
+            var created = await response.Content.ReadFromJsonAsync<Location>(cancellationToken: cancellationToken);
+            _memoryCache.Remove(LocationsListCacheKey);
+            return (created, null);
+        }
+        catch (OperationCanceledException)
+        {
+            return (null, "Không thể kết nối API (timeout / request bị huỷ). Vui lòng thử lại.");
+        }
+        catch (HttpRequestException)
+        {
+            return (null, "Không thể kết nối API. Vui lòng kiểm tra TourGuideApi đang chạy.");
+        }
     }
 
     public async Task<(bool Success, string? ErrorMessage)> UpdateLocationAsync(int id, Location location, CancellationToken cancellationToken = default)
     {
         using var client = CreateClient();
-        var response = await client.PutAsJsonAsync($"api/locations/{id}", location, cancellationToken);
-        if (response.IsSuccessStatusCode)
+        try
         {
-            _memoryCache.Remove(LocationsListCacheKey);
-            return (true, null);
-        }
+            var response = await client.PutAsJsonAsync($"api/locations/{id}", location, cancellationToken);
+            if (response.IsSuccessStatusCode)
+            {
+                _memoryCache.Remove(LocationsListCacheKey);
+                return (true, null);
+            }
 
-        return (false, await ReadErrorMessageAsync(response, cancellationToken));
+            return (false, await ReadErrorMessageAsync(response, cancellationToken));
+        }
+        catch (OperationCanceledException)
+        {
+            return (false, "Không thể kết nối API (timeout / request bị huỷ). Vui lòng thử lại.");
+        }
+        catch (HttpRequestException)
+        {
+            return (false, "Không thể kết nối API. Vui lòng kiểm tra TourGuideApi đang chạy.");
+        }
     }
 
     public async Task<bool> DeleteLocationAsync(int id, CancellationToken cancellationToken = default)
     {
         using var client = CreateClient();
-        var response = await client.DeleteAsync($"api/locations/{id}", cancellationToken);
-        if (response.IsSuccessStatusCode)
+        try
         {
-            _memoryCache.Remove(LocationsListCacheKey);
-        }
+            var response = await client.DeleteAsync($"api/locations/{id}", cancellationToken);
+            if (response.IsSuccessStatusCode)
+            {
+                _memoryCache.Remove(LocationsListCacheKey);
+            }
 
-        return response.IsSuccessStatusCode;
+            return response.IsSuccessStatusCode;
+        }
+        catch (OperationCanceledException)
+        {
+            return false;
+        }
+        catch (HttpRequestException)
+        {
+            return false;
+        }
     }
 
     private HttpClient CreateClient()

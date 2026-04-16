@@ -98,7 +98,7 @@ VALUES (
     1, 'ja-JP',
     'フーティウ ナムヴァン',
     'フーティウナムヴァンはサイゴン周辺の有名なヌードルスープレストランで、1960年に創業しました',
-    'ja-JP-NanomiNeural',
+    'ja-JP-NanamiNeural',
     'pending',
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP

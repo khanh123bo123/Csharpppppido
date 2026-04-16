@@ -30,12 +30,17 @@ public class LocalizationApiService
     public async Task<List<LocalizationDto>> GetLocalizationsByLocationAsync(int locationId, CancellationToken cancellationToken = default)
     {
         using var client = CreateClient();
-        try 
+        try
         {
             var result = await client.GetFromJsonAsync<List<LocalizationDto>>($"api/localizations/by-location/{locationId}", cancellationToken);
             return result ?? new List<LocalizationDto>();
         }
-        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        catch (OperationCanceledException)
+        {
+            // Covers TaskCanceledException (timeout) and request-abort cancellations.
+            return new List<LocalizationDto>();
+        }
+        catch (HttpRequestException)
         {
             return new List<LocalizationDto>();
         }
@@ -48,7 +53,11 @@ public class LocalizationApiService
         {
             return await client.GetFromJsonAsync<LocalizationDto>($"api/localizations/{locationId}/{languageCode}", cancellationToken);
         }
-        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
+        catch (HttpRequestException)
         {
             return null;
         }
@@ -57,39 +66,127 @@ public class LocalizationApiService
     public async Task<LocalizationDto?> CreateOrUpdateAsync(CreateLocalizationRequest request, CancellationToken cancellationToken = default)
     {
         using var client = CreateClient();
-        var response = await client.PostAsJsonAsync("api/localizations", request, cancellationToken);
-        if (response.IsSuccessStatusCode)
+        try
         {
-            return await response.Content.ReadFromJsonAsync<LocalizationDto>(cancellationToken: cancellationToken);
+            var response = await client.PostAsJsonAsync("api/localizations", request, cancellationToken);
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<LocalizationDto>(cancellationToken: cancellationToken);
+            }
+            return null;
         }
-        return null;
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
+        catch (HttpRequestException)
+        {
+            return null;
+        }
     }
 
     public async Task<bool> DeleteAsync(int localizationId, CancellationToken cancellationToken = default)
     {
         using var client = CreateClient();
-        var response = await client.DeleteAsync($"api/localizations/{localizationId}", cancellationToken);
-        return response.IsSuccessStatusCode;
+        try
+        {
+            var response = await client.DeleteAsync($"api/localizations/{localizationId}", cancellationToken);
+            return response.IsSuccessStatusCode;
+        }
+        catch (OperationCanceledException)
+        {
+            return false;
+        }
+        catch (HttpRequestException)
+        {
+            return false;
+        }
     }
 
     public async Task<bool> DeleteAudioAsync(int localizationId, CancellationToken cancellationToken = default)
     {
         using var client = CreateClient();
-        var response = await client.DeleteAsync($"api/localizations/{localizationId}/audio", cancellationToken);
-        return response.IsSuccessStatusCode;
+        try
+        {
+            var response = await client.DeleteAsync($"api/localizations/{localizationId}/audio", cancellationToken);
+            return response.IsSuccessStatusCode;
+        }
+        catch (OperationCanceledException)
+        {
+            return false;
+        }
+        catch (HttpRequestException)
+        {
+            return false;
+        }
     }
 
     public async Task<GenerateAudioResponse?> GenerateAudioAsync(int localizationId, CancellationToken cancellationToken = default)
     {
         using var client = CreateClient();
-        var request = new GenerateAudioRequest { LocalizationId = localizationId };
-        var response = await client.PostAsJsonAsync("api/localizations/generate-audio", request, cancellationToken);
-        
-        if (response.IsSuccessStatusCode)
+        try
         {
-             return await response.Content.ReadFromJsonAsync<GenerateAudioResponse>(cancellationToken: cancellationToken);
+            var request = new GenerateAudioRequest { LocalizationId = localizationId };
+            var response = await client.PostAsJsonAsync("api/localizations/generate-audio", request, cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<GenerateAudioResponse>(cancellationToken: cancellationToken);
+            }
+            return null;
         }
-        return null;
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
+        catch (HttpRequestException)
+        {
+            return null;
+        }
+    }
+
+    public async Task<GenerateLocalizationPackResponse?> GenerateLocalizationPackAsync(
+        GenerateLocalizationPackRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        using var client = CreateClient();
+        try
+        {
+            var response = await client.PostAsJsonAsync("api/localizations/generate-pack", request, cancellationToken);
+            return await response.Content.ReadFromJsonAsync<GenerateLocalizationPackResponse>(cancellationToken: cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
+        catch (HttpRequestException)
+        {
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public async Task<byte[]?> GetAudioBytesAsync(int localizationId, CancellationToken cancellationToken = default)
+    {
+        using var client = CreateClient();
+
+        try
+        {
+            using var response = await client.GetAsync($"api/localizations/{localizationId}/audio", cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            return await response.Content.ReadAsByteArrayAsync(cancellationToken);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     // Helper to get ALL localizations across all locations (Since Backend API doesn't have a Get All endpoint)

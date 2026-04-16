@@ -43,11 +43,12 @@ Edit `appsettings.json`:
   },
   "EdgeTts": {
     "ExecutablePath": "",
-    "TimeoutSeconds": 90
+    "TimeoutSeconds": 90,
+    "SpeechRate": 0.25
   },
-  "AzureSpeech": {
-    "SubscriptionKey": "",
-    "Region": "southeastasia"
+  "Ollama": {
+    "BaseUrl": "http://localhost:11434",
+    "Model": "qwen2.5:3b"
   }
 }
 ```
@@ -261,9 +262,9 @@ Csharpppppido/
 │   │   ├── User.cs ✅ NEW
 │   │   └── POI.cs
 │   ├── Services/
-│   │   ├── ITextToSpeechService.cs ✅ ENHANCED (includes AzureTextToSpeechService)
+│   │   ├── ITextToSpeechService.cs ✅ UPDATED
 │   │   ├── EdgeTtsTextToSpeechService.cs ✅ NEW
-│   │   └── GoogleTextToSpeechService.cs ✅
+│   │   └── OllamaLocalizationTranslationService.cs ✅ NEW
 │   ├── Data/
 │   │   └── AppDbContext.cs ✅ UPDATED
 │   ├── tourguide.db ⚙️ (Created by EF Core)
@@ -290,45 +291,6 @@ Csharpppppido/
 ├── COMPLETION_SUMMARY.md ✅ NEW
 ├── DATABASE_SEED.sql ✅ NEW
 └── QUICK_START.md ← You are here
-```
-
----
-
-## 🚀 Next Phase: AI Advisor
-
-When ready to implement Gemini AI:
-
-1. Install Gemini SDK
-2. Add to Program.cs:
-```csharp
-builder.Services.AddScoped<IAiAdvisorService, GeminiAiAdvisorService>();
-```
-
-3. Implement:
-```csharp
-// Services/IAiAdvisorService.cs
-public class GeminiAiAdvisorService : IAiAdvisorService
-{
-    public async Task<AiRecommendation> GetRecommendationAsync(
-        string userPreference, 
-        string languageCode)
-    {
-        // Call Gemini API with prompt
-        // Return food recommendation
-    }
-}
-```
-
-4. Add controller endpoint:
-```csharp
-[HttpPost]
-public async Task<AiRecommendation> GetRecommendation(
-    [FromBody] RecommendationRequest request)
-{
-    return await _aiAdvisor.GetRecommendationAsync(
-        request.Preference, 
-        request.LanguageCode);
-}
 ```
 
 ---

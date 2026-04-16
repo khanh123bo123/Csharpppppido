@@ -6,6 +6,14 @@
 # dotenv files
 .env
 
+# Local secrets overrides (do not commit)
+**/appsettings.Local.json
+
+# SQLite transient files (never commit)
+*.db-wal
+*.db-shm
+*.db-journal
+
 # User-specific files
 *.rsuser
 *.suo

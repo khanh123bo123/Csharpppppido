@@ -2,22 +2,20 @@
 
 ## All Compilation Errors - Fixed
 
-### Error #1: Duplicate GoogleTextToSpeechService
+### Error #1: Duplicate TTS Service Definition
 **Original Error**:
-```
-The namespace 'TourGuideApi.Services' already contains a definition for 'GoogleTextToSpeechService'
-Type 'GoogleTextToSpeechService' already defines a member called 'SynthesizeAsync' with the same parameter types
-```
+- Duplicate TTS service class definition
+- Duplicate `SynthesizeAsync` method signature
 
 **Fix Applied**:
-1. **Removed** duplicate `GoogleTextToSpeechService` class from `ITextToSpeechService.cs`
-2. **Updated** `GoogleTextToSpeechService.cs` to implement `ITextToSpeechService` properly
-3. **Kept** only one complete implementation per class
+1. **Consolidated** the TTS contract into `ITextToSpeechService`
+2. **Removed** paid cloud TTS provider implementations
+3. **Kept** a single, free provider implementation (`EdgeTtsTextToSpeechService`)
 
-**Files Changed**: 2
+**Files Changed**:
 ```
-✓ TourGuideApi/Services/ITextToSpeechService.cs (removed ~95 lines)
-✓ TourGuideApi/Services/GoogleTextToSpeechService.cs (updated all lines)
+✓ TourGuideApi/Services/ITextToSpeechService.cs
+✓ TourGuideApi/Services/EdgeTtsTextToSpeechService.cs
 ```
 
 ---
@@ -150,8 +148,8 @@ await DisplayAlertAsync("Thành công", "Lịch sử thuyết minh đã được
 
 | File | Type | Change | Lines |
 |------|------|--------|-------|
-| ITextToSpeechService.cs | Delete | Remove duplicate GoogleTextToSpeechService class | ~95 |
-| GoogleTextToSpeechService.cs | Update | Update to implement interface properly | All |
+| ITextToSpeechService.cs | Update | Simplify to interface-only (remove paid cloud providers) | ~95 |
+| EdgeTtsTextToSpeechService.cs | Add | Add free TTS via edge-tts CLI | All |
 | Program.cs | Update | Make JWT optional, fix authentication scheme | ~50 |
 | AudioService.cs | Add | Add System.Globalization using statement | 1 |
 | AudioService.cs | Update | Fix Locale constructor with CultureInfo | 1 |

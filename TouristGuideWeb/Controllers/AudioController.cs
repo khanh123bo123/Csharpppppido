@@ -10,17 +10,24 @@ public class AudioController : Controller
 {
     private readonly LocalizationApiService _localizationApiService;
     private readonly LocationApiService _locationApiService;
-    private readonly IConfiguration _config;
+    private readonly TtsSettingsApiService _ttsSettingsApiService;
 
-    public AudioController(LocalizationApiService localizationApiService, LocationApiService locationApiService, IConfiguration config)
+    public AudioController(
+        LocalizationApiService localizationApiService,
+        LocationApiService locationApiService,
+        TtsSettingsApiService ttsSettingsApiService)
     {
         _localizationApiService = localizationApiService;
         _locationApiService = locationApiService;
-        _config = config;
+        _ttsSettingsApiService = ttsSettingsApiService;
     }
 
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
+        var edgeTts = await _ttsSettingsApiService.GetEdgeTtsSettingsAsync(cancellationToken);
+        ViewBag.EdgeTtsSpeechRate = edgeTts?.SpeechRate;
+        ViewBag.EdgeTtsRate = edgeTts?.Rate;
+
         var locationsRaw = await _locationApiService.GetAllAsync(cancellationToken);
         
         var locations = User.IsInRole("Owner") && !User.IsInRole("Admin")
@@ -39,8 +46,44 @@ public class AudioController : Controller
             }
         }
 
-        ViewBag.ApiBaseUrl = _config["ApiSettings:BaseUrl"];
         return View(allAudios.OrderByDescending(a => a.Id).ToList());
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateSpeechRate(double speechRate, CancellationToken cancellationToken)
+    {
+        // Keep consistent with API clamping.
+        if (double.IsNaN(speechRate) || double.IsInfinity(speechRate) || speechRate <= 0)
+        {
+            TempData["ErrorMessage"] = "Tốc độ đọc không hợp lệ.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var updated = await _ttsSettingsApiService.UpdateSpeechRateAsync(speechRate, cancellationToken);
+        if (updated != null)
+        {
+            TempData["SuccessMessage"] = $"Đã cập nhật tốc độ giọng đọc Edge-TTS: {updated.SpeechRate:0.##}x";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Không thể cập nhật tốc độ đọc. Hãy kiểm tra TourGuideApi đang chạy.";
+        }
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Stream(int id, CancellationToken cancellationToken)
+    {
+        var audioBytes = await _localizationApiService.GetAudioBytesAsync(id, cancellationToken);
+        if (audioBytes is null || audioBytes.Length == 0)
+        {
+            return NotFound();
+        }
+
+        return File(audioBytes, "audio/mpeg");
     }
 
     [HttpPost]

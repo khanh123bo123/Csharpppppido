@@ -4,7 +4,7 @@
 
 | Error | Status | Fix | File |
 |-------|--------|-----|------|
-| Duplicate `GoogleTextToSpeechService` | ✅ FIXED | Removed from ITextToSpeechService.cs | 2 files |
+| Duplicate TTS service definition | ✅ FIXED | Simplified to EdgeTts-only implementation | TourGuideApi/Services |
 | Duplicate `SynthesizeAsync` | ✅ FIXED | Removed duplicate method | ITextToSpeechService.cs |
 | Missing `JwtBearer` reference | ✅ FIXED | Made JWT optional with try-catch | Program.cs |
 | `JwtBearerDefaults` doesn't exist | ✅ FIXED | Changed to "Bearer" authentication scheme | Program.cs |
@@ -45,7 +45,16 @@ Edit the Jwt:Key to something unique (minimum 32 characters):
     "ExpirationMinutes": 1440
   },
   "TextToSpeech": {
-    "Provider": "Azure"
+    "Provider": "EdgeTts"
+  },
+  "EdgeTts": {
+    "ExecutablePath": "",
+    "TimeoutSeconds": 90,
+    "SpeechRate": 0.25
+  },
+  "Ollama": {
+    "BaseUrl": "http://localhost:11434",
+    "Model": "qwen2.5:3b"
   }
 }
 ```
@@ -99,7 +108,8 @@ curl http://localhost:5214/api/locations
 ### Backend (C# ASP.NET Core)
 - ✅ `TourGuideApi/Program.cs` - Fixed JWT configuration
 - ✅ `TourGuideApi/Services/ITextToSpeechService.cs` - Removed duplicate class
-- ✅ `TourGuideApi/Services/GoogleTextToSpeechService.cs` - Updated implementation
+- ✅ `TourGuideApi/Services/EdgeTtsTextToSpeechService.cs` - Free TTS provider (edge-tts)
+- ✅ `TourGuideApi/Services/OllamaLocalizationTranslationService.cs` - Local auto-translation (Ollama)
 
 ### Mobile (MAUI)
 - ✅ `TouristGuideApp/Services/AudioService.cs` - Fixed Locale constructor + added using

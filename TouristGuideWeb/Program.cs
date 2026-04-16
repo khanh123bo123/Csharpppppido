@@ -41,6 +41,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<TouristGuideWeb.Services.LocationApiService>();
 builder.Services.AddScoped<TouristGuideWeb.Services.TourApiService>();
 builder.Services.AddScoped<TouristGuideWeb.Services.LocalizationApiService>();
+builder.Services.AddScoped<TouristGuideWeb.Services.TtsSettingsApiService>();
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

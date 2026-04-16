@@ -1,4 +1,5 @@
 using Microsoft.Maui.Controls;
+using TouristGuideApp.Models;
 using TouristGuideApp.Services;
 using Location = Microsoft.Maui.Devices.Sensors.Location;
 
@@ -51,9 +52,34 @@ public partial class MainPage : ContentPage
 
         try
         {
+            // First launch: choose narration language pack
+            var languageCode = await EnsureNarrationLanguageSelectedAsync();
+            await _geofenceService.SetLanguageAsync(languageCode);
+
             // 1. Hiển thị dữ liệu cũ từ SQLite ngay lập tức
             await _geofenceService.InitAsync();
             UpdateUIList();
+
+            // If there are no cached POIs yet, ensure the API is reachable.
+            // On physical Android devices, this commonly requires:
+            //   adb reverse tcp:5214 tcp:5214
+            // and TourGuideApi running on: http://localhost:5214
+            if (!_geofenceService.GetPOIs().Any())
+            {
+                using var pingCts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+                var canReachApi = await _apiService.PingAsync(pingCts.Token);
+                if (!canReachApi)
+                {
+                    await DisplayAlert(
+                        "Không kết nối được máy chủ",
+                        "App chưa tải được dữ liệu địa điểm (POIs).\n\n" +
+                        "Nếu chạy trên điện thoại thật qua USB:\n" +
+                        "1) Chạy TourGuideApi (HTTP) trên PC: http://localhost:5214\n" +
+                        "2) Terminal chạy: adb reverse tcp:5214 tcp:5214\n\n" +
+                        "Nếu chạy Emulator thì API phải chạy port 5214 và app sẽ tự dùng 10.0.2.2.",
+                        "OK");
+                }
+            }
 
             // 2. Kiểm tra quyền GPS
             var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
@@ -66,7 +92,7 @@ public partial class MainPage : ContentPage
             _ = Task.Run(async () => {
                 try
                 {
-                    await _apiService.SyncPOIsToLocalAsync(_databaseService);
+                    await _apiService.SyncPOIsToLocalAsync(_databaseService, languageCode);
                     await _geofenceService.InitAsync();
 
                     // Ép giao diện cập nhật sau khi tải xong từ Web
@@ -84,6 +110,38 @@ public partial class MainPage : ContentPage
         {
             System.Diagnostics.Debug.WriteLine($"Appearing Error: {ex.Message}");
         }
+    }
+
+    private async Task<string> EnsureNarrationLanguageSelectedAsync()
+    {
+        if (AppPreferences.HasNarrationLanguageCode())
+        {
+            return AppPreferences.GetNarrationLanguageCode();
+        }
+
+        var options = SupportedLanguages.AllLanguages
+            .Where(code => SupportedLanguages.LanguageNames.ContainsKey(code))
+            .Select(code => SupportedLanguages.LanguageNames[code])
+            .ToArray();
+
+        var choice = await DisplayActionSheet(
+            "Chọn ngôn ngữ thuyết minh",
+            "Huỷ",
+            null,
+            options);
+
+        var selectedCode = SupportedLanguages.Vietnamese;
+        if (!string.IsNullOrWhiteSpace(choice))
+        {
+            var match = SupportedLanguages.LanguageNames.FirstOrDefault(kvp => string.Equals(kvp.Value, choice, StringComparison.Ordinal));
+            if (!string.IsNullOrWhiteSpace(match.Key))
+            {
+                selectedCode = match.Key;
+            }
+        }
+
+        AppPreferences.SetNarrationLanguageCode(selectedCode);
+        return selectedCode;
     }
 
     private void UpdateUIList()

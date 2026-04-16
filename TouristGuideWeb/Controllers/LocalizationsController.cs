@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using TouristGuideWeb.Models;
 using TouristGuideWeb.Services;
 
@@ -11,16 +10,6 @@ public class LocalizationsController : Controller
 {
     private readonly LocalizationApiService _localizationApiService;
     private readonly LocationApiService _locationApiService;
-
-    // Standard list for dropdown
-    private readonly Dictionary<string, string> _supportedLanguages = new()
-    {
-        { "vi-VN", "Tiếng Việt (vi-VN)" },
-        { "en-US", "Tiếng Anh (en-US)" },
-        { "zh-CN", "Tiếng Trung (zh-CN)" },
-        { "ja-JP", "Tiếng Nhật (ja-JP)" },
-        { "ko-KR", "Tiếng Hàn (ko-KR)" }
-    };
 
     public LocalizationsController(LocalizationApiService localizationApiService, LocationApiService locationApiService)
     {
@@ -55,6 +44,26 @@ public class LocalizationsController : Controller
         return View(localizations);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Status(int locationId, CancellationToken cancellationToken)
+    {
+        var location = await _locationApiService.GetLocationByIdAsync(locationId, cancellationToken);
+        if (location == null) return NotFound();
+
+        if (User.IsInRole("Owner") && !User.IsInRole("Admin") && !string.Equals(location.OwnerEmail, User.Identity?.Name, StringComparison.OrdinalIgnoreCase))
+            return Forbid();
+
+        var localizations = await _localizationApiService.GetLocalizationsByLocationAsync(locationId, cancellationToken);
+
+        return Json(localizations.Select(l => new
+        {
+            id = l.Id,
+            languageCode = l.LanguageCode,
+            audioGenerationStatus = l.AudioGenerationStatus,
+            audioStreamUrl = Url.Action("Stream", "Audio", new { id = l.Id })
+        }));
+    }
+
     // Step 3: Create translation
     public async Task<IActionResult> Create(int locationId, CancellationToken cancellationToken)
     {
@@ -65,30 +74,39 @@ public class LocalizationsController : Controller
             return Forbid();
 
         ViewBag.Location = location;
-        ViewBag.Languages = new SelectList(_supportedLanguages, "Key", "Value");
-
-        return View(new CreateLocalizationRequest { LocationId = locationId });
+        return View(new CreateLocalizationRequest { LocationId = locationId, LanguageCode = "vi-VN", LocalizedName = location.Name });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateLocalizationRequest model, CancellationToken cancellationToken)
     {
+        // Web UX: always enter Vietnamese once, then backend generates the full 5-language pack.
+        model.LanguageCode = "vi-VN";
+
         if (!ModelState.IsValid)
         {
-            ViewBag.Languages = new SelectList(_supportedLanguages, "Key", "Value");
+            ViewBag.Location = await _locationApiService.GetLocationByIdAsync(model.LocationId, cancellationToken);
             return View(model);
         }
 
-        var result = await _localizationApiService.CreateOrUpdateAsync(model, cancellationToken);
-        if (result != null)
+        var packResponse = await _localizationApiService.GenerateLocalizationPackAsync(
+            new GenerateLocalizationPackRequest
+            {
+                LocationId = model.LocationId,
+                VietnameseName = model.LocalizedName,
+                VietnameseDescription = model.LocalizedDescription
+            },
+            cancellationToken);
+
+        if (packResponse != null && string.Equals(packResponse.Status, "queued", StringComparison.OrdinalIgnoreCase))
         {
-            TempData["SuccessMessage"] = "Đã lưu bản dịch thành công. Audio đang được tạo ngầm.";
+            TempData["SuccessMessage"] = "Đã lưu tiếng Việt và đang tạo Audio cho 5 ngôn ngữ (vi/en/zh/ja/ko).";
             return RedirectToAction(nameof(Manage), new { id = model.LocationId });
         }
 
-        TempData["ErrorMessage"] = "Lưu thất bại.";
-        ViewBag.Languages = new SelectList(_supportedLanguages, "Key", "Value");
+        TempData["ErrorMessage"] = packResponse?.Message ?? "Lưu thất bại (chưa cấu hình dịch tự động hoặc API lỗi).";
+        ViewBag.Location = await _locationApiService.GetLocationByIdAsync(model.LocationId, cancellationToken);
         return View(model);
     }
 

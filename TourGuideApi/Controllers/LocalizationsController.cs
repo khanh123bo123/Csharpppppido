@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,23 +18,23 @@ namespace TourGuideApi.Controllers;
 public class LocalizationsController : ControllerBase
 {
     private readonly AppDbContext _context;
-    private readonly ITextToSpeechService _textToSpeechService;
+    private readonly ILocalizationTranslationService _translationService;
+    private readonly IAudioGenerationQueue _audioQueue;
     private readonly ILogger<LocalizationsController> _logger;
-    private readonly IServiceScopeFactory _scopeFactory;
 
     // Supported languages for the tour guide system
     private static readonly string[] SupportedLanguages = { "vi-VN", "en-US", "zh-CN", "ja-JP", "ko-KR" };
 
     public LocalizationsController(
         AppDbContext context,
-        ITextToSpeechService textToSpeechService,
-        ILogger<LocalizationsController> logger,
-        IServiceScopeFactory scopeFactory)
+        ILocalizationTranslationService translationService,
+        IAudioGenerationQueue audioQueue,
+        ILogger<LocalizationsController> logger)
     {
         _context = context;
-        _textToSpeechService = textToSpeechService;
+        _translationService = translationService;
+        _audioQueue = audioQueue;
         _logger = logger;
-        _scopeFactory = scopeFactory;
     }
 
     /// <summary>
@@ -168,6 +167,150 @@ public class LocalizationsController : ControllerBase
     }
 
     /// <summary>
+    /// Create/update the FULL 5-language pack from a single Vietnamese input.
+    /// Source is always Vietnamese (vi-VN). The API will translate into 4 remaining languages
+    /// and queue TTS audio generation for all 5.
+    /// POST: api/localizations/generate-pack
+    /// </summary>
+    [HttpPost("generate-pack")]
+    public async Task<ActionResult<GenerateLocalizationPackResponse>> GenerateLocalizationPack(
+        [FromBody] GenerateLocalizationPackRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.LocationId <= 0)
+        {
+            return BadRequest("LocationId is required.");
+        }
+
+        var vietnameseName = (request.VietnameseName ?? string.Empty).Trim();
+        var vietnameseDescription = (request.VietnameseDescription ?? string.Empty).Trim();
+
+        if (string.IsNullOrWhiteSpace(vietnameseName) || string.IsNullOrWhiteSpace(vietnameseDescription))
+        {
+            return BadRequest("VietnameseName and VietnameseDescription are required.");
+        }
+
+        var location = await _context.Locations.FindAsync(new object[] { request.LocationId }, cancellationToken);
+        if (location == null)
+        {
+            return NotFound($"Location {request.LocationId} not found");
+        }
+
+        var targetLanguages = SupportedLanguages
+            .Where(l => !string.Equals(l, "vi-VN", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+
+        Dictionary<string, LocalizedText> translated;
+        try
+        {
+            translated = await _translationService.TranslateFromVietnameseAsync(
+                vietnameseName,
+                vietnameseDescription,
+                targetLanguages,
+                cancellationToken);
+        }
+        catch (LocalizationTranslationNotConfiguredException ex)
+        {
+            _logger.LogWarning(ex, "Localization pack translation is not configured.");
+            return StatusCode(
+                StatusCodes.Status501NotImplemented,
+                new GenerateLocalizationPackResponse
+                {
+                    Status = "not_configured",
+                    Message = ex.Message,
+                    LocationId = request.LocationId,
+                    Languages = SupportedLanguages
+                });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to translate localization pack for location {LocationId}", request.LocationId);
+
+            var message = ex is TaskCanceledException
+                ? "Dịch tự động phản hồi quá chậm (timeout). Hãy thử lại sau hoặc kiểm tra Ollama đang chạy."
+                : (ex.Message ?? "Dịch tự động thất bại. Hãy kiểm tra Ollama đang chạy và cấu hình Ollama:BaseUrl/Ollama:Model.");
+
+            return StatusCode(
+                StatusCodes.Status502BadGateway,
+                new GenerateLocalizationPackResponse
+                {
+                    Status = "failed",
+                    Message = message,
+                    LocationId = request.LocationId,
+                    Languages = SupportedLanguages
+                });
+        }
+
+        var now = DateTime.UtcNow;
+        var touched = new List<Localization>();
+
+        foreach (var languageCode in SupportedLanguages)
+        {
+            var name = string.Equals(languageCode, "vi-VN", StringComparison.OrdinalIgnoreCase)
+                ? vietnameseName
+                : translated[languageCode].LocalizedName;
+
+            var desc = string.Equals(languageCode, "vi-VN", StringComparison.OrdinalIgnoreCase)
+                ? vietnameseDescription
+                : translated[languageCode].LocalizedDescription;
+
+            var existing = await _context.Localizations
+                .FirstOrDefaultAsync(
+                    l => l.LocationId == request.LocationId && l.LanguageCode == languageCode,
+                    cancellationToken);
+
+            if (existing == null)
+            {
+                var localization = new Localization
+                {
+                    LocationId = request.LocationId,
+                    LanguageCode = languageCode,
+                    LocalizedName = name,
+                    LocalizedDescription = desc,
+                    TtsVoiceCode = GetDefaultVoice(languageCode),
+                    AudioGenerationStatus = "pending",
+                    CreatedAt = now,
+                    UpdatedAt = now
+                };
+
+                _context.Localizations.Add(localization);
+                touched.Add(localization);
+                continue;
+            }
+
+            existing.LocalizedName = name;
+            existing.LocalizedDescription = desc;
+            existing.CachedAudioBase64 = null;
+            existing.CachedAudioUrl = null;
+            existing.AudioGenerationStatus = "pending";
+
+            if (string.IsNullOrWhiteSpace(existing.TtsVoiceCode))
+            {
+                existing.TtsVoiceCode = GetDefaultVoice(languageCode);
+            }
+
+            existing.UpdatedAt = now;
+            _context.Localizations.Update(existing);
+            touched.Add(existing);
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        foreach (var loc in touched)
+        {
+            QueueAudioGeneration(loc.Id);
+        }
+
+        return Ok(new GenerateLocalizationPackResponse
+        {
+            Status = "queued",
+            Message = "Đã tạo/cập nhật 5 bản dịch. Audio đang được tạo ngầm.",
+            LocationId = request.LocationId,
+            Languages = SupportedLanguages
+        });
+    }
+
+    /// <summary>
     /// Generate/regenerate audio for a localization (Manual trigger)
     /// POST: api/localizations/generate-audio
     /// </summary>
@@ -272,74 +415,10 @@ public class LocalizationsController : ControllerBase
 
     private void QueueAudioGeneration(int localizationId)
     {
-        _ = Task.Run(async () =>
+        var enqueued = _audioQueue.TryEnqueue(localizationId);
+        if (!enqueued)
         {
-            try
-            {
-                using var scope = _scopeFactory.CreateScope();
-                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var tts = scope.ServiceProvider.GetRequiredService<ITextToSpeechService>();
-
-                await GenerateAudioWithFreshScopeAsync(context, tts, localizationId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Queued audio generation failed for localization {LocalizationId}", localizationId);
-            }
-        });
-    }
-
-    private async Task GenerateAudioWithFreshScopeAsync(AppDbContext context, ITextToSpeechService tts, int localizationId)
-    {
-        var localization = await context.Localizations.FirstOrDefaultAsync(l => l.Id == localizationId);
-        if (localization is null)
-        {
-            return;
-        }
-
-        try
-        {
-            var voiceCode = localization.TtsVoiceCode ?? GetDefaultVoice(localization.LanguageCode);
-            var audioBase64 = await tts.GenerateSpeechAsync(
-                localization.LocalizedDescription,
-                localization.LanguageCode,
-                voiceCode);
-
-            // Some providers may return a JSON instruction instead of actual audio.
-            // For the web/admin Tier-2 use-case, treat this as a failure.
-            if (string.IsNullOrWhiteSpace(audioBase64)
-                || audioBase64.Contains("EDGE_TTS", StringComparison.OrdinalIgnoreCase))
-            {
-                localization.AudioGenerationStatus = "failed";
-                localization.UpdatedAt = DateTime.UtcNow;
-                context.Localizations.Update(localization);
-                await context.SaveChangesAsync();
-                return;
-            }
-
-            localization.CachedAudioBase64 = audioBase64;
-            localization.AudioGenerationStatus = "generated";
-            localization.CachedAudioUrl = $"/api/localizations/{localization.Id}/audio";
-            localization.UpdatedAt = DateTime.UtcNow;
-
-            context.Localizations.Update(localization);
-            await context.SaveChangesAsync();
-            _logger.LogInformation("Audio generated for localization {LocalizationId}", localization.Id);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to generate audio for localization {LocalizationId}", localization.Id);
-            try
-            {
-                localization.AudioGenerationStatus = "failed";
-                localization.UpdatedAt = DateTime.UtcNow;
-                context.Localizations.Update(localization);
-                await context.SaveChangesAsync();
-            }
-            catch
-            {
-                // ignore
-            }
+            _logger.LogDebug("Audio generation already queued for localization {LocalizationId}", localizationId);
         }
     }
 
@@ -350,7 +429,7 @@ public class LocalizationsController : ControllerBase
             "vi-VN" => "vi-VN-HoaiMyNeural",
             "en-US" => "en-US-AriaNeural",
             "zh-CN" => "zh-CN-XiaoxiaoNeural",
-            "ja-JP" => "ja-JP-NanomiNeural",
+            "ja-JP" => "ja-JP-NanamiNeural",
             "ko-KR" => "ko-KR-SunHiNeural",
             _ => "en-US-AriaNeural"
         };
@@ -392,4 +471,19 @@ public class GenerateAudioResponse
 {
     public string Status { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
+}
+
+public class GenerateLocalizationPackRequest
+{
+    public int LocationId { get; set; }
+    public string VietnameseName { get; set; } = string.Empty;
+    public string VietnameseDescription { get; set; } = string.Empty;
+}
+
+public class GenerateLocalizationPackResponse
+{
+    public string Status { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public int LocationId { get; set; }
+    public string[] Languages { get; set; } = Array.Empty<string>();
 }

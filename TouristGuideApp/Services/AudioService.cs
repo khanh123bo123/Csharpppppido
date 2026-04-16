@@ -17,7 +17,7 @@ namespace TouristGuideApp.Services
     /// </summary>
     public interface IAudioService
     {
-        Task EnqueueSpeechAsync(string text, int? serverLocationId = null, string? cachedAudioUrl = null, Action? onStarted = null, Action? onEnded = null);
+        Task EnqueueSpeechAsync(string text, int? serverLocationId = null, string? cachedAudioUrl = null, bool forceOfflineTts = false, Action? onStarted = null, Action? onEnded = null);
         bool IsPlaying { get; }
         Task SetLanguageAsync(string languageCode);
         string CurrentLanguage { get; }
@@ -27,7 +27,7 @@ namespace TouristGuideApp.Services
     public class AudioService : IAudioService
     {
         private readonly IApiService _apiService;
-        private readonly Queue<(string Text, int? ServerLocationId, string? AudioUrl, Action? OnStarted, Action? OnEnded)> _speechQueue = new();
+        private readonly Queue<(string Text, int? ServerLocationId, string? AudioUrl, bool ForceOfflineTts, Action? OnStarted, Action? OnEnded)> _speechQueue = new();
         private bool _isProcessing = false;
         public bool IsPlaying { get; private set; }
         public string CurrentLanguage { get; private set; } = "vi-VN";
@@ -46,11 +46,11 @@ namespace TouristGuideApp.Services
         /// <summary>
         /// Enqueue speech with 4-tier fallback system
         /// </summary>
-        public async Task EnqueueSpeechAsync(string text, int? serverLocationId = null, string? cachedAudioUrl = null, Action? onStarted = null, Action? onEnded = null)
+        public async Task EnqueueSpeechAsync(string text, int? serverLocationId = null, string? cachedAudioUrl = null, bool forceOfflineTts = false, Action? onStarted = null, Action? onEnded = null)
         {
             if (string.IsNullOrWhiteSpace(text)) return;
 
-            _speechQueue.Enqueue((text, serverLocationId, cachedAudioUrl, onStarted, onEnded));
+            _speechQueue.Enqueue((text, serverLocationId, cachedAudioUrl, forceOfflineTts, onStarted, onEnded));
 
             if (!_isProcessing)
             {
@@ -73,16 +73,19 @@ namespace TouristGuideApp.Services
                 {
                     bool playedAudio = false;
 
-                    // TIER 1/2: Prefer location-based cache + API download when available
-                    if (item.ServerLocationId is > 0)
+                    if (!item.ForceOfflineTts)
                     {
-                        playedAudio = await TryPlayFromCacheOrApiAsync(item.ServerLocationId.Value, item.Text);
-                    }
+                        // TIER 1/2: Prefer location-based cache + API download when available
+                        if (item.ServerLocationId is > 0)
+                        {
+                            playedAudio = await TryPlayFromCacheOrApiAsync(item.ServerLocationId.Value, item.Text);
+                        }
 
-                    // Backward compatibility: if caller provided a local cache key/path
-                    if (!playedAudio && !string.IsNullOrWhiteSpace(item.AudioUrl))
-                    {
-                        playedAudio = await TryPlayLocalCachedAudioAsync(item.AudioUrl);
+                        // Backward compatibility: if caller provided a local cache key/path
+                        if (!playedAudio && !string.IsNullOrWhiteSpace(item.AudioUrl))
+                        {
+                            playedAudio = await TryPlayLocalCachedAudioAsync(item.AudioUrl);
+                        }
                     }
                     
                     // TIER 4: Fallback to device TTS if audio didn't play
@@ -284,7 +287,8 @@ namespace TouristGuideApp.Services
 #if ANDROID
             try
             {
-                return await TouristGuideApp.Platforms.Android.OfflineTtsToFile.SynthesizeToWavAsync(text, languageCode, outputPath);
+                var rate = (float)AppPreferences.GetNarrationSpeechRate();
+                return await TouristGuideApp.Platforms.Android.OfflineTtsToFile.SynthesizeToWavAsync(text, languageCode, outputPath, rate);
             }
             catch
             {

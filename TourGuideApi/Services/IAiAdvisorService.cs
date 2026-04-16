@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 namespace TourGuideApi.Services;
 
 /// <summary>
-/// AI Advisor Service using Google's Gemini 2.0 Flash
-/// Provides food recommendations based on user preferences
+/// AI Advisor Service (optional).
+/// This project intentionally avoids paid cloud AI providers.
 /// 
-/// FEATURE NOT YET IMPLEMENTED - This is a template/scaffold
+/// FEATURE NOT YET IMPLEMENTED - This is a template/scaffold.
 /// </summary>
 public interface IAiAdvisorService
 {
@@ -30,23 +30,18 @@ public interface IAiAdvisorService
 /// <summary>
 /// Placeholder implementation - DO NOT USE IN PRODUCTION
 /// </summary>
-public class GeminiAiAdvisorService : IAiAdvisorService
+public class DisabledAiAdvisorService : IAiAdvisorService
 {
-    // TODO: Implement this service with Gemini 2.0 Flash API
-    private readonly string? _geminiApiKey;
-    private readonly ILogger<GeminiAiAdvisorService>? _logger;
+    private readonly ILogger<DisabledAiAdvisorService>? _logger;
 
-    public GeminiAiAdvisorService(IConfiguration config, ILogger<GeminiAiAdvisorService>? logger = null)
+    public DisabledAiAdvisorService(ILogger<DisabledAiAdvisorService>? logger = null)
     {
-        _geminiApiKey = config["Gemini:ApiKey"];
         _logger = logger;
     }
 
     public async Task<AiRecommendation> GetRecommendationAsync(string userPreference, string languageCode)
     {
-        // TODO: Call Gemini API with prompt:
-        // "Based on this preference: {userPreference}, recommend a dish from District 4's culinary scene
-        //  in {languageCode} language with explanation"
+        // TODO: Optionally implement with a local/self-hosted model (e.g., Ollama).
         
         await Task.Delay(100);
         return new AiRecommendation
@@ -59,14 +54,14 @@ public class GeminiAiAdvisorService : IAiAdvisorService
 
     public async Task<string> GetRestaurantInfoAsync(int locationId, string languageCode)
     {
-        // TODO: Use Gemini to generate restaurant summaries from POI data
+        // TODO: Optionally generate summaries using a local/self-hosted model.
         await Task.Delay(100);
         return "Restaurant info coming soon";
     }
 
     public async Task<string> ChatAsync(string userMessage, string languageCode)
     {
-        // TODO: Implement conversational AI for tourism guidance
+        // TODO: Optionally implement conversational AI using a local/self-hosted model.
         await Task.Delay(100);
         return "Chat feature coming soon";
     }
@@ -83,5 +78,4 @@ public class AiRecommendation
 }
 
 // TODO: Add controllers to use this service
-// TODO: Add Gemini SDK NuGet package
-// TODO: Implement fallback for when Gemini API is unavailable
+// TODO: Implement a local/self-hosted AI advisor (optional)

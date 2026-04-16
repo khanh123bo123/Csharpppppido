@@ -67,6 +67,25 @@
                     </Grid>
                 </Border>
 
+                <!-- Language pack setting -->
+                <Border Padding="18,14" StrokeThickness="0"
+                        StrokeShape="RoundRectangle 14" BackgroundColor="White">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="0,2" Radius="8" Opacity="0.05"/>
+                    </Border.Shadow>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Ngôn ngữ thuyết minh"
+                                   FontSize="15" FontAttributes="Bold" TextColor="#2C4C3B"/>
+                            <Label Text="Chọn ngôn ngữ phát"
+                                   FontSize="12" TextColor="#888"/>
+                        </VerticalStackLayout>
+                        <Picker Grid.Column="1" x:Name="pickerLanguage"
+                                Title="Chọn" WidthRequest="120" TextColor="#B84A39" HorizontalOptions="End"
+                                SelectedIndexChanged="OnLanguageSelectedIndexChanged" />
+                    </Grid>
+                </Border>
+
                 <!-- Section: Dữ liệu -->
                 <Label Text="DỮ LIỆU" FontSize="11" FontAttributes="Bold"
                        TextColor="#B84A39" Margin="4,8,0,4"

@@ -9,7 +9,7 @@ namespace TouristGuideApp.Platforms.Android;
 
 internal static class OfflineTtsToFile
 {
-    public static async Task<bool> SynthesizeToWavAsync(string text, string languageCode, string outputPath)
+    public static async Task<bool> SynthesizeToWavAsync(string text, string languageCode, string outputPath, float speechRate = 1.0f)
     {
         if (string.IsNullOrWhiteSpace(text)) return false;
 
@@ -60,6 +60,16 @@ internal static class OfflineTtsToFile
                         if (locale != null)
                         {
                             tts.SetLanguage(locale);
+                        }
+
+                        try
+                        {
+                            var clampedRate = Math.Clamp(speechRate, 0.1f, 4.0f);
+                            tts.SetSpeechRate(clampedRate);
+                        }
+                        catch
+                        {
+                            // ignore speech rate failures
                         }
 
                         var utteranceId = Guid.NewGuid().ToString("N");

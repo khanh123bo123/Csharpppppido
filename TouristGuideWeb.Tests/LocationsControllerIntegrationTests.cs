@@ -28,7 +28,8 @@ public class LocationsControllerIntegrationTests : IClassFixture<CustomWebApplic
             ["Name"] = "Hoan Kiem Lake",
             ["Description"] = "Central lake in Hanoi",
             ["Latitude"] = "21.0285",
-            ["Longitude"] = "105.8522"
+            ["Longitude"] = "105.8522",
+            ["PhoneNumber"] = "0123456789"
         });
 
         var response = await client.PostAsync("/Locations/Create", form);

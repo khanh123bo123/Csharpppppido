@@ -2,6 +2,16 @@
 @{
     var loc = ViewBag.Location as TouristGuideWeb.Models.Location;
     ViewData["Title"] = $"Bản dịch của {loc?.Name}";
+
+    var items = Model?.ToList() ?? new List<TouristGuideWeb.Models.LocalizationDto>();
+    var totalAudio = items.Count;
+    var doneAudio = items.Count(x =>
+        string.Equals(x.AudioGenerationStatus, "generated", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(x.AudioGenerationStatus, "cached", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(x.AudioGenerationStatus, "failed", StringComparison.OrdinalIgnoreCase));
+    var percentAudio = totalAudio > 0
+        ? (int)Math.Round(doneAudio * 100.0 / totalAudio, MidpointRounding.AwayFromZero)
+        : 0;
 }
 
 <div class="mb-3">
@@ -12,8 +22,20 @@
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="fw-bold m-0"><i class="fa-solid fa-list text-primary me-2"></i> Bản dịch: <span class="text-danger">@loc?.Name</span></h5>
         <a asp-action="Create" asp-route-locationId="@loc?.Id" class="btn btn-primary btn-sm">
-            <i class="fa-solid fa-plus me-1"></i>Thêm ngôn ngữ
+            <i class="fa-solid fa-plus me-1"></i>Tạo pack 5 ngôn ngữ
         </a>
+    </div>
+    <div class="px-3 py-2 bg-white border-top border-bottom">
+        <div class="d-flex align-items-center gap-3">
+            <div class="flex-grow-1">
+                <div class="progress" style="height: 10px;">
+                    <div id="ttsProgressBar" class="progress-bar" role="progressbar" style="width: @percentAudio%"></div>
+                </div>
+            </div>
+            <div id="ttsProgressText" class="small text-muted" style="min-width: 120px; text-align: right;">
+                @doneAudio/@totalAudio (@percentAudio%)
+            </div>
+        </div>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -28,7 +50,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model)
+                    @foreach (var item in items)
                     {
                         <tr>
                             <td>
@@ -39,18 +61,31 @@
                                 @(item.LocalizedDescription?.Length > 50 ? item.LocalizedDescription.Substring(0, 50) + "..." : item.LocalizedDescription)
                             </td>
                             <td>
-                                @if (item.AudioGenerationStatus == "generated" || item.AudioGenerationStatus == "cached")
-                                {
-                                    <span class="badge bg-success"><i class="fa-solid fa-check"></i> Đã tạo Audio</span>
-                                }
-                                else if (item.AudioGenerationStatus == "pending")
-                                {
-                                    <span class="badge bg-warning text-dark"><i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger">Lỗi Audio</span>
-                                }
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span id="ttsBadge-@item.Id">
+                                        @if (item.AudioGenerationStatus == "generated" || item.AudioGenerationStatus == "cached")
+                                        {
+                                            <span class="badge bg-success"><i class="fa-solid fa-check"></i> Đã tạo Audio</span>
+                                        }
+                                        else if (item.AudioGenerationStatus == "pending")
+                                        {
+                                            <span class="badge bg-warning text-dark"><i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Lỗi Audio</span>
+                                        }
+                                    </span>
+                                    <span id="ttsAudio-@item.Id">
+                                        @if (item.AudioGenerationStatus == "generated" || item.AudioGenerationStatus == "cached")
+                                        {
+                                            <audio controls style="height: 30px; width: 220px;">
+                                                <source src="@Url.Action("Stream", "Audio", new { id = item.Id })" type="audio/mpeg">
+                                                Trình duyệt không hỗ trợ audio.
+                                            </audio>
+                                        }
+                                    </span>
+                                </div>
                             </td>
                             <td class="text-end">
                                 <form asp-action="Delete" method="post" class="d-inline" onsubmit="return confirm('Xoá bản dịch này?');">
@@ -61,7 +96,7 @@
                             </td>
                         </tr>
                     }
-                    @if (!Model.Any())
+                    @if (!items.Any())
                     {
                         <tr><td colspan="5" class="text-center py-4 text-muted">Chưa có bản dịch nào.</td></tr>
                     }
@@ -70,3 +105,87 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const locationId = @((loc?.Id ?? 0));
+            if (!locationId) return;
+
+            const statusUrl = '@Url.Action("Status", "Localizations")' + '?locationId=' + encodeURIComponent(locationId);
+            const progressBar = document.getElementById('ttsProgressBar');
+            const progressText = document.getElementById('ttsProgressText');
+
+            const isDone = (status) => {
+                const s = (status || '').toLowerCase();
+                return s === 'generated' || s === 'cached' || s === 'failed';
+            };
+
+            const renderBadgeHtml = (status) => {
+                const s = (status || '').toLowerCase();
+                if (s === 'generated' || s === 'cached') {
+                    return '<span class="badge bg-success"><i class="fa-solid fa-check"></i> Đã tạo Audio</span>';
+                }
+                if (s === 'pending') {
+                    return '<span class="badge bg-warning text-dark"><i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý</span>';
+                }
+                if (s === 'deleted') {
+                    return '<span class="badge bg-secondary"><i class="fa-solid fa-trash"></i> Đã xoá</span>';
+                }
+                return '<span class="badge bg-danger">Lỗi Audio</span>';
+            };
+
+            let timer = null;
+
+            const tick = async () => {
+                try {
+                    const res = await fetch(statusUrl, { headers: { 'Accept': 'application/json' } });
+                    if (!res.ok) return;
+
+                    const data = await res.json();
+                    if (!Array.isArray(data) || data.length === 0) return;
+
+                    const total = data.length;
+                    const done = data.filter(x => isDone(x.audioGenerationStatus)).length;
+                    const percent = total ? Math.round((done * 100) / total) : 0;
+
+                    if (progressBar) progressBar.style.width = percent + '%';
+                    if (progressText) progressText.textContent = `${done}/${total} (${percent}%)`;
+
+                    for (const item of data) {
+                        const id = item.id;
+                        const status = item.audioGenerationStatus;
+                        const badgeHost = document.getElementById(`ttsBadge-${id}`);
+                        const audioHost = document.getElementById(`ttsAudio-${id}`);
+
+                        if (badgeHost) {
+                            badgeHost.innerHTML = renderBadgeHtml(status);
+                        }
+
+                        const s = (status || '').toLowerCase();
+                        if (audioHost) {
+                            if (s === 'generated' || s === 'cached') {
+                                const url = item.audioStreamUrl;
+                                if (url) {
+                                    audioHost.innerHTML = `<audio controls style="height: 30px; width: 220px;"><source src="${url}" type="audio/mpeg">Trình duyệt không hỗ trợ audio.</audio>`;
+                                }
+                            } else {
+                                audioHost.innerHTML = '';
+                            }
+                        }
+                    }
+
+                    if (percent >= 100 && timer) {
+                        clearInterval(timer);
+                        timer = null;
+                    }
+                } catch {
+                    // ignore
+                }
+            };
+
+            tick();
+            timer = setInterval(tick, 2000);
+        })();
+    </script>
+}

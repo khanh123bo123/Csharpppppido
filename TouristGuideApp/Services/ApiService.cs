@@ -7,7 +7,7 @@ namespace TouristGuideApp.Services;
 public interface IApiService
 {
     Task<List<POI>> GetPOIsAsync(CancellationToken cancellationToken = default);
-    Task SyncPOIsToLocalAsync(IDatabaseService databaseService);
+    Task SyncPOIsToLocalAsync(IDatabaseService databaseService, string? languageCode = null);
 
     // Backward compatibility
     Task<IReadOnlyList<TouristGuideApp.Models.Location>> GetLocationsAsync(CancellationToken cancellationToken = default);
@@ -102,10 +102,14 @@ public class ApiService : IApiService
     /// <summary>
     /// Sync POIs to local database (offline-first)
     /// </summary>
-    public async Task SyncPOIsToLocalAsync(IDatabaseService databaseService)
+    public async Task SyncPOIsToLocalAsync(IDatabaseService databaseService, string? languageCode = null)
     {
         try
         {
+            var targetLanguage = string.IsNullOrWhiteSpace(languageCode)
+                ? SupportedLanguages.Vietnamese
+                : languageCode.Trim();
+
             var apiPois = await GetPOIsAsync();
 
             await databaseService.ClearAllPOIsAsync();
@@ -115,6 +119,32 @@ public class ApiService : IApiService
                 foreach (var poi in apiPois)
                 {
                     if (poi.Radius <= 0) poi.Radius = 100;
+
+                    // Apply language pack (store localized text offline for QR/TTS)
+                    if (!string.Equals(targetLanguage, SupportedLanguages.Vietnamese, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var localization = await GetLocalizationAsync(poi.ServerLocationId, targetLanguage);
+                        if (localization != null)
+                        {
+                            if (!string.IsNullOrWhiteSpace(localization.LocalizedName))
+                            {
+                                poi.Name = localization.LocalizedName.Trim();
+                            }
+
+                            if (!string.IsNullOrWhiteSpace(localization.LocalizedDescription))
+                            {
+                                poi.Description = localization.LocalizedDescription.Trim();
+                                poi.LanguageCode = targetLanguage;
+                            }
+                        }
+                    }
+
+                    // Fallback: keep Vietnamese if we couldn't apply pack
+                    if (string.IsNullOrWhiteSpace(poi.LanguageCode))
+                    {
+                        poi.LanguageCode = SupportedLanguages.Vietnamese;
+                    }
+
                     await databaseService.SavePOIAsync(poi);
                 }
             }
@@ -193,7 +223,7 @@ public class ApiService : IApiService
     {
         try
         {
-            var response = await _httpClient.GetAsync("api/locations?limit=1", cancellationToken);
+            var response = await _httpClient.GetAsync("api/health", cancellationToken);
             return response.IsSuccessStatusCode;
         }
         catch
