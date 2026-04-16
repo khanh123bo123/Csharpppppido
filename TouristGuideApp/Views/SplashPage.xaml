@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TouristGuideApp.Views.SplashPage"
+             Shell.NavBarIsVisible="False"
+             NavigationPage.HasNavigationBar="False">
+
+    <Grid>
+        <!-- Gradient background matching Heritage theme -->
+        <Grid.Background>
+            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="#B84A39" Offset="0"/>
+                <GradientStop Color="#7A2E22" Offset="1"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+
+        <!-- Subtle pattern overlay -->
+        <BoxView BackgroundColor="#00000015" HorizontalOptions="Fill" VerticalOptions="Fill"/>
+
+        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="16">
+
+            <!-- App Icon -->
+            <Border BackgroundColor="#FFFFFF22" StrokeThickness="0"
+                    StrokeShape="RoundRectangle 32"
+                    Padding="24" HorizontalOptions="Center">
+                <Label Text="🍜" FontSize="64" HorizontalOptions="Center"/>
+            </Border>
+
+            <!-- App Name -->
+            <Label Text="Du Lịch Ẩm Thực"
+                   FontSize="30" FontAttributes="Bold"
+                   TextColor="White"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center">
+                <Label.Shadow>
+                    <Shadow Brush="Black" Offset="0,2" Radius="6" Opacity="0.3"/>
+                </Label.Shadow>
+            </Label>
+
+            <!-- Subtitle -->
+            <Label Text="Vĩnh Khánh - Quận 4"
+                   FontSize="18"
+                   TextColor="#FFCCBC"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"
+                   CharacterSpacing="1.5"/>
+
+            <!-- Tagline -->
+            <Label Text="Khám phá hương vị đặc sắc"
+                   FontSize="13"
+                   TextColor="#FFFFFF99"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"
+                   Margin="0,8,0,0"/>
+
+            <!-- Loading indicator -->
+            <ActivityIndicator IsRunning="True"
+                               Color="White"
+                               HorizontalOptions="Center"
+                               Margin="0,24,0,0"
+                               Scale="0.8"/>
+
+        </VerticalStackLayout>
+
+        <!-- Bottom watermark -->
+        <Label Text="© Vĩnh Khánh Food Tour"
+               FontSize="11"
+               TextColor="#FFFFFF55"
+               HorizontalOptions="Center"
+               VerticalOptions="End"
+               Margin="0,0,0,32"/>
+
+    </Grid>
+</ContentPage>

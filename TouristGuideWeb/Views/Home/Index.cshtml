@@ -2,77 +2,94 @@
     ViewData["Title"] = "Welcome";
     ViewData["IsLandingPage"] = true;
 }
-<div class="landing-container d-flex flex-column align-items-center justify-content-center min-vh-100" style="background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%); font-family: 'Inter', sans-serif;">
-    <div class="text-center mb-5">
-        <div class="mb-3 d-flex justify-content-center">
-            <div style="background: linear-gradient(145deg, #ff6b35, #ff4e00); color: #fff; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; border-radius: 18px; font-size: 28px; box-shadow: 0 8px 24px rgba(255, 87, 34, 0.3);">
-                <i class="fa-solid fa-bowl-food px-1"></i>
+<div class="landing-container min-vh-100 position-relative d-flex flex-column align-items-center justify-content-center" style="background: linear-gradient(rgba(11, 17, 32, 0.7), rgba(11, 17, 32, 0.8)), url('/images/login-bg.png') center/cover no-repeat fixed; font-family: 'Inter', sans-serif;">
+    
+    <!-- Title Section with Glow -->
+    <div class="text-center mb-5 position-relative" style="z-index: 10;">
+        <div class="mb-3 d-flex justify-content-center position-relative">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120px; height: 120px; background: radial-gradient(circle, rgba(255,107,53,0.4) 0%, transparent 70%); filter: blur(10px); z-index: -1;"></div>
+            <div style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: #fff; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 24px;">
+                <i class="fa-solid fa-bowl-rice text-white"></i>
             </div>
         </div>
-        <h1 class="fw-bold" style="color: #102a43; font-size: 3rem; letter-spacing: -0.5px; margin-bottom: 10px;">Phố Ẩm Thực Vĩnh Khánh</h1>
-        <p class="fs-5" style="color: #627d98;">Hệ thống quản lý thuyết minh tự động đa ngôn ngữ</p>
+        <h1 class="fw-bold text-white mb-2" style="font-size: 2.5rem; text-shadow: 0 4px 10px rgba(0,0,0,0.5);">PHỐ ẨM THỰC VĨNH KHÁNH</h1>
+        
+        <!-- Large neon backlight area -->
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; height: 300px; background: radial-gradient(ellipse, rgba(255, 107, 53, 0.15) 0%, rgba(16, 185, 129, 0.1) 50%, transparent 70%); filter: blur(40px); z-index: -2; pointer-events: none;"></div>
     </div>
 
-    <div class="d-flex flex-column flex-md-row gap-4 mt-2" style="max-width: 900px; width: 100%; padding: 0 20px;">
+    <div class="row g-4 w-100 justify-content-center px-3" style="max-width: 1000px; z-index: 10;">
         <!-- Admin Card -->
-        <div class="card flex-fill role-card">
-            <div class="card-body p-5">
+        <div class="col-md-6">
+            <div class="glass-card p-4 p-md-5 h-100 d-flex flex-column">
                 <div class="mb-4">
-                    <div style="width: 54px; height: 54px; border-radius: 14px; background: rgba(255, 107, 53, 0.1); display: flex; align-items: center; justify-content: center; color: #ff6b35; font-size: 1.6rem;">
+                    <div style="width: 50px; height: 50px; border-radius: 14px; background: rgba(255, 107, 53, 0.2); display: flex; align-items: center; justify-content: center; color: #ff6b35; font-size: 1.5rem; border: 1px solid rgba(255,107,53,0.3);">
                         <i class="fa-solid fa-shield-halved"></i>
                     </div>
                 </div>
-                <h3 class="fw-bold" style="color: #102a43; font-size: 1.5rem;">Quản Trị Viên</h3>
-                <p class="mt-3 mb-4" style="font-size: 0.95rem; line-height: 1.6; color: #627d98;">
+                
+                <h3 class="fw-bold mb-3" style="font-size: 1.6rem;">Quản Trị Viên</h3>
+                <p class="mb-4" style="font-size: 0.95rem; line-height: 1.6; color: rgba(255,255,255,0.8);">
                     Quản lý toàn bộ hệ thống: POI, Tour, Analytics, Người dùng, Cấu hình hệ thống.
                 </p>
-                <a href="/Auth/Login?role=Admin" class="text-decoration-none fw-semibold" style="color: #ff6b35; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
-                    Đăng nhập Admin <i class="fa-solid fa-arrow-right transition-transform"></i>
-                </a>
+                
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    <div class="glass-badge"><i class="fa-solid fa-user-gear" style="color: #ff6b35;"></i> Phân quyền người dùng</div>
+                    <div class="glass-badge"><i class="fa-solid fa-gear" style="color: #ff6b35;"></i> Cài đặt hệ thống</div>
+                    <div class="glass-badge"><i class="fa-solid fa-location-dot" style="color: #ff6b35;"></i> Quản lý POI</div>
+                </div>
+                
+                <div class="mt-auto">
+                    <a href="#" class="text-decoration-none d-block mb-3" style="font-size: 0.9rem; color: rgba(255,255,255,0.7); font-style: italic;">
+                        <i class="fa-solid fa-pen-nib me-1"></i> Đăng ký ký kết / Ký hợp đồng &rarr;
+                    </a>
+                    <a href="/Auth/Login?role=Admin" class="btn w-100 text-white rounded-pill fw-bold" style="background: linear-gradient(90deg, #b34a1e, #d8682a); padding: 12px 20px; box-shadow: 0 4px 15px rgba(216, 104, 42, 0.4); border: 1px solid rgba(255,255,255,0.2);">
+                        Đăng nhập Admin (Ký tên) &rarr;
+                    </a>
+                </div>
             </div>
         </div>
 
         <!-- Owner Card -->
-        <div class="card flex-fill role-card">
-            <div class="card-body p-5">
+        <div class="col-md-6">
+            <div class="glass-card p-4 p-md-5 h-100 d-flex flex-column">
                 <div class="mb-4">
-                    <div style="width: 54px; height: 54px; border-radius: 14px; background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 1.6rem;">
+                    <div style="width: 50px; height: 50px; border-radius: 14px; background: rgba(16, 185, 129, 0.2); display: flex; align-items: center; justify-content: center; color: #10b981; font-size: 1.5rem; border: 1px solid rgba(16,185,129,0.3);">
                         <i class="fa-solid fa-store"></i>
                     </div>
                 </div>
-                <h3 class="fw-bold" style="color: #102a43; font-size: 1.5rem;">Chủ Quán</h3>
-                <p class="mt-3 mb-4" style="font-size: 0.95rem; line-height: 1.6; color: #627d98;">
+                
+                <h3 class="fw-bold mb-3" style="font-size: 1.6rem;">Chủ Quán</h3>
+                <p class="mb-4" style="font-size: 0.95rem; line-height: 1.6; color: rgba(255,255,255,0.8);">
                     Quản lý thông tin quán ăn, upload audio, chỉnh sửa mô tả và bản dịch.
                 </p>
-                <a href="/Auth/Login?role=Owner" class="text-decoration-none fw-semibold" style="color: #10b981; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
-                    Đăng nhập / Đăng ký <i class="fa-solid fa-arrow-right transition-transform"></i>
-                </a>
+                
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    <div class="glass-badge"><i class="fa-regular fa-clipboard" style="color: #10b981;"></i> Quản lý thực đơn</div>
+                    <div class="glass-badge"><i class="fa-regular fa-comment-dots" style="color: #10b981;"></i> Phản hồi khách hàng</div>
+                    <div class="glass-badge"><i class="fa-solid fa-wrench" style="color: #10b981;"></i> Yêu cầu bảo trì</div>
+                </div>
+                
+                <div class="mt-auto">
+                    <a href="#" class="text-decoration-none d-block mb-3" style="font-size: 0.9rem; color: rgba(255,255,255,0.7); font-style: italic;">
+                        <i class="fa-solid fa-file-signature me-1"></i> Nộp hồ sơ ký kết / Tạo tài khoản &rarr;
+                    </a>
+                    <a href="/Auth/Login?role=Owner" class="btn w-100 text-white rounded-pill fw-bold" style="background: linear-gradient(90deg, #1c7c64, #27a284); padding: 12px 20px; box-shadow: 0 4px 15px rgba(39, 162, 132, 0.4); border: 1px solid rgba(255,255,255,0.2);">
+                        Tạo tài khoản / Chủ Quán (Ký tên) &rarr;
+                    </a>
+                </div>
             </div>
         </div>
     </div>
     
-    <div class="mt-5" style="font-size: 0.9rem; color: #829ab1;">
+    <div class="mt-5 text-center" style="font-size: 0.85rem; color: rgba(255,255,255,0.5); z-index: 10;">
         &copy; 2026 Phố Ẩm Thực Vĩnh Khánh &mdash; Quận 4, TP. Hồ Chí Minh
     </div>
 </div>
 
 <style>
-    .role-card {
-        background: #ffffff !important;
-        border: 1px solid rgba(0, 0, 0, 0.04);
-        border-radius: 20px;
-        box-shadow: 0 10px 25px rgba(16, 42, 67, 0.05);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .role-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 40px rgba(16, 42, 67, 0.1) !important;
-        border-color: rgba(0, 0, 0, 0.08);
-    }
-    .role-card:hover .fa-arrow-right {
-        transform: translateX(4px);
-    }
-    .transition-transform {
-        transition: transform 0.3s ease;
+    body {
+        margin: 0;
+        background-color: #0b1120;
     }
 </style>

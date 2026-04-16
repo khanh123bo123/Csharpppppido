@@ -95,7 +95,7 @@ public partial class MainPage : ContentPage
         if (pois.Any())
         {
             lblActivePOI.Text = $"Đã tìm thấy {pois.Count} địa điểm";
-            frameActivePOI.BackgroundColor = Colors.LightBlue;
+            frameActivePOI.BackgroundColor = Color.FromArgb("#2C4C3B");
         }
     }
 
@@ -104,15 +104,15 @@ public partial class MainPage : ContentPage
         if (!_isTrackingActive)
         {
             _locationService.StartTracking();
-            btnToggleTracking.Text = "Ngừng theo dõi";
-            btnToggleTracking.BackgroundColor = Colors.Red;
+            btnToggleTracking.Text = "⏹  Ngừng theo dõi";
+            btnToggleTracking.BackgroundColor = Color.FromArgb("#8B3E36");
             _isTrackingActive = true;
         }
         else
         {
             _locationService.StopTracking();
-            btnToggleTracking.Text = "Bắt đầu theo dõi";
-            btnToggleTracking.BackgroundColor = Color.FromArgb("#512BD4");
+            btnToggleTracking.Text = "📡  Bắt đầu theo dõi";
+            btnToggleTracking.BackgroundColor = Color.FromArgb("#B84A39");
             _isTrackingActive = false;
             lblUserLocation.Text = "Đã ngừng tìm vị trí.";
         }
@@ -133,8 +133,10 @@ public partial class MainPage : ContentPage
             if (_geofenceService.ActivePOI != null)
             {
                 var active = _geofenceService.ActivePOI;
-                lblActivePOI.Text = $"ĐIỂM ĐẾN: {active.Name}";
-                frameActivePOI.BackgroundColor = active.IsCurrentlyPlaying ? Colors.Orange : Colors.LightGreen;
+                lblActivePOI.Text = $"{active.Name}";
+                frameActivePOI.BackgroundColor = active.IsCurrentlyPlaying
+                    ? Color.FromArgb("#B84A39")   // Terracotta khi đang phát
+                    : Color.FromArgb("#2C4C3B");   // Green khi gần
             }
         });
     }

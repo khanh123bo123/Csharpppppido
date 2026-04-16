@@ -3,7 +3,9 @@
 
 @{
     ViewData["Title"] = "Dashboard";
+
     var labelsJson = JsonSerializer.Serialize(Model.ProvinceStats.Select(x => x.Province));
+
     var valuesJson = JsonSerializer.Serialize(Model.ProvinceStats.Select(x => x.Count));
 }
 
@@ -15,7 +17,7 @@
                 <i class="fa-solid fa-chart-column"></i>
             </div>
             <div>
-                <h4 class="fw-bold mb-1" style="color: #333;">Tổng quan hệ thống</h4>
+                <h4 class="fw-bold mb-1" style="color: #2C4C3B;">Tổng quan hệ thống</h4>
                 <div class="text-muted" style="font-size: 0.9rem;">Quản lý nội dung phố ẩm thực Vĩnh Khánh</div>
             </div>
         </div>
@@ -26,151 +28,177 @@
     </div>
 </div>
 
-<!-- 4 Statistical Cards -->
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="stat-card bg-orange">
-            <i class="fa-solid fa-utensils stat-icon"></i>
-            <div class="stat-title">QUÁN ĂN</div>
-            <div class="stat-value">@Model.TotalLocations</div>
-            <div class="stat-subtitle">Đang hoạt động</div>
-            <div class="stat-desc">Các quán ăn đã được đăng ký trên hệ thống</div>
+<!-- 4 Statistical Cards (Chevron Style) -->
+<div class="chevron-container">
+    <div class="chevron-wrapper">
+        <div class="chevron-card grad-orange">
+            <div class="chev-title">QUÁN ĂN</div>
+            <div class="chev-value">@Model.TotalLocations</div>
+            <div class="chev-desc">Chi tiết quán ăn và<br/>thông tin chi tiết.</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card bg-blue">
-            <i class="fa-solid fa-route stat-icon"></i>
-            <div class="stat-title">LỘ TRÌNH</div>
-            <div class="stat-value">@Model.TotalTours</div>
-            <div class="stat-subtitle">Đang mở</div>
-            <div class="stat-desc">Lộ trình khám phá ẩm thực cho du khách</div>
+    <div class="chevron-wrapper">
+        <div class="chevron-card grad-blue">
+            <div class="chev-title">LỘ TRÌNH</div>
+            <div class="chev-value">@Model.TotalTours</div>
+            <div class="chev-desc">Theo dõi lộ trình khám<br/>phá ẩm thực.</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card bg-green">
-            <i class="fa-solid fa-users stat-icon"></i>
-            <div class="stat-title">KHÁCH THAM QUAN</div>
-            <div class="stat-value">4</div>
-            <div class="stat-subtitle">Tổng lượt đăng ký</div>
-            <div class="stat-desc">Lượt du khách sử dụng ứng dụng</div>
+    <div class="chevron-wrapper">
+        <div class="chevron-card grad-green">
+            <div class="chev-title">KHÁCH THAM QUAN</div>
+            <div class="chev-value">4</div>
+            <div class="chev-desc">Phân tích nhân khẩu<br/>học.</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card bg-pink">
-            <i class="fa-solid fa-headphones stat-icon"></i>
-            <div class="stat-title">LƯỢT NGHE TTS</div>
-            <div class="stat-value">@Model.TotalAudios</div>
-            <div class="stat-subtitle">Số bản dịch audio AI</div>
-            <div class="stat-desc">Lượt thuyết minh tự động đã phát</div>
-        </div>
-    </div>
-</div>
-
-<!-- Owner Information -->
-<div class="card-premium mb-4">
-    <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-        <h5 class="fw-bold m-0" style="color: #333;"><i class="fa-solid fa-user-group me-2" style="color: #adb5bd;"></i> Chủ quán & số POI</h5>
-    </div>
-    <div class="card-body">
-        <div class="d-inline-flex align-items-center p-3" style="background: #f8f9fa; border-radius: 12px; border: 1px solid #eaeaea; min-width: 200px;">
-            <div class="me-3" style="width: 40px; height: 40px; border-radius: 50%; background: #ffe4cc; color: #ff5722; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">
-                O
-            </div>
-            <div>
-                <div class="fw-bold" style="color: #333; font-size: 1rem;">owner99</div>
-                <div class="text-muted" style="font-size: 0.85rem;">1 quán</div>
-            </div>
+    <div class="chevron-wrapper">
+        <div class="chevron-card grad-purple">
+            <div class="chev-title">LƯỢT NGHE TTS</div>
+            <div class="chev-value">@Model.TotalAudios</div>
+            <div class="chev-desc">Lượt thuyết minh tự<br/>động.</div>
         </div>
     </div>
 </div>
 
 <!-- Lower Section -->
 <div class="row g-4 mb-4">
-    <div class="col-md-4">
-        <div class="card-premium h-100 mb-0">
-            <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-                <h5 class="fw-bold m-0" style="color: #333;"><i class="fa-solid fa-user-gear me-2" style="color: #adb5bd;"></i> Thao tác nhanh</h5>
-            </div>
+    <!-- Left Column: Owner Info & Chart -->
+    <div class="col-md-7">
+        <!-- Owner Info -->
+        <div class="card-premium mb-4">
             <div class="card-body">
-                <a asp-controller="Locations" asp-action="Create" class="quick-action-btn">
-                    Thêm quán ăn
-                </a>
-                <a href="#" class="quick-action-btn">
-                    Tạo lộ trình
-                </a>
-                <a href="#" class="quick-action-btn">
-                    Quản lý ngôn ngữ
-                </a>
-                <a href="#" class="quick-action-btn">
-                    Báo cáo chi tiết
-                </a>
+                <div class="row text-center align-items-center">
+                    <div class="col-4 border-end">
+                        <div class="mb-2 text-start fw-bold fs-5 text-dark-blue">Chủ quán & POI</div>
+                        <div class="mx-auto mt-4" style="width: 70px; height: 70px; border-radius: 50%; background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+                            <img src="https://ui-avatars.com/api/?name=@(User.Identity?.Name ?? "A")&background=random" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" />
+                        </div>
+                        <div class="mt-2 fw-bold text-dark-blue fs-5">@(User.Identity?.Name ?? "owner99")</div>
+                        <div class="text-muted" style="font-size: 0.85rem;">@(User.IsInRole("Owner") ? "1 quán" : "Quản trị viên")</div>
+                    </div>
+                    <div class="col-4 border-end d-flex flex-column justify-content-center">
+                        <div style="font-size: 2rem; color: #ff6b35;"><i class="fa-solid fa-store"></i></div>
+                        <div class="fs-1 fw-bold mt-2 text-dark-blue">@Model.TotalLocations</div>
+                        <div class="text-muted fw-bold" style="font-size: 0.9rem;">QUÁN</div>
+                    </div>
+                    <div class="col-4 d-flex flex-column justify-content-center">
+                        <div style="font-size: 2rem; color: #3b82f6;"><i class="fa-solid fa-map-location-dot"></i></div>
+                        <div class="fs-1 fw-bold mt-2 text-dark-blue">12</div>
+                        <div class="text-muted fw-bold" style="font-size: 0.9rem;">POI</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="card-premium mb-0" style="height: 280px;">
+            <div class="card-body h-100">
+                <div class="h-100 w-100">
+                    <canvas id="provinceChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
-    
-    <div class="col-md-8">
-        <div class="card-premium h-100 mb-0">
-            <div class="card-header bg-white border-bottom-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold m-0" style="color: #333;"><i class="fa-solid fa-chart-line me-2" style="color: #adb5bd;"></i> Top địa điểm được lắng nghe</h5>
-                <span class="badge bg-light text-dark border">30 NGÀY QUA</span>
+
+    <!-- Right Column: Quick Actions -->
+    <div class="col-md-5">
+        <h5 class="fw-bold mb-3 text-dark-blue">Thao Tác Nhanh</h5>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <a asp-controller="Locations" asp-action="Create" class="action-card grad-orange" style="height: 140px;">
+                    <i class="fa-solid fa-utensils icon-top-right"></i>
+                    <div class="action-title">Thêm quán ăn</div>
+                    <div class="action-desc">Quản lý quán ăn và chi tiết.</div>
+                </a>
             </div>
-            <div class="card-body pb-4">
-                <div style="background: #ffffff; border: 1px solid #eaeaea; border-radius: 12px; padding: 20px; height: 260px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);">
-                    <canvas id="provinceChart"></canvas>
-                </div>
+            <div class="col-md-6">
+                <a asp-controller="Tours" asp-action="Create" class="action-card grad-blue" style="height: 140px;">
+                    <i class="fa-regular fa-compass icon-top-right"></i>
+                    <div class="action-title">Tạo lộ trình</div>
+                    <div class="action-desc">Quản lý thông tin quán ăn, upload audio.</div>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a asp-controller="Locations" asp-action="Index" class="action-card" style="background: linear-gradient(135deg, #A855F7, #3B82F6); height: 140px;">
+                    <i class="fa-solid fa-map-location icon-top-right"></i>
+                    <div class="action-title">Quản lý trưởng</div>
+                    <div class="action-desc">Quản lý thông tin quán ăn, bản án.</div>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a asp-controller="Tours" asp-action="Index" class="action-card grad-green" style="height: 140px;">
+                    <i class="fa-solid fa-list-check icon-top-right"></i>
+                    <div class="action-title">Tạo lộ trình</div>
+                    <div class="action-desc">Quản lý thông tin và bá đính.</div>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a asp-controller="Localizations" asp-action="Index" class="action-card" style="background: linear-gradient(135deg, #10B981, #059669); height: 140px;">
+                    <i class="fa-solid fa-globe icon-top-right"></i>
+                    <div class="action-title">Quản lý ngôn ngữ</div>
+                    <div class="action-desc">Quản lý phòng đón và ngôn ngữ.</div>
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a asp-controller="Statistics" asp-action="Index" class="action-card" style="background: linear-gradient(135deg, #D946EF, #9333EA); height: 140px;">
+                    <i class="fa-regular fa-file-lines icon-top-right"></i>
+                    <div class="action-title">Báo cáo chi tiết</div>
+                    <div class="action-desc">Lượt lý thuyết minh tự động.</div>
+                </a>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <script>
-        const labels = @Html.Raw(labelsJson);
-        const data = @Html.Raw(valuesJson);
+        <script>
+            const labels = @Html.Raw(labelsJson);
+            const data = @Html.Raw(valuesJson);
 
-        const ctx = document.getElementById('provinceChart');
-        if (ctx) {
-            Chart.defaults.color = "#627d98";
-            Chart.defaults.borderColor = "rgba(0, 0, 0, 0.05)";
-            
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels.length > 0 ? labels : ['Quán Cơm Tấm Ba Ghiền', 'Bún Bò Huế', 'Ốc Oanh', 'Hủ Tiếu Nam Vang'],
-                    datasets: [{
-                        label: 'Số lần nghe',
-                        data: data.length > 0 ? data : [1, 0.5, 0.25, 0.8],
-                        borderWidth: 0,
-                        backgroundColor: '#ff6b35',
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                precision: 2
-                            },
-                            grid: {
-                                color: "rgba(0, 0, 0, 0.05)"
-                            }
+            const ctx = document.getElementById('provinceChart');
+            if (ctx) {
+                Chart.defaults.color = "#627d98";
+                Chart.defaults.borderColor = "rgba(0, 0, 0, 0.05)";
+
+                if (labels.length === 0) {
+                    const canvas = document.getElementById('provinceChart');
+                    const parent = canvas.parentElement;
+                    parent.innerHTML = `<div style="height:100%; display:flex; align-items:center; justify-content:center; color:#adb5bd; flex-direction:column; gap:8px;">
+                        <i class="fa-solid fa-chart-bar" style="font-size:2rem; opacity:0.4;"></i>
+                        <span style="font-size:0.9rem;">Chưa có dữ liệu thống kê</span>
+                    </div>`;
+                } else {
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Số quán',
+                                data: data,
+                                borderWidth: 0,
+                                backgroundColor: 'rgba(255, 107, 53, 0.8)',
+                                borderRadius: 6
+                            }]
                         },
-                        x: {
-                            grid: {
-                                display: false
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: { precision: 0 },
+                                    grid: { color: "rgba(0, 0, 0, 0.04)" }
+                                },
+                                x: {
+                                    grid: { display: false }
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false }
                             }
                         }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
+                    });
                 }
-            });
-        }
-    </script>
+            }
+        </script>
 }

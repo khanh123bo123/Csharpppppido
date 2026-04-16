@@ -3,61 +3,97 @@
     ViewData["IsLandingPage"] = true;
 }
 
-<div class="d-flex align-items-center justify-content-center min-vh-100" style="background: linear-gradient(135deg, #f0f4f8 0%, #ffffff 100%);">
-    <div class="card p-5" style="border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); border: none; max-width: 450px; width: 100%;">
-        <div class="text-center mb-4">
-            <h2 class="fw-bold" style="color: #1a1d2d;">@ViewData["Title"]</h2>
-            <p class="text-muted">Tạo tài khoản quản lý POI của bạn</p>
+<div class="container-fluid p-0">
+    <div class="row g-0 min-vh-100">
+        <!-- Left Side: Image Background -->
+        <div class="col-lg-7 d-none d-lg-flex position-relative align-items-center justify-content-center" style="background: url('/images/login-bg.png') center/cover no-repeat;">
+            <!-- Dark Overlay for Readability -->
+            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: rgba(44, 76, 59, 0.45);"></div>
+            <div class="position-relative text-white text-center px-5" style="z-index: 2;">
+                <h1 class="display-3 fw-bold playfair mb-3">Phố Ẩm Thực Vĩnh Khánh</h1>
+                <p class="lead fw-medium" style="font-size: 1.25rem;">Hệ thống quản lý nội dung đa ngôn ngữ & Thuyết minh tự động</p>
+                <div class="mt-4">
+                    <span class="badge bg-light text-dark px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.9rem;">
+                        <i class="fa-solid fa-leaf me-1" style="color: #2C4C3B;"></i> Di Sản Ẩm Thực Việt
+                    </span>
+                </div>
+            </div>
         </div>
 
-        @if (!ViewData.ModelState.IsValid)
-        {
-            <div class="alert alert-danger" style="border-radius: 8px;">
-                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        <!-- Right Side: Register Form -->
+        <div class="col-lg-5 d-flex align-items-center justify-content-center" style="background-color: #FDFBF7;">
+            <div class="w-100 p-5 p-md-5" style="max-width: 480px;">
+                <div class="mb-5 text-center">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-4 shadow-sm" style="width: 64px; height: 64px; border-radius: 16px; background: #2C4C3B; color: white; font-size: 1.8rem;">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <h2 class="fw-bold playfair" style="color: #2C4C3B;">@ViewData["Title"]</h2>
+                    <p class="text-muted">Tạo tài khoản quản lý cửa hàng của bạn</p>
+                </div>
+
+                @if (!ViewData.ModelState.IsValid)
                 {
-                    <div><i class="fa-solid fa-circle-exclamation"></i> @error.ErrorMessage</div>
+                    <div class="alert alert-danger" style="border-radius: 8px;">
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <div><i class="fa-solid fa-circle-exclamation"></i> @error.ErrorMessage</div>
+                        }
+                    </div>
                 }
-            </div>
-        }
 
-        <form method="post" asp-action="Register">
-            
-            <div class="mb-3">
-                <label class="form-label text-muted fw-semibold" style="font-size: 0.9rem;">Email Address</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i class="fa-regular fa-envelope"></i></span>
-                    <input type="email" name="email" class="form-control border-start-0 ps-0" placeholder="chuquan@gmail.com" required style="box-shadow: none;" />
-                </div>
-            </div>
+                <form method="post" asp-action="Register">
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-muted fw-semibold" style="font-size: 0.9rem;">Tên đăng nhập / Tên quán</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white border-end-0 border-light"><i class="fa-solid fa-user text-muted"></i></span>
+                            <input type="text" name="storeName" class="form-control border-start-0 ps-0 bg-white border-light" placeholder="VD: Quán Vịt Quay 68" required style="box-shadow: none;" />
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted fw-semibold" style="font-size: 0.9rem;">Địa chỉ Email</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white border-end-0 border-light"><i class="fa-regular fa-envelope text-muted"></i></span>
+                            <input type="email" name="email" class="form-control border-start-0 ps-0 bg-white border-light" placeholder="chuquan@gmail.com" required style="box-shadow: none;" />
+                        </div>
+                    </div>
 
-            <div class="mb-3">
-                <label class="form-label text-muted fw-semibold" style="font-size: 0.9rem;">Mật khẩu</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-lock"></i></span>
-                    <input type="password" name="password" class="form-control border-start-0 ps-0" placeholder="••••••••" required style="box-shadow: none;" />
-                </div>
-            </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted fw-semibold" style="font-size: 0.9rem;">Mật khẩu</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white border-end-0 border-light"><i class="fa-solid fa-lock text-muted"></i></span>
+                            <input type="password" name="password" class="form-control border-start-0 ps-0 bg-white border-light" placeholder="••••••••" required style="box-shadow: none;" />
+                        </div>
+                    </div>
 
-            <div class="mb-4">
-                <label class="form-label text-muted fw-semibold" style="font-size: 0.9rem;">Xác nhận Mật khẩu</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-lock"></i></span>
-                    <input type="password" name="confirmPassword" class="form-control border-start-0 ps-0" placeholder="••••••••" required style="box-shadow: none;" />
-                </div>
-            </div>
+                    <div class="mb-5">
+                        <label class="form-label text-muted fw-semibold" style="font-size: 0.9rem;">Xác nhận Mật khẩu</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white border-end-0 border-light"><i class="fa-solid fa-check text-muted"></i></span>
+                            <input type="password" name="confirmPassword" class="form-control border-start-0 ps-0 bg-white border-light" placeholder="••••••••" required style="box-shadow: none;" />
+                        </div>
+                    </div>
 
-            <button type="submit" class="btn w-100 fw-bold py-2 mb-3" style="background-color: #ff5722; color: white; border-radius: 8px;">
-                Đăng Ký Tài Khoản
-            </button>
-            
-            <div class="text-center mt-3">
-                <span class="text-muted" style="font-size: 0.9rem;">Đã có tài khoản?</span>
-                <a href="/Auth/Login?role=Owner" class="text-decoration-none fw-semibold" style="color: #ff5722;">Đăng nhập</a>
+                    <button type="submit" class="btn btn-lg w-100 fw-bold shadow-sm" style="background-color: #2C4C3B; color: white; border-radius: 12px; transition: all 0.3s;" onmouseover="this.style.backgroundColor='#1A2E23'" onmouseout="this.style.backgroundColor='#2C4C3B'">
+                        Đăng Ký Tài Khoản <i class="fa-solid fa-user-plus ms-2"></i>
+                    </button>
+                    
+                    <div class="text-center mt-4">
+                        <span class="text-muted" style="font-size: 0.95rem;">Đã có tài khoản?</span>
+                        <a href="/Auth/Login?role=Owner" class="text-decoration-none fw-bold ms-1" style="color: #2C4C3B;">Đăng nhập ngay</a>
+                    </div>
+                    
+                    <div class="text-center mt-5">
+                        <a href="/" class="text-decoration-none text-muted" style="font-size: 0.9rem;"><i class="fa-solid fa-arrow-left me-1"></i> Trở về Trang chủ</a>
+                    </div>
+                </form>
             </div>
-            
-            <div class="text-center mt-3">
-                <a href="/" class="text-decoration-none text-muted" style="font-size: 0.85rem;">&larr; Trở về Trang chủ</a>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
+
+<style>
+    .border-light { border-color: #EAE3D9 !important; }
+    .form-control:focus { border-color: #2C4C3B !important; }
+    .input-group-text { border-color: #EAE3D9 !important; }
+</style>

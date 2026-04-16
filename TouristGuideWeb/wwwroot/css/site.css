@@ -1,10 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
 
 html, body {
     height: 100%;
     margin: 0;
     font-family: 'Inter', sans-serif;
-    background-color: #f4f6f9;
+    background-color: #FDFBF7; /* Warm background */
+    color: #333;
+}
+
+h1, h2, h3, h4, h5, h6, .playfair {
+    font-family: 'Playfair Display', serif;
 }
 
 /* Wrapper for Sidebar and Content */
@@ -14,12 +19,12 @@ html, body {
     height: 100vh;
 }
 
-/* Sidebar Styles - Light Theme */
+/* Sidebar Styles - Heritage Theme */
 .sidebar {
     width: 250px;
     background: #ffffff;
     color: #333;
-    border-right: 1px solid #eaeaea;
+    border-right: 1px solid #EAE3D9;
     transition: all 0.3s;
     display: flex;
     flex-direction: column;
@@ -30,13 +35,14 @@ html, body {
     background: #ffffff;
     text-align: center;
     font-size: 1.6rem;
-    font-weight: 800;
+    font-weight: 700;
+    font-family: 'Playfair Display', serif;
     letter-spacing: 0.5px;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid #EAE3D9;
 }
 
 .sidebar .sidebar-header a {
-    color: #1a1d2d;
+    color: #2C4C3B; /* Deep leaf green */
     text-decoration: none;
     display: flex;
     flex-direction: column;
@@ -44,14 +50,14 @@ html, body {
 }
 
 .sidebar .sidebar-header .icon-logo {
-    background: #ff5722;
+    background: #B84A39; /* Terracotta */
     color: white;
     width: 48px;
     height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
+    border-radius: 16px;
     margin-bottom: 10px;
     font-size: 1.2rem;
 }
@@ -63,10 +69,10 @@ html, body {
 }
 
 .sidebar ul li a {
-    padding: 12px 20px;
-    margin: 4px 16px;
+    padding: 14px 20px;
+    margin: 6px 16px;
     border-radius: 8px;
-    font-size: 0.95rem;
+    font-size: 1.05rem;
     display: block;
     color: #555;
     font-weight: 500;
@@ -75,21 +81,22 @@ html, body {
 }
 
 .sidebar ul li a i {
-    margin-right: 12px;
-    width: 20px;
+    margin-right: 14px;
+    width: 24px;
+    font-size: 1.15rem;
     text-align: center;
 }
 
 .sidebar ul li a:hover, .sidebar ul li.active > a {
     color: #fff;
-    background: #ff5722;
-    box-shadow: 0 4px 10px rgba(255, 87, 34, 0.3);
+    background: #B84A39; /* Terracotta */
+    box-shadow: 0 4px 10px rgba(184, 74, 57, 0.25);
 }
 
 .sidebar-footer {
     padding: 20px;
     padding-bottom: 30px;
-    border-top: 1px solid #eaeaea;
+    border-top: 1px solid #EAE3D9;
     background: #ffffff;
     margin-top: auto;
 }
@@ -106,25 +113,26 @@ html, body {
 }
 
 .sidebar-footer .user-role {
-    font-size: 0.9rem;
+    font-size: 1.1rem;
     font-weight: 700;
-    color: #333;
+    color: #2C4C3B;
 }
 
 .sidebar-footer .user-label {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 1px;
     color: #888;
 }
 
 .btn-logout {
-    color: #ff5722;
-    background: rgba(255, 87, 34, 0.1);
+    color: #B84A39;
+    background: rgba(184, 74, 57, 0.1);
     border: none;
-    border-radius: 8px;
-    width: 36px;
-    height: 36px;
+    border-radius: 10px;
+    width: 44px;
+    height: 44px;
+    font-size: 1.2rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -132,7 +140,7 @@ html, body {
 }
 
 .btn-logout:hover {
-    background: #ff5722;
+    background: #B84A39;
     color: white;
 }
 
@@ -148,7 +156,7 @@ html, body {
 .top-navbar {
     background: #fff;
     padding: 15px 25px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -157,13 +165,14 @@ html, body {
 /* Content Body */
 .content-body {
     padding: 25px;
+    animation: fadeInSlideUp 0.6s ease-out forwards;
 }
 
 /* Card Styling */
 .card-premium {
-    border: 1px solid #eaeaea;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    border: 1px solid #EAE3D9;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(44, 76, 59, 0.03);
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     background: #fff;
     margin-bottom: 25px;
@@ -171,24 +180,24 @@ html, body {
 
 .card-premium:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(16, 42, 67, 0.08); /* changed from black */
+    box-shadow: 0 12px 24px rgba(44, 76, 59, 0.06); 
 }
 
 .card-premium .card-header {
     background: transparent;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
-    padding: 15px 20px;
+    border-bottom: 1px solid #EAE3D9;
+    padding: 20px;
     font-weight: 600;
 }
 
 .card-premium .card-body {
-    padding: 20px;
+    padding: 24px;
 }
 
 /* Dashboard Statistic Cards */
 .stat-card {
-    border-radius: 12px;
-    padding: 20px;
+    border-radius: 16px;
+    padding: 24px;
     color: white;
     height: 100%;
     position: relative;
@@ -200,12 +209,12 @@ html, body {
     position: absolute;
     top: 20px;
     right: 20px;
-    font-size: 1.5rem;
-    opacity: 0.8;
+    font-size: 3rem;
+    opacity: 0.15;
 }
 
 .stat-card .stat-title {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     text-transform: uppercase;
     font-weight: 700;
     letter-spacing: 1px;
@@ -213,26 +222,28 @@ html, body {
 }
 
 .stat-card .stat-value {
-    font-size: 2.5rem;
-    font-weight: 800;
+    font-size: 2.8rem;
+    font-weight: 700;
+    font-family: 'Playfair Display', serif;
     margin-bottom: 5px;
 }
 
 .stat-card .stat-subtitle {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 600;
     margin-bottom: 2px;
 }
 
 .stat-card .stat-desc {
-    font-size: 0.75rem;
-    opacity: 0.8;
+    font-size: 0.8rem;
+    opacity: 0.9;
 }
 
-.bg-orange { background: linear-gradient(135deg, #ff9a44, #fc6076); }
-.bg-blue { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-.bg-green { background: linear-gradient(135deg, #0ba360, #3cba92); }
-.bg-pink { background: linear-gradient(135deg, #ff0844, #ffb199); }
+/* Heritage Colored Gradients */
+.bg-orange { background: linear-gradient(135deg, #DD7A6B, #B84A39); } /* Terracotta */
+.bg-blue { background: linear-gradient(135deg, #7FA78E, #4A7C59); } /* Rich Green */
+.bg-green { background: linear-gradient(135deg, #E6CDAE, #C69A64); } /* Earth Yellow/Bamboo */
+.bg-pink { background: linear-gradient(135deg, #B16B61, #8B3E36); } /* Deep Brick */
 
 /* Utilities */
 .btn-premium {
@@ -240,33 +251,39 @@ html, body {
     font-weight: 500;
     padding: 8px 16px;
     transition: all 0.3s ease;
+    background-color: #B84A39;
+    color: white;
+    border: none;
 }
 
 .btn-premium:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 10px rgba(184, 74, 57, 0.2);
+    background-color: #A33A2A;
+    color: white;
 }
 
 .quick-action-btn {
     display: block;
     width: 100%;
     text-align: left;
-    padding: 12px 20px;
-    background: #f8f9fa;
-    border: 1px solid #eaeaea;
-    border-radius: 8px;
-    color: #333;
-    font-weight: 500;
-    margin-bottom: 10px;
-    transition: all 0.2s;
+    padding: 15px 20px;
+    background: #FDFBF7;
+    border: 1px solid #EAE3D9;
+    border-radius: 12px;
+    color: #2C4C3B;
+    font-weight: 600;
+    margin-bottom: 12px;
+    transition: all 0.3s;
     text-decoration: none;
 }
 
 .quick-action-btn:hover {
     background: #fff;
-    border-color: #ff5722;
-    color: #ff5722;
-    box-shadow: 0 2px 8px rgba(255,87,34,0.15);
+    border-color: #B84A39;
+    color: #B84A39;
+    box-shadow: 0 4px 12px rgba(184,74,57,0.1);
+    transform: translateX(4px);
 }
 
 /* Keyframe Animations */
@@ -281,11 +298,6 @@ html, body {
     }
 }
 
-.content-body {
-    padding: 25px;
-    animation: fadeInSlideUp 0.6s ease-out forwards;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
     .sidebar {
@@ -298,3 +310,161 @@ html, body {
         height: 100%;
     }
 }
+
+/* Redesign UI Utilities: Neon Glass Background */
+.glass-bg-container {
+    background-color: #0b1120;
+    background-image: 
+        radial-gradient(circle at 15% 50%, rgba(255, 107, 53, 0.25), transparent 35%),
+        radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.25), transparent 35%),
+        radial-gradient(circle at 50% 80%, rgba(59, 130, 246, 0.2), transparent 40%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Glassmorphism Cards */
+.glass-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    color: #fff;
+    transition: transform 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+}
+.glass-card-light {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    color: #333;
+}
+.glass-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+}
+
+.glass-badge {
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Chevron Statistics Cards (Image 1 Dashboard) */
+.chevron-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    height: 140px;
+    margin-bottom: 30px;
+}
+.chevron-wrapper {
+    flex: 1;
+    position: relative;
+    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
+}
+.chevron-wrapper:nth-child(1) { z-index: 4; }
+.chevron-wrapper:nth-child(2) { z-index: 3; margin-left: -25px; }
+.chevron-wrapper:nth-child(3) { z-index: 2; margin-left: -25px; }
+.chevron-wrapper:nth-child(4) { z-index: 1; margin-left: -25px; }
+
+.chevron-card {
+    height: 100%;
+    color: white;
+    padding: 20px 20px 20px 45px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    clip-path: polygon(0% 0%, 93% 0%, 100% 50%, 93% 100%, 0% 100%, 7% 50%);
+    transition: transform 0.3s;
+}
+.chevron-card:hover {
+    transform: translateY(-5px);
+}
+.chevron-wrapper:first-child .chevron-card {
+    padding-left: 20px;
+    clip-path: polygon(0% 0%, 93% 0%, 100% 50%, 93% 100%, 0% 100%);
+    border-top-left-radius: 16px;
+    border-bottom-left-radius: 16px;
+}
+.chevron-wrapper:last-child .chevron-card {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 7% 50%);
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 16px;
+}
+
+.chev-title {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 1px;
+    opacity: 0.9;
+    margin-bottom: 2px;
+}
+.chev-value {
+    font-size: 2.8rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 5px;
+}
+.chev-desc {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    line-height: 1.3;
+}
+
+/* Colored quick action cards */
+.action-card {
+    border-radius: 16px;
+    padding: 20px;
+    color: white;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+.action-card:hover {
+    transform: translateY(-4px);
+    color: white;
+}
+.action-card .icon-top-right {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.4rem;
+    opacity: 0.8;
+}
+.action-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+.action-desc {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    line-height: 1.4;
+}
+
+/* Gradient Classes */
+.grad-orange { background: linear-gradient(135deg, #FF7B54, #FF5733); }
+.grad-blue { background: linear-gradient(135deg, #60A5FA, #3B82F6); }
+.grad-green { background: linear-gradient(135deg, #34D399, #10B981); }
+.grad-purple { background: linear-gradient(135deg, #C084FC, #9333EA); }
+
+.chevron-card.grad-orange::after { background: #FF5733; }
+.chevron-card.grad-blue::after { background: #3B82F6; }
+.chevron-card.grad-green::after { background: #10B981; }
+
+.text-dark-blue { color: #102a43; }

@@ -3,23 +3,33 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="TouristGuideApp.Views.TourMapPage"
              Title="Bản đồ Lộ trình"
-             Shell.NavBarIsVisible="True">
+             Shell.NavBarIsVisible="True"
+             BackgroundColor="#FDFBF7">
 
-    <Grid RowDefinitions="Auto, *">
+    <Grid RowDefinitions="Auto,*">
 
-        <!-- Tour info header -->
-        <Frame Grid.Row="0" BackgroundColor="#e65100" Padding="16,10" CornerRadius="0" HasShadow="False">
-            <StackLayout Spacing="2">
-                <Label x:Name="lblTourName" Text="Đang tải..." FontSize="18"
-                       FontAttributes="Bold" TextColor="White" />
-                <Label x:Name="lblTourInfo" Text="" FontSize="13"
-                       TextColor="#FFCCBC" />
-            </StackLayout>
-        </Frame>
+        <!-- Tour Info Header -->
+        <Grid Grid.Row="0">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#B84A39" Offset="0"/>
+                    <GradientStop Color="#8B3E36" Offset="1"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+            <VerticalStackLayout Padding="18,14,18,18" Spacing="3">
+                <Label x:Name="lblTourName"
+                       Text="Đang tải..."
+                       FontSize="18" FontAttributes="Bold"
+                       TextColor="White"/>
+                <Label x:Name="lblTourInfo"
+                       Text=""
+                       FontSize="13"
+                       TextColor="#FFCCBC"/>
+            </VerticalStackLayout>
+        </Grid>
 
         <!-- Map WebView -->
-        <WebView x:Name="tourMapWebView" Grid.Row="1" />
+        <WebView x:Name="tourMapWebView" Grid.Row="1"/>
 
     </Grid>
-
 </ContentPage>

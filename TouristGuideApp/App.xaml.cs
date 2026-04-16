@@ -1,4 +1,4 @@
-﻿using TouristGuideApp.Views;
+using TouristGuideApp.Views;
 
 namespace TouristGuideApp;
 
@@ -18,6 +18,20 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        return new Window(new AppShell(_mapPage, _mainPage, _settingsPage));
+        // Show splash page first, then switch to AppShell after 2.2 seconds
+        var splash = new SplashPage();
+        var window = new Window(splash);
+
+        // After delay, switch to main shell
+        Task.Run(async () =>
+        {
+            await Task.Delay(2200);
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                window.Page = new AppShell(_mapPage, _mainPage, _settingsPage);
+            });
+        });
+
+        return window;
     }
 }

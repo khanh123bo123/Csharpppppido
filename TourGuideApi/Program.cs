@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TourGuideApi.Data;
 using TourGuideApi.Services;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,7 +81,10 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Vĩnh Khánh API", Version = "v1", Description = "Hệ thống API quản lý Phố Ẩm Thực Vĩnh Khánh" });
+});
 
 var app = builder.Build();
 
@@ -95,7 +99,10 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Vĩnh Khánh API v1");
+    });
 }
 
 // app.UseHttpsRedirection(); // Commented out to allow Android emulator to use HTTP on port 5214

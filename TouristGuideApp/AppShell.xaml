@@ -5,24 +5,30 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:TouristGuideApp"
     xmlns:views="clr-namespace:TouristGuideApp.Views"
-    Shell.FlyoutBehavior="Disabled">
-
+    Shell.FlyoutBehavior="Disabled"
+    Shell.TabBarBackgroundColor="#FFFFFF"
+    Shell.TabBarForegroundColor="#B84A39"
+    Shell.TabBarTitleColor="#B84A39"
+    Shell.TabBarUnselectedColor="#999999"
+    Shell.NavBarHasShadow="True"
+    Shell.BackgroundColor="#B84A39"
+    Shell.TitleColor="White"
+    Shell.ForegroundColor="White">
 
     <TabBar>
-        <!-- Chuyển Tab Địa điểm lên đầu để tránh crash do Bản đồ khi khởi động -->
-        <Tab Title="Địa điểm" Icon="dotnet_bot.png">
+        <Tab Title="Địa điểm" Icon="tab_poi.png">
             <ShellContent x:Name="listContent" />
         </Tab>
-        <Tab Title="Bản đồ" Icon="dotnet_bot.png">
+        <Tab Title="Bản đồ" Icon="tab_map.png">
             <ShellContent x:Name="mapContent" />
         </Tab>
-        <Tab Title="Lộ trình" Icon="dotnet_bot.png">
+        <Tab Title="Lộ trình" Icon="tab_tour.png">
             <ShellContent x:Name="toursContent" />
         </Tab>
-        <Tab Title="Quét QR" Icon="dotnet_bot.png">
+        <Tab Title="Quét QR" Icon="tab_qr.png">
             <ShellContent x:Name="qrScanContent" />
         </Tab>
-        <Tab Title="Cài đặt" Icon="dotnet_bot.png">
+        <Tab Title="Cài đặt" Icon="tab_settings.png">
             <ShellContent x:Name="settingsContent" />
         </Tab>
     </TabBar>

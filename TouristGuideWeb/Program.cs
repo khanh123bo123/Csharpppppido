@@ -16,6 +16,8 @@ builder.Services
         options.SignIn.RequireConfirmedAccount = false;
         options.Password.RequireDigit = false;
         options.Password.RequiredLength = 6;
+        // Cho phép mọi ký tự trong tên đăng nhập (bao gồm tiếng Việt, khoảng trắng, ký tự đặc biệt)
+        options.User.AllowedUserNameCharacters = string.Empty;
     })
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppIdentityDbContext>();

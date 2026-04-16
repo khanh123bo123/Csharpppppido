@@ -1,94 +1,125 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="TouristGuideApp.MainPage"
-             Title="Tourist GPS Guide">
+             Title="Địa điểm"
+             BackgroundColor="#FDFBF7">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="20">
-            
-            <Label Text="TOURIST GPS GUIDE"
-                   FontSize="28"
-                   HorizontalOptions="Center"
-                   FontAttributes="Bold"
-                   TextColor="#512BD4" />
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
 
-            <!-- User Location Info -->
-            <Border StrokeShape="RoundRectangle 10" Stroke="#512BD4" Padding="15">
-                <VerticalStackLayout Spacing="5">
-                    <Label Text="Vị trí của bạn hiện tại:" FontAttributes="Bold" FontSize="16" />
-                    <Label x:Name="lblUserLocation"
-                           Text="Đang tìm vị trí GPS..."
-                           FontSize="18"
-                           TextColor="DarkSlateGray" />
-                </VerticalStackLayout>
-            </Border>
+        <!-- ── Hero Header ── -->
+        <Grid Grid.Row="0">
+            <Grid.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#B84A39" Offset="0"/>
+                    <GradientStop Color="#8B3E36" Offset="1"/>
+                </LinearGradientBrush>
+            </Grid.Background>
+            <VerticalStackLayout Padding="20,18,20,22" Spacing="4">
+                <Label Text="🍜 Du Lịch Ẩm Thực" FontSize="24" FontAttributes="Bold" TextColor="White"/>
+                <Label Text="Khám phá ẩm thực đặc sắc Quận 4" FontSize="13" TextColor="#FFCCBC"/>
+            </VerticalStackLayout>
+        </Grid>
 
-            <!-- Active POI / Notification Area -->
-            <Label Text="ĐIỂM ĐẾN ĐANG HOẠT ĐỘNG" FontAttributes="Bold" Margin="0,10,0,0"/>
-            <Border x:Name="frameActivePOI"
-                    StrokeShape="RoundRectangle 10"
-                    BackgroundColor="LightGray"
-                    HeightRequest="100"
-                    Padding="10">
-                <VerticalStackLayout VerticalOptions="Center">
+        <!-- ── Active POI Banner ── -->
+        <Border Grid.Row="1" Margin="16,12,16,0" Padding="0" StrokeThickness="0"
+                StrokeShape="RoundRectangle 16" x:Name="frameActivePOI"
+                BackgroundColor="#2C4C3B">
+            <Border.Shadow>
+                <Shadow Brush="#2C4C3B" Offset="0,4" Radius="12" Opacity="0.2"/>
+            </Border.Shadow>
+            <Grid ColumnDefinitions="Auto,*" Padding="16,14" ColumnSpacing="14">
+                <Border Grid.Column="0" BackgroundColor="#FFFFFF22" StrokeThickness="0"
+                        StrokeShape="RoundRectangle 12" Padding="10">
+                    <Label Text="📍" FontSize="22"/>
+                </Border>
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                    <Label Text="ĐIỂM GẦN BẠN" FontSize="10" FontAttributes="Bold"
+                           TextColor="#A5D6A7" CharacterSpacing="1.5"/>
                     <Label x:Name="lblActivePOI"
                            Text="Không có điểm nào gần đây"
-                           FontSize="20"
-                           HorizontalOptions="Center"
-                           FontAttributes="Bold"
-                           HorizontalTextAlignment="Center"/>
+                           FontSize="15" FontAttributes="Bold"
+                           TextColor="White" LineBreakMode="TailTruncation"/>
+                    <Label x:Name="lblUserLocation"
+                           Text="Đang tìm vị trí GPS..."
+                           FontSize="11" TextColor="#FFFFFF99"
+                           LineBreakMode="TailTruncation"/>
                 </VerticalStackLayout>
-            </Border>
+            </Grid>
+        </Border>
 
-            <!-- POI List -->
-            <Label Text="DANH SÁCH CÁC ĐIỂM THAM QUAN" FontAttributes="Bold" Margin="0,10,0,0" />
-            <CollectionView x:Name="listPOIs"
-                            HeightRequest="300"
-                            SelectionMode="Single"
-                            SelectionChanged="OnPOISelectionChanged">
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Grid Padding="0,5">
-                            <VisualStateManager.VisualStateGroups>
-                                <VisualStateGroup Name="CommonStates">
-                                    <VisualState Name="Normal" />
-                                    <VisualState Name="Selected">
-                                        <VisualState.Setters>
-                                            <Setter Property="BackgroundColor" Value="#E6E0F8" />
-                                        </VisualState.Setters>
-                                    </VisualState>
-                                </VisualStateGroup>
-                            </VisualStateManager.VisualStateGroups>
-                            <Border StrokeShape="RoundRectangle 5" Stroke="LightGray" Padding="15">
-                                <Border.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnPOITapped" CommandParameter="{Binding .}" />
-                                </Border.GestureRecognizers>
-                                <HorizontalStackLayout Spacing="15">
-                                    <BoxView Color="#512BD4" WidthRequest="5" HeightRequest="40" VerticalOptions="Center"/>
-                                    <VerticalStackLayout VerticalOptions="Center">
-                                        <HorizontalStackLayout Spacing="10">
-                                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="16" InputTransparent="True" />
-                                            <Label Text="{Binding DistanceText}" FontSize="14" TextColor="#512BD4" VerticalOptions="Center" InputTransparent="True" />
-                                        </HorizontalStackLayout>
-                                        <Label Text="{Binding Description}" FontSize="12" MaxLines="1" LineBreakMode="TailTruncation" InputTransparent="True" />
-                                    </VerticalStackLayout>
-                                </HorizontalStackLayout>
-                            </Border>
+        <!-- ── POI List ── -->
+        <CollectionView Grid.Row="2"
+                        x:Name="listPOIs"
+                        SelectionMode="Single"
+                        SelectionChanged="OnPOISelectionChanged"
+                        BackgroundColor="Transparent"
+                        Margin="0,8,0,0">
+            <CollectionView.Header>
+                <Grid Padding="20,10,20,4">
+                    <Label Text="DANH SÁCH ĐỊA ĐIỂM" FontSize="11" FontAttributes="Bold"
+                           TextColor="#B84A39" CharacterSpacing="1.5"/>
+                </Grid>
+            </CollectionView.Header>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Margin="16,5" Padding="0" StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14" BackgroundColor="White">
+                        <Border.Shadow>
+                            <Shadow Brush="Black" Offset="0,2" Radius="8" Opacity="0.05"/>
+                        </Border.Shadow>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnPOITapped" CommandParameter="{Binding .}"/>
+                        </Border.GestureRecognizers>
+
+                        <Grid ColumnDefinitions="6,*" ColumnSpacing="0">
+                            <!-- Colour accent bar -->
+                            <BoxView Grid.Column="0" BackgroundColor="#B84A39"
+                                     WidthRequest="6" CornerRadius="14,0,0,14"/>
+
+                            <Grid Grid.Column="1" ColumnDefinitions="*,Auto"
+                                  Padding="14,12" ColumnSpacing="10">
+                                <VerticalStackLayout Grid.Column="0" Spacing="3" VerticalOptions="Center">
+                                    <Label Text="{Binding Name}"
+                                           FontAttributes="Bold" FontSize="15"
+                                           TextColor="#2C4C3B"
+                                           LineBreakMode="TailTruncation"/>
+                                    <Label Text="{Binding Description}"
+                                           FontSize="12" TextColor="#888"
+                                           MaxLines="1" LineBreakMode="TailTruncation"/>
+                                </VerticalStackLayout>
+                                <Border Grid.Column="1" BackgroundColor="#FBE9E7"
+                                        StrokeThickness="0" StrokeShape="RoundRectangle 20"
+                                        Padding="10,5" VerticalOptions="Center">
+                                    <Label Text="{Binding DistanceText}"
+                                           FontSize="12" TextColor="#B84A39" FontAttributes="Bold"/>
+                                </Border>
+                            </Grid>
                         </Grid>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            <CollectionView.Footer>
+                <BoxView HeightRequest="12" Color="Transparent"/>
+            </CollectionView.Footer>
+        </CollectionView>
 
+        <!-- ── Tracking Button ── -->
+        <Border Grid.Row="3" Margin="16,0,16,20" StrokeThickness="0"
+                StrokeShape="RoundRectangle 28" BackgroundColor="#B84A39">
+            <Border.Shadow>
+                <Shadow Brush="#B84A39" Offset="0,4" Radius="12" Opacity="0.35"/>
+            </Border.Shadow>
             <Button x:Name="btnToggleTracking"
-                    Text="Bắt đầu theo dõi"
+                    Text="📡  Bắt đầu theo dõi"
                     Clicked="OnToggleTrackingClicked"
-                    BackgroundColor="#512BD4"
+                    BackgroundColor="Transparent"
                     TextColor="White"
-                    CornerRadius="25"
-                    HeightRequest="50" />
+                    FontAttributes="Bold"
+                    FontSize="15"
+                    HeightRequest="52"/>
+        </Border>
 
-        </VerticalStackLayout>
-    </ScrollView>
+    </Grid>
 
 </ContentPage>

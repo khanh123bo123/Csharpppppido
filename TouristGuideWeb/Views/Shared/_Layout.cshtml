@@ -27,8 +27,8 @@
                             <i class="fa-solid fa-camera-retro"></i>
                         </div>
                         Vĩnh Khánh
-                        <span style="color: #ff5722; font-size: 0.9rem;">
-                            @(User.IsInRole("Admin") ? "Admin" : (User.IsInRole("Owner") ? "Chủ Quán" : ""))
+                        <span style="color: #B84A39; font-size: 0.9rem;">
+                            @User.Identity?.Name
                         </span>
                     </a>
                 </div>
@@ -38,40 +38,42 @@
                     {
                         <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Dashboard" ? "active" : "")">
                             <a asp-area="" asp-controller="Dashboard" asp-action="Index">
-                                <i class="fa-solid fa-border-all"></i> Tổng Quan
+                                <i class="fa-solid fa-border-all"></i> Bảng điều khiển
                             </a>
                         </li>
                         <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Locations" && ViewContext.RouteData.Values["Action"]?.ToString() != "IndexMap" ? "active" : "")">
                             <a asp-area="" asp-controller="Locations" asp-action="Index">
-                                <i class="fa-solid fa-store"></i> Quán Ăn
+                                <i class="fa-solid fa-utensils"></i> Quản lý Quán
                             </a>
                         </li>
                         <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Locations" && ViewContext.RouteData.Values["Action"]?.ToString() == "IndexMap" ? "active" : "")">
                             <a asp-area="" asp-controller="Locations" asp-action="IndexMap">
-                                <i class="fa-solid fa-map-location-dot"></i> Bản Đồ
+                                <i class="fa-solid fa-map"></i> Bản đồ
                             </a>
                         </li>
                         <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Tours" ? "active" : "")">
-                            <a asp-area="" asp-controller="Tours" asp-action="Index"><i class="fa-solid fa-route"></i> Lộ Trình</a>
+                            <a asp-area="" asp-controller="Tours" asp-action="Index"><i class="fa-solid fa-route"></i> Lộ trình</a>
                         </li>
                         <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Localizations" ? "active" : "")">
-                            <a asp-area="" asp-controller="Localizations" asp-action="Index"><i class="fa-solid fa-language"></i> Bản Dịch</a>
+                            <a asp-area="" asp-controller="Localizations" asp-action="Index"><i class="fa-solid fa-language"></i> Dịch thuật</a>
                         </li>
                         <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Audio" ? "active" : "")">
-                            <a asp-area="" asp-controller="Audio" asp-action="Index"><i class="fa-solid fa-microphone"></i> Giọng Đọc</a>
+                            <a asp-area="" asp-controller="Audio" asp-action="Index"><i class="fa-solid fa-microphone"></i> Giọng đọc</a>
                         </li>
                         <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Statistics" ? "active" : "")">
-                            <a asp-area="" asp-controller="Statistics" asp-action="Index"><i class="fa-solid fa-chart-simple"></i> Thống Kê</a>
+                            <a asp-area="" asp-controller="Statistics" asp-action="Index"><i class="fa-solid fa-chart-line"></i> Thống kê</a>
                         </li>
                         <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "History" ? "active" : "")">
-                            <a asp-area="" asp-controller="History" asp-action="Index"><i class="fa-solid fa-clock-rotate-left"></i> Lịch Sử</a>
+                            <a asp-area="" asp-controller="History" asp-action="Index"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử</a>
                         </li>
                         <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Users" ? "active" : "")">
                             <a asp-area="" asp-controller="Users" asp-action="Index">
-                                <i class="fa-solid fa-user"></i> Tài Khoản
+                                <i class="fa-solid fa-user"></i> Tài khoản
                             </a>
                         </li>
-                        <li><a href="#"><i class="fa-solid fa-key"></i> Đổi Mật Khẩu</a></li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Auth" && ViewContext.RouteData.Values["Action"]?.ToString() == "ChangePassword" ? "active" : "")">
+                            <a asp-controller="Auth" asp-action="ChangePassword"><i class="fa-solid fa-lock"></i> Mật khẩu</a>
+                        </li>
                     }
                     else if (User.Identity?.IsAuthenticated == true)
                     {
@@ -84,17 +86,18 @@
                 @if (User.Identity?.IsAuthenticated == true)
                 {
                     <div class="sidebar-footer">
-                        <div class="user-info">
+                        <div class="user-info" style="position: relative; z-index: 10;">
                             <div class="user-details">
                                 <span class="user-label" style="text-transform: uppercase;">
                                     TÀI KHOẢN
                                 </span>
                                 <span class="user-role">
-                                    @(User.IsInRole("Admin") ? "Quản trị viên" : (User.IsInRole("Owner") ? "Chủ quán" : User.Identity?.Name))
+                                    @User.Identity?.Name
                                 </span>
                             </div>
-                            <form class="form-inline" asp-controller="Auth" asp-action="Logout" method="post">
-                                <button type="submit" class="btn-logout" title="Đăng xuất">
+                            <form method="post" action="/Auth/Logout" style="margin: 0;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn-logout" title="Đăng xuất" style="cursor: pointer; position: relative; z-index: 10;">
                                     <i class="fa-solid fa-right-from-bracket"></i>
                                 </button>
                             </form>

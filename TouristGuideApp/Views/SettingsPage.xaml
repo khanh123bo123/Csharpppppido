@@ -2,30 +2,129 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="TouristGuideApp.Views.SettingsPage"
-             Title="Cài đặt">
+             Title="Cài đặt"
+             BackgroundColor="#FDFBF7">
 
-    <VerticalStackLayout Padding="20" Spacing="20">
-        <Label Text="CÀI ĐẶT ỨNG DỤNG" FontSize="24" FontAttributes="Bold" HorizontalOptions="Center" />
+    <ScrollView>
+        <VerticalStackLayout Spacing="0">
 
-        <Frame CornerRadius="10">
-            <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                <Label Text="Cập nhật vị trí mỗi 5 giây" VerticalOptions="Center" />
-                <Switch IsToggled="True" IsEnabled="False" />
-            </HorizontalStackLayout>
-        </Frame>
+            <!-- Header -->
+            <Grid>
+                <Grid.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#B84A39" Offset="0"/>
+                        <GradientStop Color="#8B3E36" Offset="1"/>
+                    </LinearGradientBrush>
+                </Grid.Background>
+                <VerticalStackLayout Padding="20,20,20,28" Spacing="4">
+                    <Label Text="⚙️ Cài đặt" FontSize="26" FontAttributes="Bold" TextColor="White"/>
+                    <Label Text="Tuỳ chỉnh trải nghiệm của bạn" FontSize="13" TextColor="#FFCCBC"/>
+                </VerticalStackLayout>
+            </Grid>
 
-        <Frame CornerRadius="10">
-            <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                <Label Text="Tự động phát âm thuyết minh" VerticalOptions="Center" />
-                <Switch x:Name="swAutoAudio" IsToggled="True" />
-            </HorizontalStackLayout>
-        </Frame>
+            <VerticalStackLayout Padding="16,20" Spacing="12">
 
-        <Button Text="Xóa lịch sử đã phát"
-                BackgroundColor="Red"
-                TextColor="White"
-                Clicked="OnClearHistoryClicked" />
+                <!-- Section: Chung -->
+                <Label Text="CHUNG" FontSize="11" FontAttributes="Bold"
+                       TextColor="#B84A39" Margin="4,0,0,4"
+                       CharacterSpacing="1.5"/>
 
-        <Label Text="Phiên bản 1.0.0" HorizontalOptions="Center" TextColor="Gray" />
-    </VerticalStackLayout>
+                <!-- Location update setting -->
+                <Border Padding="18,14" StrokeThickness="0"
+                        StrokeShape="RoundRectangle 14" BackgroundColor="White">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="0,2" Radius="8" Opacity="0.05"/>
+                    </Border.Shadow>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Cập nhật vị trí tự động"
+                                   FontSize="15" FontAttributes="Bold" TextColor="#2C4C3B"/>
+                            <Label Text="Cập nhật mỗi 5 giây"
+                                   FontSize="12" TextColor="#888"/>
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1" IsToggled="True" IsEnabled="False"
+                                OnColor="#B84A39" ThumbColor="White"
+                                VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- Auto audio setting -->
+                <Border Padding="18,14" StrokeThickness="0"
+                        StrokeShape="RoundRectangle 14" BackgroundColor="White">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="0,2" Radius="8" Opacity="0.05"/>
+                    </Border.Shadow>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Tự động phát thuyết minh"
+                                   FontSize="15" FontAttributes="Bold" TextColor="#2C4C3B"/>
+                            <Label Text="Phát khi vào khu vực địa điểm"
+                                   FontSize="12" TextColor="#888"/>
+                        </VerticalStackLayout>
+                        <Switch x:Name="swAutoAudio" Grid.Column="1" IsToggled="True"
+                                OnColor="#B84A39" ThumbColor="White"
+                                VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- Section: Dữ liệu -->
+                <Label Text="DỮ LIỆU" FontSize="11" FontAttributes="Bold"
+                       TextColor="#B84A39" Margin="4,8,0,4"
+                       CharacterSpacing="1.5"/>
+
+                <!-- Clear history button -->
+                <Border Padding="18,14" StrokeThickness="0"
+                        StrokeShape="RoundRectangle 14" BackgroundColor="White">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="0,2" Radius="8" Opacity="0.05"/>
+                    </Border.Shadow>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Xóa lịch sử đã phát"
+                                   FontSize="15" FontAttributes="Bold" TextColor="#2C4C3B"/>
+                            <Label Text="Xóa tất cả lịch sử thuyết minh đã nghe"
+                                   FontSize="12" TextColor="#888"/>
+                        </VerticalStackLayout>
+                        <Border Grid.Column="1" BackgroundColor="#FBE9E7" StrokeThickness="0"
+                                StrokeShape="RoundRectangle 20" Padding="14,8">
+                            <Label Text="Xóa" FontSize="13"
+                                   TextColor="#B84A39" FontAttributes="Bold">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnClearHistoryClicked"/>
+                                </Label.GestureRecognizers>
+                            </Label>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Section: Về ứng dụng -->
+                <Label Text="VỀ ỨNG DỤNG" FontSize="11" FontAttributes="Bold"
+                       TextColor="#B84A39" Margin="4,8,0,4"
+                       CharacterSpacing="1.5"/>
+
+                <Border Padding="18,16" StrokeThickness="0"
+                        StrokeShape="RoundRectangle 14" BackgroundColor="White">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="0,2" Radius="8" Opacity="0.05"/>
+                    </Border.Shadow>
+                    <VerticalStackLayout Spacing="6" HorizontalOptions="Center">
+                        <Border BackgroundColor="#FBE9E7" StrokeThickness="0"
+                                StrokeShape="RoundRectangle 16" Padding="16,10"
+                                HorizontalOptions="Center">
+                            <Label Text="🍜  Vĩnh Khánh" FontSize="18"
+                                   FontAttributes="Bold" TextColor="#B84A39"
+                                   HorizontalOptions="Center"/>
+                        </Border>
+                        <Label Text="Du lịch ẩm thực Quận 4" FontSize="13"
+                               TextColor="#2C4C3B" HorizontalOptions="Center"
+                               FontAttributes="Bold"/>
+                        <Label Text="Phiên bản 1.0.0" FontSize="12"
+                               TextColor="#AAA" HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+
 </ContentPage>

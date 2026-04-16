@@ -48,7 +48,7 @@ public class AuthController : Controller
             }
         }
 
-        var result = await _signInManager.PasswordSignInAsync(email, password, rememberMe, lockoutOnFailure: false);
+        var result = await _signInManager.PasswordSignInAsync(user != null ? user.UserName : email, password, rememberMe, lockoutOnFailure: false);
         if (result.Succeeded)
         {
             return LocalRedirect(returnUrl);
@@ -71,7 +71,7 @@ public class AuthController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(string email, string password, string confirmPassword)
+    public async Task<IActionResult> Register(string storeName, string email, string password, string confirmPassword)
     {
         if (password != confirmPassword)
         {
@@ -79,7 +79,9 @@ public class AuthController : Controller
             return View();
         }
 
-        var user = new IdentityUser { UserName = email, Email = email };
+        // Use the Store Name / Display Name as the Identity UserName, fallback to email if empty
+        string userName = !string.IsNullOrWhiteSpace(storeName) ? storeName : email;
+        var user = new IdentityUser { UserName = userName, Email = email };
         var result = await _userManager.CreateAsync(user, password);
 
         if (result.Succeeded)
@@ -107,6 +109,42 @@ public class AuthController : Controller
                 _ => error.Description
             };
             ModelState.AddModelError(string.Empty, message);
+        }
+
+        return View();
+    }
+
+    [HttpGet]
+    [Authorize]
+    public IActionResult ChangePassword()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword, string confirmPassword)
+    {
+        if (newPassword != confirmPassword)
+        {
+            ModelState.AddModelError(string.Empty, "Mật khẩu xác nhận không khớp.");
+            return View();
+        }
+
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return NotFound();
+
+        var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        if (result.Succeeded)
+        {
+            TempData["SuccessMessage"] = "Đổi mật khẩu thành công!";
+            return RedirectToAction("Index", "Dashboard");
+        }
+
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(string.Empty, error.Description);
         }
 
         return View();

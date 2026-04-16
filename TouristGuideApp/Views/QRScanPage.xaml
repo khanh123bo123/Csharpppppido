@@ -3,32 +3,74 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI.Controls"
              x:Class="TouristGuideApp.Views.QRScanPage"
-             Title="Quét mã QR">
+             Title="Quét mã QR"
+             BackgroundColor="Black">
 
     <Grid>
-        <!-- The Barcode Reader View -->
+        <!-- Camera View -->
         <zxing:CameraBarcodeReaderView
             x:Name="barcodeReader"
             CameraLocation="Rear"
             BarcodesDetected="CameraBarcodeReaderView_BarcodesDetected"
             IsDetecting="True"
             HorizontalOptions="FillAndExpand"
-            VerticalOptions="FillAndExpand" />
+            VerticalOptions="FillAndExpand"/>
 
-        <!-- Overlay overlay elements to guide user -->
-        <Grid Padding="20">
-            <Label Text="Đưa camera vào mã QR"
-                   TextColor="White"
-                   FontSize="20"
-                   FontAttributes="Bold"
-                   HorizontalOptions="Center"
-                   VerticalOptions="Start"
-                   Margin="0,40,0,0">
+        <!-- Top overlay: title -->
+        <VerticalStackLayout VerticalOptions="Start" HorizontalOptions="Fill"
+                             Padding="0,50,0,0">
+            <Label Text="Quét mã QR địa điểm"
+                   TextColor="White" FontSize="20" FontAttributes="Bold"
+                   HorizontalOptions="Center">
                 <Label.Shadow>
-                    <Shadow Brush="Black" Offset="1,1" Radius="2" />
+                    <Shadow Brush="Black" Offset="0,2" Radius="4" Opacity="0.6"/>
                 </Label.Shadow>
             </Label>
-        </Grid>
-    </Grid>
+            <Label Text="Đưa camera vào mã QR tại bảng thông tin địa điểm"
+                   TextColor="#FFCCBC" FontSize="13"
+                   HorizontalOptions="Center"
+                   Margin="20,6,20,0"
+                   HorizontalTextAlignment="Center">
+                <Label.Shadow>
+                    <Shadow Brush="Black" Offset="0,1" Radius="3" Opacity="0.5"/>
+                </Label.Shadow>
+            </Label>
+        </VerticalStackLayout>
 
+        <!-- QR Frame guide in center -->
+        <Grid HorizontalOptions="Center" VerticalOptions="Center"
+              WidthRequest="220" HeightRequest="220">
+            <!-- Corner borders using BoxViews -->
+            <!-- Top-left -->
+            <BoxView WidthRequest="36" HeightRequest="4" BackgroundColor="#B84A39"
+                     HorizontalOptions="Start" VerticalOptions="Start"/>
+            <BoxView WidthRequest="4" HeightRequest="36" BackgroundColor="#B84A39"
+                     HorizontalOptions="Start" VerticalOptions="Start"/>
+            <!-- Top-right -->
+            <BoxView WidthRequest="36" HeightRequest="4" BackgroundColor="#B84A39"
+                     HorizontalOptions="End" VerticalOptions="Start"/>
+            <BoxView WidthRequest="4" HeightRequest="36" BackgroundColor="#B84A39"
+                     HorizontalOptions="End" VerticalOptions="Start"/>
+            <!-- Bottom-left -->
+            <BoxView WidthRequest="36" HeightRequest="4" BackgroundColor="#B84A39"
+                     HorizontalOptions="Start" VerticalOptions="End"/>
+            <BoxView WidthRequest="4" HeightRequest="36" BackgroundColor="#B84A39"
+                     HorizontalOptions="Start" VerticalOptions="End"/>
+            <!-- Bottom-right -->
+            <BoxView WidthRequest="36" HeightRequest="4" BackgroundColor="#B84A39"
+                     HorizontalOptions="End" VerticalOptions="End"/>
+            <BoxView WidthRequest="4" HeightRequest="36" BackgroundColor="#B84A39"
+                     HorizontalOptions="End" VerticalOptions="End"/>
+        </Grid>
+
+        <!-- Bottom hint -->
+        <Border VerticalOptions="End" HorizontalOptions="Fill"
+                Margin="24,0,24,40" Padding="16,12"
+                StrokeThickness="0" StrokeShape="RoundRectangle 16"
+                BackgroundColor="#CC000000">
+            <Label Text="🔍  Camera sẽ tự động nhận dạng QR"
+                   TextColor="White" FontSize="13"
+                   HorizontalOptions="Center"/>
+        </Border>
+    </Grid>
 </ContentPage>
