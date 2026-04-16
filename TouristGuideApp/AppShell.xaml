@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:TouristGuideApp"
     xmlns:views="clr-namespace:TouristGuideApp.Views"
+    xmlns:services="clr-namespace:TouristGuideApp.Services"
     Shell.FlyoutBehavior="Disabled"
     Shell.TabBarBackgroundColor="#FFFFFF"
     Shell.TabBarForegroundColor="#B84A39"
@@ -16,19 +17,19 @@
     Shell.ForegroundColor="White">
 
     <TabBar>
-        <Tab Title="Địa điểm" Icon="tab_poi.png">
+        <Tab Title="{Binding [Tab_POI], Source={x:Static services:LocalizationResourceManager.Instance}}" Icon="tab_poi.png">
             <ShellContent x:Name="listContent" />
         </Tab>
-        <Tab Title="Bản đồ" Icon="tab_map.png">
+        <Tab Title="{Binding [Tab_Map], Source={x:Static services:LocalizationResourceManager.Instance}}" Icon="tab_map.png">
             <ShellContent x:Name="mapContent" />
         </Tab>
-        <Tab Title="Lộ trình" Icon="tab_tour.png">
+        <Tab Title="{Binding [Tab_Tours], Source={x:Static services:LocalizationResourceManager.Instance}}" Icon="tab_tour.png">
             <ShellContent x:Name="toursContent" />
         </Tab>
-        <Tab Title="Quét QR" Icon="tab_qr.png">
+        <Tab Title="{Binding [Tab_QR], Source={x:Static services:LocalizationResourceManager.Instance}}" Icon="tab_qr.png">
             <ShellContent x:Name="qrScanContent" />
         </Tab>
-        <Tab Title="Cài đặt" Icon="tab_settings.png">
+        <Tab Title="{Binding [Tab_Settings], Source={x:Static services:LocalizationResourceManager.Instance}}" Icon="tab_settings.png">
             <ShellContent x:Name="settingsContent" />
         </Tab>
     </TabBar>

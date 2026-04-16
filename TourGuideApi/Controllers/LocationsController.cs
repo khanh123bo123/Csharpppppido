@@ -13,11 +13,13 @@ public class LocationsController : ControllerBase
     private const double EarthRadiusMeters = 6371000;
     private readonly AppDbContext _context;
     private readonly ITextToSpeechService _textToSpeechService;
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    public LocationsController(AppDbContext context, ITextToSpeechService textToSpeechService)
+    public LocationsController(AppDbContext context, ITextToSpeechService textToSpeechService, IServiceScopeFactory scopeFactory)
     {
         _context = context;
         _textToSpeechService = textToSpeechService;
+        _scopeFactory = scopeFactory;
     }
 
     [HttpGet]
@@ -116,6 +118,24 @@ public class LocationsController : ControllerBase
             {
                 // Keep location creation successful even when TTS is unavailable.
             }
+
+            // AUTO-GENERATE 5 LANGUAGES
+            var locationId = location.Id;
+            var locName = location.Name;
+            var locDesc = location.Description;
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var scope = _scopeFactory.CreateScope();
+                    var generator = scope.ServiceProvider.GetRequiredService<LocalizationPackGenerator>();
+                    await generator.GeneratePackAsync(locationId, locName, locDesc);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Background pack generation failed for Location {locationId}: {ex.Message}");
+                }
+            });
         }
 
         return CreatedAtAction(nameof(GetLocation), new { id = location.Id }, location);
@@ -160,6 +180,20 @@ public class LocationsController : ControllerBase
         if (location is null)
         {
             return NotFound();
+        }
+
+        // 1. Xoá các TourLocations liên kết
+        var tourLocations = await _context.TourLocations.Where(tl => tl.LocationId == id).ToListAsync();
+        if (tourLocations.Any())
+        {
+            _context.TourLocations.RemoveRange(tourLocations);
+        }
+
+        // 2. Xoá các Localizations (Bản dịch/Audio) liên kết
+        var localizations = await _context.Localizations.Where(l => l.LocationId == id).ToListAsync();
+        if (localizations.Any())
+        {
+            _context.Localizations.RemoveRange(localizations);
         }
 
         _context.Locations.Remove(location);

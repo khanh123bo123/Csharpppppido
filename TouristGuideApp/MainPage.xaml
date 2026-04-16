@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:services="clr-namespace:TouristGuideApp.Services"
              x:Class="TouristGuideApp.MainPage"
-             Title="Địa điểm"
+             Title="{Binding [Tab_POI], Source={x:Static services:LocalizationResourceManager.Instance}}"
              BackgroundColor="#FDFBF7">
 
     <Grid RowDefinitions="Auto,Auto,*,Auto">
@@ -16,8 +17,8 @@
                 </LinearGradientBrush>
             </Grid.Background>
             <VerticalStackLayout Padding="20,18,20,22" Spacing="4">
-                <Label Text="🍜 Du Lịch Ẩm Thực" FontSize="24" FontAttributes="Bold" TextColor="White"/>
-                <Label Text="Khám phá ẩm thực đặc sắc Quận 4" FontSize="13" TextColor="#FFCCBC"/>
+                <Label Text="{Binding [AppTitle_Main], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="24" FontAttributes="Bold" TextColor="White"/>
+                <Label Text="{Binding [AppDesc_Main], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="13" TextColor="#FFCCBC"/>
             </VerticalStackLayout>
         </Grid>
 
@@ -34,14 +35,14 @@
                     <Label Text="📍" FontSize="22"/>
                 </Border>
                 <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                    <Label Text="ĐIỂM GẦN BẠN" FontSize="10" FontAttributes="Bold"
+                    <Label Text="{Binding [POI_NearYou], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="10" FontAttributes="Bold"
                            TextColor="#A5D6A7" CharacterSpacing="1.5"/>
                     <Label x:Name="lblActivePOI"
-                           Text="Không có điểm nào gần đây"
+                           Text="{Binding [POI_NoneNear], Source={x:Static services:LocalizationResourceManager.Instance}}"
                            FontSize="15" FontAttributes="Bold"
                            TextColor="White" LineBreakMode="TailTruncation"/>
                     <Label x:Name="lblUserLocation"
-                           Text="Đang tìm vị trí GPS..."
+                           Text="{Binding [POI_SearchingGPS], Source={x:Static services:LocalizationResourceManager.Instance}}"
                            FontSize="11" TextColor="#FFFFFF99"
                            LineBreakMode="TailTruncation"/>
                 </VerticalStackLayout>
@@ -57,7 +58,7 @@
                         Margin="0,8,0,0">
             <CollectionView.Header>
                 <Grid Padding="20,10,20,4">
-                    <Label Text="DANH SÁCH ĐỊA ĐIỂM" FontSize="11" FontAttributes="Bold"
+                    <Label Text="{Binding [POI_List], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="11" FontAttributes="Bold"
                            TextColor="#B84A39" CharacterSpacing="1.5"/>
                 </Grid>
             </CollectionView.Header>
@@ -111,7 +112,7 @@
                 <Shadow Brush="#B84A39" Offset="0,4" Radius="12" Opacity="0.35"/>
             </Border.Shadow>
             <Button x:Name="btnToggleTracking"
-                    Text="📡  Bắt đầu theo dõi"
+                    Text="{Binding [POI_StartTracking], Source={x:Static services:LocalizationResourceManager.Instance}}"
                     Clicked="OnToggleTrackingClicked"
                     BackgroundColor="Transparent"
                     TextColor="White"

@@ -21,6 +21,7 @@ public class LocalizationsController : ControllerBase
     private readonly ILocalizationTranslationService _translationService;
     private readonly IAudioGenerationQueue _audioQueue;
     private readonly ILogger<LocalizationsController> _logger;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     // Supported languages for the tour guide system
     private static readonly string[] SupportedLanguages = { "vi-VN", "en-US", "zh-CN", "ja-JP", "ko-KR" };
@@ -29,12 +30,14 @@ public class LocalizationsController : ControllerBase
         AppDbContext context,
         ILocalizationTranslationService translationService,
         IAudioGenerationQueue audioQueue,
-        ILogger<LocalizationsController> logger)
+        ILogger<LocalizationsController> logger,
+        IServiceScopeFactory scopeFactory)
     {
         _context = context;
         _translationService = translationService;
         _audioQueue = audioQueue;
         _logger = logger;
+        _scopeFactory = scopeFactory;
     }
 
     /// <summary>
@@ -196,110 +199,19 @@ public class LocalizationsController : ControllerBase
             return NotFound($"Location {request.LocationId} not found");
         }
 
-        var targetLanguages = SupportedLanguages
-            .Where(l => !string.Equals(l, "vi-VN", StringComparison.OrdinalIgnoreCase))
-            .ToArray();
-
-        Dictionary<string, LocalizedText> translated;
-        try
+        _ = Task.Run(async () =>
         {
-            translated = await _translationService.TranslateFromVietnameseAsync(
-                vietnameseName,
-                vietnameseDescription,
-                targetLanguages,
-                cancellationToken);
-        }
-        catch (LocalizationTranslationNotConfiguredException ex)
-        {
-            _logger.LogWarning(ex, "Localization pack translation is not configured.");
-            return StatusCode(
-                StatusCodes.Status501NotImplemented,
-                new GenerateLocalizationPackResponse
-                {
-                    Status = "not_configured",
-                    Message = ex.Message,
-                    LocationId = request.LocationId,
-                    Languages = SupportedLanguages
-                });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to translate localization pack for location {LocationId}", request.LocationId);
-
-            var message = ex is TaskCanceledException
-                ? "Dịch tự động phản hồi quá chậm (timeout). Hãy thử lại sau hoặc kiểm tra Ollama đang chạy."
-                : (ex.Message ?? "Dịch tự động thất bại. Hãy kiểm tra Ollama đang chạy và cấu hình Ollama:BaseUrl/Ollama:Model.");
-
-            return StatusCode(
-                StatusCodes.Status502BadGateway,
-                new GenerateLocalizationPackResponse
-                {
-                    Status = "failed",
-                    Message = message,
-                    LocationId = request.LocationId,
-                    Languages = SupportedLanguages
-                });
-        }
-
-        var now = DateTime.UtcNow;
-        var touched = new List<Localization>();
-
-        foreach (var languageCode in SupportedLanguages)
-        {
-            var name = string.Equals(languageCode, "vi-VN", StringComparison.OrdinalIgnoreCase)
-                ? vietnameseName
-                : translated[languageCode].LocalizedName;
-
-            var desc = string.Equals(languageCode, "vi-VN", StringComparison.OrdinalIgnoreCase)
-                ? vietnameseDescription
-                : translated[languageCode].LocalizedDescription;
-
-            var existing = await _context.Localizations
-                .FirstOrDefaultAsync(
-                    l => l.LocationId == request.LocationId && l.LanguageCode == languageCode,
-                    cancellationToken);
-
-            if (existing == null)
+            try
             {
-                var localization = new Localization
-                {
-                    LocationId = request.LocationId,
-                    LanguageCode = languageCode,
-                    LocalizedName = name,
-                    LocalizedDescription = desc,
-                    TtsVoiceCode = GetDefaultVoice(languageCode),
-                    AudioGenerationStatus = "pending",
-                    CreatedAt = now,
-                    UpdatedAt = now
-                };
-
-                _context.Localizations.Add(localization);
-                touched.Add(localization);
-                continue;
+                using var scope = _scopeFactory.CreateScope();
+                var generator = scope.ServiceProvider.GetRequiredService<LocalizationPackGenerator>();
+                await generator.GeneratePackAsync(request.LocationId, vietnameseName, vietnameseDescription);
             }
-
-            existing.LocalizedName = name;
-            existing.LocalizedDescription = desc;
-            existing.CachedAudioBase64 = null;
-            existing.CachedAudioUrl = null;
-            existing.AudioGenerationStatus = "pending";
-
-            if (string.IsNullOrWhiteSpace(existing.TtsVoiceCode))
+            catch (Exception ex)
             {
-                existing.TtsVoiceCode = GetDefaultVoice(languageCode);
+                _logger.LogError(ex, "Background pack generation failed for Location {LocationId}", request.LocationId);
             }
-
-            existing.UpdatedAt = now;
-            _context.Localizations.Update(existing);
-            touched.Add(existing);
-        }
-
-        await _context.SaveChangesAsync(cancellationToken);
-
-        foreach (var loc in touched)
-        {
-            QueueAudioGeneration(loc.Id);
-        }
+        });
 
         return Ok(new GenerateLocalizationPackResponse
         {
@@ -351,7 +263,7 @@ public class LocalizationsController : ControllerBase
         }
 
         var audioBytes = Convert.FromBase64String(localization.CachedAudioBase64);
-        return File(audioBytes, "audio/mpeg", $"poi_{localization.LocationId}_{localization.LanguageCode}.mp3");
+        return File(audioBytes, "audio/mpeg", enableRangeProcessing: true);
     }
 
     /// <summary>

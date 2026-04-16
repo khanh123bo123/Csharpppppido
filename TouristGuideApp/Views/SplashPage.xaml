@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:services="clr-namespace:TouristGuideApp.Services"
              x:Class="TouristGuideApp.Views.SplashPage"
              Shell.NavBarIsVisible="False"
              NavigationPage.HasNavigationBar="False">
@@ -27,7 +28,7 @@
             </Border>
 
             <!-- App Name -->
-            <Label Text="Du Lịch Ẩm Thực"
+            <Label Text="{Binding [Splash_Title], Source={x:Static services:LocalizationResourceManager.Instance}}"
                    FontSize="30" FontAttributes="Bold"
                    TextColor="White"
                    HorizontalOptions="Center"
@@ -38,7 +39,7 @@
             </Label>
 
             <!-- Subtitle -->
-            <Label Text="Vĩnh Khánh - Quận 4"
+            <Label Text="{Binding [Splash_Subtitle], Source={x:Static services:LocalizationResourceManager.Instance}}"
                    FontSize="18"
                    TextColor="#FFCCBC"
                    HorizontalOptions="Center"
@@ -46,7 +47,7 @@
                    CharacterSpacing="1.5"/>
 
             <!-- Tagline -->
-            <Label Text="Khám phá hương vị đặc sắc"
+            <Label Text="{Binding [Splash_Desc], Source={x:Static services:LocalizationResourceManager.Instance}}"
                    FontSize="13"
                    TextColor="#FFFFFF99"
                    HorizontalOptions="Center"
@@ -63,7 +64,7 @@
         </VerticalStackLayout>
 
         <!-- Bottom watermark -->
-        <Label Text="© Vĩnh Khánh Food Tour"
+        <Label Text="{Binding [Splash_Copyright], Source={x:Static services:LocalizationResourceManager.Instance}}"
                FontSize="11"
                TextColor="#FFFFFF55"
                HorizontalOptions="Center"

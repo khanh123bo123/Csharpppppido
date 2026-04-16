@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:services="clr-namespace:TouristGuideApp.Services"
              x:Class="TouristGuideApp.Views.ToursPage"
-             Title="Lộ Trình"
+             Title="{Binding [Tab_Tours], Source={x:Static services:LocalizationResourceManager.Instance}}"
              BackgroundColor="#FDFBF7">
 
     <Grid RowDefinitions="Auto,*">
@@ -16,8 +17,8 @@
                 </LinearGradientBrush>
             </Grid.Background>
             <VerticalStackLayout Padding="20,20,20,24" Spacing="4">
-                <Label Text="🗺️ Khám Phá" FontSize="26" FontAttributes="Bold" TextColor="White"/>
-                <Label Text="Các lộ trình ẩm thực đặc sắc tại Quận 4" FontSize="13" TextColor="#FFCCBC"/>
+                <Label Text="{Binding [Tour_ViewTitle], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="26" FontAttributes="Bold" TextColor="White"/>
+                <Label Text="{Binding [Tour_ViewDesc], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="13" TextColor="#FFCCBC"/>
             </VerticalStackLayout>
         </Grid>
 
@@ -82,7 +83,7 @@
                                             StrokeThickness="0"
                                             StrokeShape="RoundRectangle 20"
                                             Padding="14,7">
-                                        <Label Text="Xem lộ trình →" FontSize="13"
+                                        <Label Text="{Binding [Tour_ViewBtn], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="13"
                                                TextColor="White" FontAttributes="Bold"/>
                                     </Border>
                                 </Grid>

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:services="clr-namespace:TouristGuideApp.Services"
              x:Class="TouristGuideApp.Views.SettingsPage"
-             Title="Cài đặt"
+             Title="{Binding [Tab_Settings], Source={x:Static services:LocalizationResourceManager.Instance}}"
              BackgroundColor="#FDFBF7">
 
     <ScrollView>
@@ -17,15 +18,15 @@
                     </LinearGradientBrush>
                 </Grid.Background>
                 <VerticalStackLayout Padding="20,20,20,28" Spacing="4">
-                    <Label Text="⚙️ Cài đặt" FontSize="26" FontAttributes="Bold" TextColor="White"/>
-                    <Label Text="Tuỳ chỉnh trải nghiệm của bạn" FontSize="13" TextColor="#FFCCBC"/>
+                    <Label Text="{Binding [Settings_Title1], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="26" FontAttributes="Bold" TextColor="White"/>
+                    <Label Text="{Binding [Settings_Desc1], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="13" TextColor="#FFCCBC"/>
                 </VerticalStackLayout>
             </Grid>
 
             <VerticalStackLayout Padding="16,20" Spacing="12">
 
                 <!-- Section: Chung -->
-                <Label Text="CHUNG" FontSize="11" FontAttributes="Bold"
+                <Label Text="{Binding [Settings_GenTitle], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="11" FontAttributes="Bold"
                        TextColor="#B84A39" Margin="4,0,0,4"
                        CharacterSpacing="1.5"/>
 
@@ -37,9 +38,9 @@
                     </Border.Shadow>
                     <Grid ColumnDefinitions="*,Auto">
                         <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
-                            <Label Text="Cập nhật vị trí tự động"
+                            <Label Text="{Binding [Settings_AutoLoc], Source={x:Static services:LocalizationResourceManager.Instance}}"
                                    FontSize="15" FontAttributes="Bold" TextColor="#2C4C3B"/>
-                            <Label Text="Cập nhật mỗi 5 giây"
+                            <Label Text="{Binding [Settings_AutoLocDesc], Source={x:Static services:LocalizationResourceManager.Instance}}"
                                    FontSize="12" TextColor="#888"/>
                         </VerticalStackLayout>
                         <Switch Grid.Column="1" IsToggled="True" IsEnabled="False"
@@ -56,9 +57,9 @@
                     </Border.Shadow>
                     <Grid ColumnDefinitions="*,Auto">
                         <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
-                            <Label Text="Tự động phát thuyết minh"
+                            <Label Text="{Binding [Settings_AutoVoice], Source={x:Static services:LocalizationResourceManager.Instance}}"
                                    FontSize="15" FontAttributes="Bold" TextColor="#2C4C3B"/>
-                            <Label Text="Phát khi vào khu vực địa điểm"
+                            <Label Text="{Binding [Settings_AutoVoiceDesc], Source={x:Static services:LocalizationResourceManager.Instance}}"
                                    FontSize="12" TextColor="#888"/>
                         </VerticalStackLayout>
                         <Switch x:Name="swAutoAudio" Grid.Column="1" IsToggled="True"
@@ -75,9 +76,9 @@
                     </Border.Shadow>
                     <Grid ColumnDefinitions="*,Auto">
                         <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
-                            <Label Text="Ngôn ngữ thuyết minh"
+                            <Label Text="{Binding [Settings_Lang], Source={x:Static services:LocalizationResourceManager.Instance}}"
                                    FontSize="15" FontAttributes="Bold" TextColor="#2C4C3B"/>
-                            <Label Text="Chọn ngôn ngữ phát"
+                            <Label Text="{Binding [Settings_LangDesc], Source={x:Static services:LocalizationResourceManager.Instance}}"
                                    FontSize="12" TextColor="#888"/>
                         </VerticalStackLayout>
                         <Picker Grid.Column="1" x:Name="pickerLanguage"
@@ -87,7 +88,7 @@
                 </Border>
 
                 <!-- Section: Dữ liệu -->
-                <Label Text="DỮ LIỆU" FontSize="11" FontAttributes="Bold"
+                <Label Text="{Binding [Settings_DataTitle], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="11" FontAttributes="Bold"
                        TextColor="#B84A39" Margin="4,8,0,4"
                        CharacterSpacing="1.5"/>
 
@@ -99,14 +100,14 @@
                     </Border.Shadow>
                     <Grid ColumnDefinitions="*,Auto">
                         <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
-                            <Label Text="Xóa lịch sử đã phát"
+                            <Label Text="{Binding [Settings_ClearHist], Source={x:Static services:LocalizationResourceManager.Instance}}"
                                    FontSize="15" FontAttributes="Bold" TextColor="#2C4C3B"/>
-                            <Label Text="Xóa tất cả lịch sử thuyết minh đã nghe"
+                            <Label Text="{Binding [Settings_ClearHistDesc], Source={x:Static services:LocalizationResourceManager.Instance}}"
                                    FontSize="12" TextColor="#888"/>
                         </VerticalStackLayout>
                         <Border Grid.Column="1" BackgroundColor="#FBE9E7" StrokeThickness="0"
                                 StrokeShape="RoundRectangle 20" Padding="14,8">
-                            <Label Text="Xóa" FontSize="13"
+                            <Label Text="{Binding [Settings_ClearBtn], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="13"
                                    TextColor="#B84A39" FontAttributes="Bold">
                                 <Label.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnClearHistoryClicked"/>
@@ -117,7 +118,7 @@
                 </Border>
 
                 <!-- Section: Về ứng dụng -->
-                <Label Text="VỀ ỨNG DỤNG" FontSize="11" FontAttributes="Bold"
+                <Label Text="{Binding [Settings_AppTitle], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="11" FontAttributes="Bold"
                        TextColor="#B84A39" Margin="4,8,0,4"
                        CharacterSpacing="1.5"/>
 
@@ -130,14 +131,14 @@
                         <Border BackgroundColor="#FBE9E7" StrokeThickness="0"
                                 StrokeShape="RoundRectangle 16" Padding="16,10"
                                 HorizontalOptions="Center">
-                            <Label Text="🍜  Vĩnh Khánh" FontSize="18"
+                            <Label Text="{Binding [Settings_Name], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="18"
                                    FontAttributes="Bold" TextColor="#B84A39"
                                    HorizontalOptions="Center"/>
                         </Border>
-                        <Label Text="Du lịch ẩm thực Quận 4" FontSize="13"
+                        <Label Text="{Binding [Settings_D4], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="13"
                                TextColor="#2C4C3B" HorizontalOptions="Center"
                                FontAttributes="Bold"/>
-                        <Label Text="Phiên bản 1.0.0" FontSize="12"
+                        <Label Text="{Binding [Settings_Version], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="12"
                                TextColor="#AAA" HorizontalOptions="Center"/>
                     </VerticalStackLayout>
                 </Border>

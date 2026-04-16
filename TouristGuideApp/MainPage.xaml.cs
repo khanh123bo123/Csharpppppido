@@ -124,6 +124,10 @@ public partial class MainPage : ContentPage
             .Select(code => SupportedLanguages.LanguageNames[code])
             .ToArray();
 
+#if ANDROID
+        await Task.Delay(500); // Fix Android.Runtime.JavaProxyThrowable when calling DisplayActionSheet in OnAppearing
+#endif
+
         var choice = await DisplayActionSheet(
             "Chọn ngôn ngữ thuyết minh",
             "Huỷ",

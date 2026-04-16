@@ -83,7 +83,7 @@ public class AudioController : Controller
             return NotFound();
         }
 
-        return File(audioBytes, "audio/mpeg");
+        return File(audioBytes, "audio/mpeg", enableRangeProcessing: true);
     }
 
     [HttpPost]

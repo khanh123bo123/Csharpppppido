@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace TouristGuideWeb.Controllers;
 
-[AllowAnonymous]
 public class AuthController : Controller
 {
     private readonly SignInManager<IdentityUser> _signInManager;
@@ -17,7 +16,8 @@ public class AuthController : Controller
     }
 
     [HttpGet]
-    public IActionResult Login(string role = "Admin", string returnUrl = null)
+    [AllowAnonymous]
+    public IActionResult Login(string role = "Admin", string? returnUrl = null)
     {
         if (User.Identity?.IsAuthenticated == true)
         {
@@ -30,10 +30,18 @@ public class AuthController : Controller
     }
 
     [HttpPost]
+    [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login(string email, string password, bool rememberMe, string role = "Admin", string returnUrl = null)
+    public async Task<IActionResult> Login(string? email, string? password, bool rememberMe, string role = "Admin", string? returnUrl = null)
     {
         returnUrl ??= Url.Content("~/Dashboard");
+
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
+            ModelState.AddModelError(string.Empty, "Tài khoản và mật khẩu không được bỏ trống.");
+            ViewBag.Role = role;
+            return View();
+        }
 
         // Verify role before logging in
         var user = await _userManager.FindByEmailAsync(email);
@@ -48,7 +56,7 @@ public class AuthController : Controller
             }
         }
 
-        var result = await _signInManager.PasswordSignInAsync(user != null ? user.UserName : email, password, rememberMe, lockoutOnFailure: false);
+        var result = await _signInManager.PasswordSignInAsync(user != null ? user.UserName! : email!, password!, rememberMe, lockoutOnFailure: false);
         if (result.Succeeded)
         {
             return LocalRedirect(returnUrl);
@@ -60,6 +68,7 @@ public class AuthController : Controller
     }
 
     [HttpGet]
+    [AllowAnonymous]
     public IActionResult Register()
     {
         if (User.Identity?.IsAuthenticated == true)
@@ -70,9 +79,16 @@ public class AuthController : Controller
     }
 
     [HttpPost]
+    [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(string storeName, string email, string password, string confirmPassword)
+    public async Task<IActionResult> Register(string? storeName, string? email, string? password, string? confirmPassword)
     {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(confirmPassword))
+        {
+            ModelState.AddModelError(string.Empty, "Vui lòng điền đầy đủ thông tin.");
+            return View();
+        }
+
         if (password != confirmPassword)
         {
             ModelState.AddModelError(string.Empty, "Mật khẩu xác nhận không khớp.");
@@ -124,8 +140,14 @@ public class AuthController : Controller
     [HttpPost]
     [Authorize]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword, string confirmPassword)
+    public async Task<IActionResult> ChangePassword(string? currentPassword, string? newPassword, string? confirmPassword)
     {
+        if (string.IsNullOrWhiteSpace(currentPassword) || string.IsNullOrWhiteSpace(newPassword) || string.IsNullOrWhiteSpace(confirmPassword))
+        {
+            ModelState.AddModelError(string.Empty, "Vui lòng điền đầy đủ mật khẩu.");
+            return View();
+        }
+
         if (newPassword != confirmPassword)
         {
             ModelState.AddModelError(string.Empty, "Mật khẩu xác nhận không khớp.");

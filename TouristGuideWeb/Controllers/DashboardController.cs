@@ -34,12 +34,14 @@ public class DashboardController : Controller
             ? toursRaw.Where(t => string.Equals(t.OwnerEmail, User.Identity?.Name, StringComparison.OrdinalIgnoreCase)).ToList()
             : toursRaw.ToList();
 
-        var totalAudios = 0;
-        foreach(var loc in locations)
+        var localTasks = locations.Select(async loc =>
         {
             var locals = await _localizationApiService.GetLocalizationsByLocationAsync(loc.Id, cancellationToken);
-            totalAudios += locals.Count(l => l.AudioGenerationStatus == "generated" || l.AudioGenerationStatus == "cached");
-        }
+            return locals.Count(l => l.AudioGenerationStatus == "generated" || l.AudioGenerationStatus == "cached");
+        });
+
+        var audioCounts = await Task.WhenAll(localTasks);
+        var totalAudios = audioCounts.Sum();
 
         var provinceStats = locations
             .GroupBy(InferProvince)

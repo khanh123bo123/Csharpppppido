@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:services="clr-namespace:TouristGuideApp.Services"
              x:Class="TouristGuideApp.Views.TourMapPage"
-             Title="Bản đồ Lộ trình"
+             Title="{Binding [Tab_Tours], Source={x:Static services:LocalizationResourceManager.Instance}}"
              Shell.NavBarIsVisible="True"
              BackgroundColor="#FDFBF7">
 
@@ -18,7 +19,7 @@
             </Grid.Background>
             <VerticalStackLayout Padding="18,14,18,18" Spacing="3">
                 <Label x:Name="lblTourName"
-                       Text="Đang tải..."
+                       Text="{Binding [TourMap_Loading], Source={x:Static services:LocalizationResourceManager.Instance}}"
                        FontSize="18" FontAttributes="Bold"
                        TextColor="White"/>
                 <Label x:Name="lblTourInfo"

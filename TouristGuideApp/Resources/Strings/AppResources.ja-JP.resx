@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?><root><resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader><resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader><resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AppTitle_Main" xml:space="preserve"><value>🫕 食の観光</value></data>
+  <data name="Tab_QR" xml:space="preserve"><value>QRスキャン</value></data>
+  <data name="POI_Details_Desc" xml:space="preserve"><value>詳細</value></data>
+  <data name="Settings_ClearBtn" xml:space="preserve"><value>クリア</value></data>
+  <data name="Splash_Desc" xml:space="preserve"><value>独特の味を探求する</value></data>
+  <data name="Alert_ClearHistory_Desc" xml:space="preserve"><value>再生履歴がクリアされました。</value></data>
+  <data name="Settings_LangDesc" xml:space="preserve"><value>表示言語と音声ガイドを選択</value></data>
+  <data name="POI_SaveOffline" xml:space="preserve"><value>⬇️ オフライン保存</value></data>
+  <data name="Settings_AppTitle" xml:space="preserve"><value>アプリについて</value></data>
+  <data name="Map_ModeOnline" xml:space="preserve"><value>モード: オンライン 🟢</value></data>
+  <data name="Tour_ViewBtn" xml:space="preserve"><value>ルートを見る ➔</value></data>
+  <data name="Settings_Desc1" xml:space="preserve"><value>体験をカスタマイズ</value></data>
+  <data name="Settings_Name" xml:space="preserve"><value>🍜 ビンカイン</value></data>
+  <data name="POI_Listen" xml:space="preserve"><value>🔊 音声ガイドを再生</value></data>
+  <data name="Settings_ClearHistDesc" xml:space="preserve"><value>聞いた音声履歴をすべてクリア</value></data>
+  <data name="Settings_ClearHist" xml:space="preserve"><value>再生履歴をクリア</value></data>
+  <data name="POI_NearYou" xml:space="preserve"><value>近くの場所</value></data>
+  <data name="QR_ScanDesc" xml:space="preserve"><value>情報ボードのQRコードにカメラを向けてください</value></data>
+  <data name="Tab_Map" xml:space="preserve"><value>マップ</value></data>
+  <data name="Settings_Title1" xml:space="preserve"><value>⚙️ 設定</value></data>
+  <data name="POI_StartTracking" xml:space="preserve"><value>👣 追跡を開始</value></data>
+  <data name="Splash_Subtitle" xml:space="preserve"><value>ビンカイン - 4区</value></data>
+  <data name="Settings_AutoVoiceDesc" xml:space="preserve"><value>場所のエリアに入ったときに再生</value></data>
+  <data name="Alert_OK" xml:space="preserve"><value>OK</value></data>
+  <data name="Tour_ViewDesc" xml:space="preserve"><value>4区の特別なグルメツアー</value></data>
+  <data name="Alert_LanguageChanged_Title" xml:space="preserve"><value>言語を変更しました</value></data>
+  <data name="AppDesc_Main" xml:space="preserve"><value>4区のユニークな料理を探索する</value></data>
+  <data name="Tour_ViewTitle" xml:space="preserve"><value>🗺️ 探索</value></data>
+  <data name="Settings_Version" xml:space="preserve"><value>バージョン 1.0.0</value></data>
+  <data name="Settings_Lang" xml:space="preserve"><value>システム言語</value></data>
+  <data name="Settings_GenTitle" xml:space="preserve"><value>一般</value></data>
+  <data name="Settings_D4" xml:space="preserve"><value>4区食の観光</value></data>
+  <data name="Settings_AutoVoice" xml:space="preserve"><value>音声ガイドの自動再生</value></data>
+  <data name="POI_SearchingGPS" xml:space="preserve"><value>GPSを検索しています...</value></data>
+  <data name="Alert_Cancel" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="POI_NoneNear" xml:space="preserve"><value>近くに場所がありません</value></data>
+  <data name="Splash_Title" xml:space="preserve"><value>食の観光</value></data>
+  <data name="Alert_ClearHistory_Title" xml:space="preserve"><value>成功</value></data>
+  <data name="Settings_DataTitle" xml:space="preserve"><value>データ</value></data>
+  <data name="Tab_POI" xml:space="preserve"><value>場所</value></data>
+  <data name="Alert_LanguageChanged_Desc" xml:space="preserve"><value>UIと言語データが更新されました。</value></data>
+  <data name="Tab_Tours" xml:space="preserve"><value>ルート</value></data>
+  <data name="POI_List" xml:space="preserve"><value>場所のリスト</value></data>
+  <data name="Splash_Copyright" xml:space="preserve"><value>© ビンカインフードツアー</value></data>
+  <data name="Settings_AutoLocDesc" xml:space="preserve"><value>5秒ごとに更新</value></data>
+  <data name="Map_Updating" xml:space="preserve"><value>位置を更新しています...</value></data>
+  <data name="QR_CameraHint" xml:space="preserve"><value>📸 カメラはQRを自動認識します</value></data>
+  <data name="Settings_AutoLoc" xml:space="preserve"><value>位置情報を自動更新</value></data>
+  <data name="Tab_Settings" xml:space="preserve"><value>設定</value></data>
+  <data name="TourMap_Loading" xml:space="preserve"><value>読み込み中...</value></data>
+  <data name="QR_ScanTitle" xml:space="preserve"><value>場所のQRスキャン</value></data>
+</root>

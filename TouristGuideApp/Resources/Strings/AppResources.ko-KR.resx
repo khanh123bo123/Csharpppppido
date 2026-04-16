@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?><root><resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader><resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader><resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AppTitle_Main" xml:space="preserve"><value>🫕 미식 여행</value></data>
+  <data name="Tab_QR" xml:space="preserve"><value>QR 스캔</value></data>
+  <data name="POI_Details_Desc" xml:space="preserve"><value>상세 설명</value></data>
+  <data name="Settings_ClearBtn" xml:space="preserve"><value>지우기</value></data>
+  <data name="Splash_Desc" xml:space="preserve"><value>독특한 맛 탐험</value></data>
+  <data name="Alert_ClearHistory_Desc" xml:space="preserve"><value>재생 기록이 성공적으로 삭제되었습니다.</value></data>
+  <data name="Settings_LangDesc" xml:space="preserve"><value>표시 및 오디오 언어 선택</value></data>
+  <data name="POI_SaveOffline" xml:space="preserve"><value>⬇️ 오프라인 저장</value></data>
+  <data name="Settings_AppTitle" xml:space="preserve"><value>앱 정보</value></data>
+  <data name="Map_ModeOnline" xml:space="preserve"><value>모드: 온라인 🟢</value></data>
+  <data name="Tour_ViewBtn" xml:space="preserve"><value>경로 보기 ➔</value></data>
+  <data name="Settings_Desc1" xml:space="preserve"><value>사용자 경험 맞춤화</value></data>
+  <data name="Settings_Name" xml:space="preserve"><value>🍜 빈칸</value></data>
+  <data name="POI_Listen" xml:space="preserve"><value>🔊 오디오 가이드 재생</value></data>
+  <data name="Settings_ClearHistDesc" xml:space="preserve"><value>모든 오디오 청취 기록 삭재</value></data>
+  <data name="Settings_ClearHist" xml:space="preserve"><value>재생 기록 지우기</value></data>
+  <data name="POI_NearYou" xml:space="preserve"><value>주변 장소</value></data>
+  <data name="QR_ScanDesc" xml:space="preserve"><value>안내판의 QR 코드에 카메라를 맞추세요</value></data>
+  <data name="Tab_Map" xml:space="preserve"><value>지도</value></data>
+  <data name="Settings_Title1" xml:space="preserve"><value>⚙️ 설정</value></data>
+  <data name="POI_StartTracking" xml:space="preserve"><value>👣 추적 시작</value></data>
+  <data name="Splash_Subtitle" xml:space="preserve"><value>빈칸 - 4군</value></data>
+  <data name="Settings_AutoVoiceDesc" xml:space="preserve"><value>장소 구역 진입 시 재생</value></data>
+  <data name="Alert_OK" xml:space="preserve"><value>확인</value></data>
+  <data name="Tour_ViewDesc" xml:space="preserve"><value>4군의 특별한 미식 투어</value></data>
+  <data name="Alert_LanguageChanged_Title" xml:space="preserve"><value>언어 변경됨</value></data>
+  <data name="AppDesc_Main" xml:space="preserve"><value>4군의 독특한 요리 탐험</value></data>
+  <data name="Tour_ViewTitle" xml:space="preserve"><value>🗺️ 탐험</value></data>
+  <data name="Settings_Version" xml:space="preserve"><value>버전 1.0.0</value></data>
+  <data name="Settings_Lang" xml:space="preserve"><value>시스템 언어</value></data>
+  <data name="Settings_GenTitle" xml:space="preserve"><value>일반</value></data>
+  <data name="Settings_D4" xml:space="preserve"><value>4군 미식 여행</value></data>
+  <data name="Settings_AutoVoice" xml:space="preserve"><value>오디오 가이드 자동 재생</value></data>
+  <data name="POI_SearchingGPS" xml:space="preserve"><value>GPS 검색 중...</value></data>
+  <data name="Alert_Cancel" xml:space="preserve"><value>취소</value></data>
+  <data name="POI_NoneNear" xml:space="preserve"><value>주변에 장소가 없습니다</value></data>
+  <data name="Splash_Title" xml:space="preserve"><value>미식 여행</value></data>
+  <data name="Alert_ClearHistory_Title" xml:space="preserve"><value>성공</value></data>
+  <data name="Settings_DataTitle" xml:space="preserve"><value>데이터</value></data>
+  <data name="Tab_POI" xml:space="preserve"><value>장소</value></data>
+  <data name="Alert_LanguageChanged_Desc" xml:space="preserve"><value>UI 및 언어 데이터가 업데이트되었습니다.</value></data>
+  <data name="Tab_Tours" xml:space="preserve"><value>경로</value></data>
+  <data name="POI_List" xml:space="preserve"><value>장소 목록</value></data>
+  <data name="Splash_Copyright" xml:space="preserve"><value>© 빈칸 푸드 투어</value></data>
+  <data name="Settings_AutoLocDesc" xml:space="preserve"><value>5초마다 업데이트</value></data>
+  <data name="Map_Updating" xml:space="preserve"><value>위치 업데이트 중...</value></data>
+  <data name="QR_CameraHint" xml:space="preserve"><value>📸 카메라가 QR을 자동 인식합니다</value></data>
+  <data name="Settings_AutoLoc" xml:space="preserve"><value>위치 자동 업데이트</value></data>
+  <data name="Tab_Settings" xml:space="preserve"><value>설정</value></data>
+  <data name="TourMap_Loading" xml:space="preserve"><value>로딩 중...</value></data>
+  <data name="QR_ScanTitle" xml:space="preserve"><value>장소 QR 스캔</value></data>
+</root>

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:services="clr-namespace:TouristGuideApp.Services"
              x:Class="TouristGuideApp.Views.MapPage"
-             Title="Bản đồ du lịch"
+             Title="{Binding [Tab_Map], Source={x:Static services:LocalizationResourceManager.Instance}}"
              BackgroundColor="#FDFBF7">
 
     <Grid RowDefinitions="*,Auto">
@@ -18,16 +19,16 @@
             <Grid ColumnDefinitions="*,Auto" Padding="16,12">
                 <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
                     <Label x:Name="lblMode"
-                           Text="Chế độ: Online ☁️"
+                           Text="{Binding [Map_ModeOnline], Source={x:Static services:LocalizationResourceManager.Instance}}"
                            FontAttributes="Bold" FontSize="13"
                            TextColor="#B84A39"/>
                     <Label x:Name="lblStatus"
-                           Text="Đang cập nhật vị trí..."
+                           Text="{Binding [Map_Updating], Source={x:Static services:LocalizationResourceManager.Instance}}"
                            FontSize="12" TextColor="#888"/>
                 </VerticalStackLayout>
                 <Button Grid.Column="1"
                         x:Name="btnCacheMap"
-                        Text="💾 Lưu offline"
+                        Text="{Binding [POI_SaveOffline], Source={x:Static services:LocalizationResourceManager.Instance}}"
                         BackgroundColor="#2C4C3B"
                         TextColor="White"
                         CornerRadius="20"

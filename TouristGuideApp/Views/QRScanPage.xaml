@@ -2,8 +2,9 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI.Controls"
+             xmlns:services="clr-namespace:TouristGuideApp.Services"
              x:Class="TouristGuideApp.Views.QRScanPage"
-             Title="Quét mã QR"
+             Title="{Binding [Tab_QR], Source={x:Static services:LocalizationResourceManager.Instance}}"
              BackgroundColor="Black">
 
     <Grid>
@@ -19,14 +20,14 @@
         <!-- Top overlay: title -->
         <VerticalStackLayout VerticalOptions="Start" HorizontalOptions="Fill"
                              Padding="0,50,0,0">
-            <Label Text="Quét mã QR địa điểm"
+            <Label Text="{Binding [QR_ScanTitle], Source={x:Static services:LocalizationResourceManager.Instance}}"
                    TextColor="White" FontSize="20" FontAttributes="Bold"
                    HorizontalOptions="Center">
                 <Label.Shadow>
                     <Shadow Brush="Black" Offset="0,2" Radius="4" Opacity="0.6"/>
                 </Label.Shadow>
             </Label>
-            <Label Text="Đưa camera vào mã QR tại bảng thông tin địa điểm"
+            <Label Text="{Binding [QR_ScanDesc], Source={x:Static services:LocalizationResourceManager.Instance}}"
                    TextColor="#FFCCBC" FontSize="13"
                    HorizontalOptions="Center"
                    Margin="20,6,20,0"
@@ -68,7 +69,7 @@
                 Margin="24,0,24,40" Padding="16,12"
                 StrokeThickness="0" StrokeShape="RoundRectangle 16"
                 BackgroundColor="#CC000000">
-            <Label Text="🔍  Camera sẽ tự động nhận dạng QR"
+            <Label Text="{Binding [QR_CameraHint], Source={x:Static services:LocalizationResourceManager.Instance}}"
                    TextColor="White" FontSize="13"
                    HorizontalOptions="Center"/>
         </Border>

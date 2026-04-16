@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:services="clr-namespace:TouristGuideApp.Services"
              x:Class="TouristGuideApp.Views.POIDetailsPage"
-             Title="Chi tiết Địa điểm"
+             Title="{Binding [POI_Details_Desc], Source={x:Static services:LocalizationResourceManager.Instance}}"
              BackgroundColor="#FDFBF7">
 
     <ScrollView>
@@ -78,14 +79,14 @@
                     <BoxView HeightRequest="1" Color="#EAE3D9"/>
 
                     <!-- Description -->
-                    <Label Text="Mô tả chi tiết" FontAttributes="Bold"
+                    <Label Text="{Binding [POI_Details_Desc], Source={x:Static services:LocalizationResourceManager.Instance}}" FontAttributes="Bold"
                            FontSize="16" TextColor="#2C4C3B"/>
                     <Label x:Name="lblDescription" LineBreakMode="WordWrap"
                            TextColor="#555" FontSize="14" LineHeight="1.5"/>
 
                     <!-- Listen Button -->
                     <Button x:Name="btnListen"
-                            Text="🎧  Nghe thuyết minh"
+                            Text="{Binding [POI_Listen], Source={x:Static services:LocalizationResourceManager.Instance}}"
                             BackgroundColor="#B84A39"
                             TextColor="White"
                             CornerRadius="25"

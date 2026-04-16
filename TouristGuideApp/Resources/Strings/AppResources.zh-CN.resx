@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?><root><resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader><resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader><resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AppTitle_Main" xml:space="preserve"><value>🫕 烹饪旅游</value></data>
+  <data name="Tab_QR" xml:space="preserve"><value>扫描二维码</value></data>
+  <data name="POI_Details_Desc" xml:space="preserve"><value>详细描述</value></data>
+  <data name="Settings_ClearBtn" xml:space="preserve"><value>清除</value></data>
+  <data name="Splash_Desc" xml:space="preserve"><value>探索独特风味</value></data>
+  <data name="Alert_ClearHistory_Desc" xml:space="preserve"><value>播放记录已清除。</value></data>
+  <data name="Settings_LangDesc" xml:space="preserve"><value>选择显示和解说语言</value></data>
+  <data name="POI_SaveOffline" xml:space="preserve"><value>⬇️ 离线保存</value></data>
+  <data name="Settings_AppTitle" xml:space="preserve"><value>关于应用</value></data>
+  <data name="Map_ModeOnline" xml:space="preserve"><value>模式: 在线 🟢</value></data>
+  <data name="Tour_ViewBtn" xml:space="preserve"><value>查看路线 ➔</value></data>
+  <data name="Settings_Desc1" xml:space="preserve"><value>自定义您的体验</value></data>
+  <data name="Settings_Name" xml:space="preserve"><value>🍜 永庆</value></data>
+  <data name="POI_Listen" xml:space="preserve"><value>🔊 播放语音解说</value></data>
+  <data name="Settings_ClearHistDesc" xml:space="preserve"><value>清除所有已听过的语音记录</value></data>
+  <data name="Settings_ClearHist" xml:space="preserve"><value>清除播放记录</value></data>
+  <data name="POI_NearYou" xml:space="preserve"><value>附近的地点</value></data>
+  <data name="QR_ScanDesc" xml:space="preserve"><value>将相机对准信息板上的二维码</value></data>
+  <data name="Tab_Map" xml:space="preserve"><value>地图</value></data>
+  <data name="Settings_Title1" xml:space="preserve"><value>⚙️ 设置</value></data>
+  <data name="POI_StartTracking" xml:space="preserve"><value>👣 开始追踪</value></data>
+  <data name="Splash_Subtitle" xml:space="preserve"><value>永庆 - 第四郡</value></data>
+  <data name="Settings_AutoVoiceDesc" xml:space="preserve"><value>进入地点区域时播放</value></data>
+  <data name="Alert_OK" xml:space="preserve"><value>确定</value></data>
+  <data name="Tour_ViewDesc" xml:space="preserve"><value>第四郡的独特美食路线</value></data>
+  <data name="Alert_LanguageChanged_Title" xml:space="preserve"><value>语言已更改</value></data>
+  <data name="AppDesc_Main" xml:space="preserve"><value>探索第四郡独特的特色美食</value></data>
+  <data name="Tour_ViewTitle" xml:space="preserve"><value>🗺️ 探索</value></data>
+  <data name="Settings_Version" xml:space="preserve"><value>版本 1.0.0</value></data>
+  <data name="Settings_Lang" xml:space="preserve"><value>系统语言</value></data>
+  <data name="Settings_GenTitle" xml:space="preserve"><value>常规</value></data>
+  <data name="Settings_D4" xml:space="preserve"><value>第四郡烹饪旅游</value></data>
+  <data name="Settings_AutoVoice" xml:space="preserve"><value>自动播放解说</value></data>
+  <data name="POI_SearchingGPS" xml:space="preserve"><value>正在搜索GPS...</value></data>
+  <data name="Alert_Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="POI_NoneNear" xml:space="preserve"><value>附近没有地点</value></data>
+  <data name="Splash_Title" xml:space="preserve"><value>烹饪旅游</value></data>
+  <data name="Alert_ClearHistory_Title" xml:space="preserve"><value>成功</value></data>
+  <data name="Settings_DataTitle" xml:space="preserve"><value>数据</value></data>
+  <data name="Tab_POI" xml:space="preserve"><value>地点</value></data>
+  <data name="Alert_LanguageChanged_Desc" xml:space="preserve"><value>界面和语言数据已更新。</value></data>
+  <data name="Tab_Tours" xml:space="preserve"><value>路线</value></data>
+  <data name="POI_List" xml:space="preserve"><value>地点列表</value></data>
+  <data name="Splash_Copyright" xml:space="preserve"><value>© 永庆美食之旅</value></data>
+  <data name="Settings_AutoLocDesc" xml:space="preserve"><value>每5秒更新一次</value></data>
+  <data name="Map_Updating" xml:space="preserve"><value>正在更新位置...</value></data>
+  <data name="QR_CameraHint" xml:space="preserve"><value>📸 相机将自动识别二维码</value></data>
+  <data name="Settings_AutoLoc" xml:space="preserve"><value>自动更新位置</value></data>
+  <data name="Tab_Settings" xml:space="preserve"><value>设置</value></data>
+  <data name="TourMap_Loading" xml:space="preserve"><value>加载中...</value></data>
+  <data name="QR_ScanTitle" xml:space="preserve"><value>扫描地点二维码</value></data>
+</root>

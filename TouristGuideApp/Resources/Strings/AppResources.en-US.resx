@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?><root><resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader><resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader><resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AppTitle_Main" xml:space="preserve"><value>🫕 Culinary Tourism</value></data>
+  <data name="Tab_QR" xml:space="preserve"><value>Scan QR</value></data>
+  <data name="POI_Details_Desc" xml:space="preserve"><value>Description</value></data>
+  <data name="Settings_ClearBtn" xml:space="preserve"><value>Clear</value></data>
+  <data name="Splash_Desc" xml:space="preserve"><value>Explore unique flavors</value></data>
+  <data name="Alert_ClearHistory_Desc" xml:space="preserve"><value>Playback history has been cleared.</value></data>
+  <data name="Settings_LangDesc" xml:space="preserve"><value>Select display and narration language</value></data>
+  <data name="POI_SaveOffline" xml:space="preserve"><value>⬇️ Save offline</value></data>
+  <data name="Settings_AppTitle" xml:space="preserve"><value>ABOUT APP</value></data>
+  <data name="Map_ModeOnline" xml:space="preserve"><value>Mode: Online 🟢</value></data>
+  <data name="Tour_ViewBtn" xml:space="preserve"><value>View tour ➔</value></data>
+  <data name="Settings_Desc1" xml:space="preserve"><value>Customize your experience</value></data>
+  <data name="Settings_Name" xml:space="preserve"><value>🍜 Vinh Khanh</value></data>
+  <data name="POI_Listen" xml:space="preserve"><value>🔊 Play audio guide</value></data>
+  <data name="Settings_ClearHistDesc" xml:space="preserve"><value>Clear all listened audio history</value></data>
+  <data name="Settings_ClearHist" xml:space="preserve"><value>Clear playback history</value></data>
+  <data name="POI_NearYou" xml:space="preserve"><value>NEARBY LOCATIONS</value></data>
+  <data name="QR_ScanDesc" xml:space="preserve"><value>Point camera at QR code on location info board</value></data>
+  <data name="Tab_Map" xml:space="preserve"><value>Map</value></data>
+  <data name="Settings_Title1" xml:space="preserve"><value>⚙️ Settings</value></data>
+  <data name="POI_StartTracking" xml:space="preserve"><value>👣 Start tracking</value></data>
+  <data name="Splash_Subtitle" xml:space="preserve"><value>Vinh Khanh - District 4</value></data>
+  <data name="Settings_AutoVoiceDesc" xml:space="preserve"><value>Play when entering location area</value></data>
+  <data name="Alert_OK" xml:space="preserve"><value>OK</value></data>
+  <data name="Tour_ViewDesc" xml:space="preserve"><value>Unique culinary tours in District 4</value></data>
+  <data name="Alert_LanguageChanged_Title" xml:space="preserve"><value>Language Changed</value></data>
+  <data name="AppDesc_Main" xml:space="preserve"><value>Explore unique cuisine in District 4</value></data>
+  <data name="Tour_ViewTitle" xml:space="preserve"><value>🗺️ Explore</value></data>
+  <data name="Settings_Version" xml:space="preserve"><value>Version 1.0.0</value></data>
+  <data name="Settings_Lang" xml:space="preserve"><value>System Language</value></data>
+  <data name="Settings_GenTitle" xml:space="preserve"><value>GENERAL</value></data>
+  <data name="Settings_D4" xml:space="preserve"><value>District 4 Culinary Tourism</value></data>
+  <data name="Settings_AutoVoice" xml:space="preserve"><value>Auto-play audio guide</value></data>
+  <data name="POI_SearchingGPS" xml:space="preserve"><value>Searching for GPS...</value></data>
+  <data name="Alert_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="POI_NoneNear" xml:space="preserve"><value>No locations nearby</value></data>
+  <data name="Splash_Title" xml:space="preserve"><value>Culinary Tourism</value></data>
+  <data name="Alert_ClearHistory_Title" xml:space="preserve"><value>Success</value></data>
+  <data name="Settings_DataTitle" xml:space="preserve"><value>DATA</value></data>
+  <data name="Tab_POI" xml:space="preserve"><value>Locations</value></data>
+  <data name="Alert_LanguageChanged_Desc" xml:space="preserve"><value>UI and language data have been updated.</value></data>
+  <data name="Tab_Tours" xml:space="preserve"><value>Tours</value></data>
+  <data name="POI_List" xml:space="preserve"><value>LIST OF LOCATIONS</value></data>
+  <data name="Splash_Copyright" xml:space="preserve"><value>© Vinh Khanh Food Tour</value></data>
+  <data name="Settings_AutoLocDesc" xml:space="preserve"><value>Update every 5 seconds</value></data>
+  <data name="Map_Updating" xml:space="preserve"><value>Updating location...</value></data>
+  <data name="QR_CameraHint" xml:space="preserve"><value>📸 Camera will auto-detect QR</value></data>
+  <data name="Settings_AutoLoc" xml:space="preserve"><value>Auto update location</value></data>
+  <data name="Tab_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="TourMap_Loading" xml:space="preserve"><value>Loading...</value></data>
+  <data name="QR_ScanTitle" xml:space="preserve"><value>Scan Location QR</value></data>
+</root>

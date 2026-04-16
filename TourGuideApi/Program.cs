@@ -65,6 +65,7 @@ builder.Services.AddHttpClient("OllamaTranslation", client =>
 });
 
 builder.Services.AddScoped<ILocalizationTranslationService, OllamaLocalizationTranslationService>();
+builder.Services.AddScoped<LocalizationPackGenerator>();
 
 builder.Services.AddControllers();
 

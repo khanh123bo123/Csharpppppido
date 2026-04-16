@@ -1,3 +1,4 @@
+using System.Globalization;
 using TouristGuideApp.Models;
 using TouristGuideApp.Services;
 
@@ -62,6 +63,9 @@ public partial class SettingsPage : ContentPage
 
         AppPreferences.SetNarrationLanguageCode(match.Key);
         await _geofenceService.SetLanguageAsync(match.Key);
+        
+        // Cập nhật Culture của UI
+        LocalizationResourceManager.Instance.SetCulture(new CultureInfo(match.Key));
 
         // Re-sync POIs using selected language pack (store localized text offline for QR/TTS)
         _ = Task.Run(async () =>
@@ -70,12 +74,18 @@ public partial class SettingsPage : ContentPage
             await _geofenceService.InitAsync();
         });
 
-        await DisplayAlert("Đã đổi ngôn ngữ", "Đã đổi pack ngôn ngữ. Dữ liệu sẽ được cập nhật khi có wifi.", "OK");
+        await DisplayAlert(
+            LocalizationResourceManager.Instance["Alert_LanguageChanged_Title"],
+            LocalizationResourceManager.Instance["Alert_LanguageChanged_Desc"],
+            LocalizationResourceManager.Instance["Alert_OK"]);
     }
 
     private async void OnClearHistoryClicked(object sender, EventArgs e)
     {
         // Placeholder cho chức năng xóa lịch sử (reset HasBeenPlayed)
-        await DisplayAlert("Thành công", "Lịch sử thuyết minh đã được xóa.", "OK");
+        await DisplayAlert(
+            LocalizationResourceManager.Instance["Alert_ClearHistory_Title"],
+            LocalizationResourceManager.Instance["Alert_ClearHistory_Desc"],
+            LocalizationResourceManager.Instance["Alert_OK"]);
     }
 }
