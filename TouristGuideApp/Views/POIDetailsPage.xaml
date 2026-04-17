@@ -10,19 +10,9 @@
         <VerticalStackLayout Spacing="0">
 
             <!-- Hero Image -->
-            <Grid HeightRequest="300">
+            <Grid HeightRequest="450" BackgroundColor="#F0EBE3">
                 <Image x:Name="imgLocation"
-                       Aspect="AspectFill"
-                       BackgroundColor="#EAE3D9"/>
-                <!-- Subtle gradient overlay to make text/status bar readable if needed -->
-                <BoxView VerticalOptions="End" HeightRequest="120">
-                    <BoxView.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="Transparent" Offset="0"/>
-                            <GradientStop Color="#99000000" Offset="1"/>
-                        </LinearGradientBrush>
-                    </BoxView.Background>
-                </BoxView>
+                       Aspect="AspectFill"/>
             </Grid>
 
             <!-- Content Card (overlapping image) -->
