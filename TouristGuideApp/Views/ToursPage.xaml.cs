@@ -8,7 +8,7 @@ public partial class ToursPage : ContentPage
     private readonly IApiService _apiService;
     private bool _isBusy;
 
-    public bool IsBusy
+    public new bool IsBusy
     {
         get => _isBusy;
         set
@@ -45,7 +45,7 @@ public partial class ToursPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Lỗi", "Không thể tải danh sách lộ trình.", "OK");
+            await DisplayAlertAsync("Lỗi", "Không thể tải danh sách lộ trình.", "OK");
         }
         finally
         {
@@ -63,7 +63,7 @@ public partial class ToursPage : ContentPage
                 
                 if (locations == null || !locations.Any())
                 {
-                    await DisplayAlert("Thông báo", "Lộ trình này chưa có địa điểm nào.", "OK");
+                    await DisplayAlertAsync("Thông báo", "Lộ trình này chưa có địa điểm nào.", "OK");
                     return;
                 }
 
@@ -71,7 +71,7 @@ public partial class ToursPage : ContentPage
                 // Here we just display a summary alert and optionally go to the first POI
                 var firstItem = locations.FirstOrDefault();
                 
-                bool openFirst = await DisplayAlert("Chi tiết Lộ Trình", 
+                bool openFirst = await DisplayAlertAsync("Chi tiết Lộ Trình", 
                     $"{tour.Name}\nSố điểm đến: {locations.Count}\nKhoảng cách: {tour.EstimatedDistanceKm} km\nBạn có muốn mở điểm đến đầu tiên không?", 
                     "Có", "Không");
 

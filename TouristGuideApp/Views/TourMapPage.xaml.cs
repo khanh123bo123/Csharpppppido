@@ -54,7 +54,7 @@ public partial class TourMapPage : ContentPage
             {
                 MainThread.BeginInvokeOnMainThread(async () =>
                 {
-                    await DisplayAlert("Thông báo", "Lộ trình này chưa có điểm dừng nào.", "OK");
+                    await DisplayAlertAsync("Thông báo", "Lộ trình này chưa có điểm dừng nào.", "OK");
                 });
                 return;
             }
@@ -108,7 +108,7 @@ public partial class TourMapPage : ContentPage
             System.Diagnostics.Debug.WriteLine($"TourMapPage Error: {ex}");
             MainThread.BeginInvokeOnMainThread(async () =>
             {
-                await DisplayAlert("Lỗi", "Không thể tải bản đồ lộ trình.", "OK");
+                await DisplayAlertAsync("Lỗi", "Không thể tải bản đồ lộ trình.", "OK");
             });
         }
     }

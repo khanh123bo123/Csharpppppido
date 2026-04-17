@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Resources;
 using Microsoft.Maui.Storage;
-using System.Resources;
 
 namespace TouristGuideApp.Services;
 

@@ -9,7 +9,90 @@
     <Grid RowDefinitions="*,Auto">
 
         <!-- Leaflet Map WebView -->
-        <WebView x:Name="tourMapWebView" Grid.Row="0"/>
+        <WebView x:Name="tourMapWebView" Grid.Row="0" Navigating="OnWebViewNavigating"/>
+
+        <!-- Search Bar at the Top -->
+        <Border Grid.Row="0" 
+                VerticalOptions="Start" 
+                Margin="20,15,20,0"
+                Padding="15,0,5,0"
+                BackgroundColor="White"
+                StrokeShape="RoundRectangle 25"
+                StrokeThickness="0"
+                HeightRequest="50">
+            <Border.Shadow>
+                <Shadow Brush="Black" Offset="0,2" Radius="10" Opacity="0.15"/>
+            </Border.Shadow>
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Tapped="OnSearchBarBorderTapped"/>
+            </Border.GestureRecognizers>
+            <SearchBar x:Name="searchBar"
+                       Placeholder="Tìm kiếm địa điểm..."
+                       BackgroundColor="Transparent"
+                       CancelButtonColor="Gray"
+                       FontSize="14"
+                       SearchButtonPressed="OnSearchButtonPressed"
+                       TextChanged="OnSearchTextChanged"/>
+        </Border>
+
+        <!-- Quick View Panel (initially hidden) -->
+        <Border x:Name="pnlQuickView"
+                Grid.Row="0"
+                ZIndex="1000"
+                VerticalOptions="End"
+                Margin="15,0,15,10"
+                Padding="16"
+                BackgroundColor="White"
+                StrokeShape="RoundRectangle 20"
+                StrokeThickness="1"
+                Stroke="#EEE"
+                IsVisible="False"
+                HeightRequest="160">
+            <Border.Shadow>
+                <Shadow Brush="Black" Offset="0,-4" Radius="20" Opacity="0.2"/>
+            </Border.Shadow>
+            <Grid ColumnDefinitions="120,*,Auto" RowSpacing="5" Padding="5">
+                
+                <!-- POI Image -->
+                <Border Grid.Column="0" Margin="0,0,10,0" 
+                        StrokeShape="RoundRectangle 12" StrokeThickness="0">
+                    <Image x:Name="imgQuickPOI" Aspect="AspectFill" BackgroundColor="#F5F5F5"/>
+                </Border>
+
+                <!-- POI Info -->
+                <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                    <Label x:Name="lblQuickName" FontSize="18" FontAttributes="Bold" TextColor="#2C4C3B" MaxLines="2" LineBreakMode="TailTruncation"/>
+                    <Label x:Name="lblQuickCategory" FontSize="14" TextColor="#B84A39" FontAttributes="Bold"/>
+                    <Label x:Name="lblQuickAddress" FontSize="12" TextColor="#666" MaxLines="2" LineBreakMode="TailTruncation"/>
+                </VerticalStackLayout>
+
+                <!-- Buttons -->
+                <VerticalStackLayout Grid.Column="2" VerticalOptions="Start" Spacing="10">
+                    <Button x:Name="btnClosePanel"
+                            Text="✕"
+                            BackgroundColor="#F0F0F0"
+                            TextColor="#666"
+                            CornerRadius="20"
+                            WidthRequest="40"
+                            HeightRequest="40"
+                            Padding="0"
+                            Clicked="OnClosePanelClicked"/>
+                    <Button x:Name="btnViewDetails"
+                            Text="➜"
+                            BackgroundColor="#B84A39"
+                            TextColor="White"
+                            CornerRadius="25"
+                            WidthRequest="50"
+                            HeightRequest="50"
+                            FontSize="20"
+                            Clicked="OnQuickViewDetailsClicked">
+                        <Button.Shadow>
+                            <Shadow Brush="#B84A39" Offset="0,2" Radius="5" Opacity="0.3"/>
+                        </Button.Shadow>
+                    </Button>
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
 
         <!-- Status Bar -->
         <Border Grid.Row="1" StrokeThickness="0" BackgroundColor="White">

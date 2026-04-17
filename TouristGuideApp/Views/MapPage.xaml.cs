@@ -11,14 +11,18 @@ public partial class MapPage : ContentPage
     private readonly IGeofenceService _geofenceService;
     private readonly IOfflineMapService _offlineMapService;
     private readonly IMapHtmlGenerator _mapHtmlGenerator;
+    private readonly IApiService _apiService;
+    private readonly IDatabaseService _databaseService;
 
-    public MapPage(ILocationService locationService, IGeofenceService geofenceService, IOfflineMapService offlineMapService, IMapHtmlGenerator mapHtmlGenerator)
+    public MapPage(ILocationService locationService, IGeofenceService geofenceService, IOfflineMapService offlineMapService, IMapHtmlGenerator mapHtmlGenerator, IApiService apiService, IDatabaseService databaseService)
     {
         InitializeComponent();
         _locationService = locationService;
         _geofenceService = geofenceService;
         _offlineMapService = offlineMapService;
         _mapHtmlGenerator = mapHtmlGenerator;
+        _apiService = apiService;
+        _databaseService = databaseService;
 
         _locationService.LocationUpdated += OnLocationUpdated;
         Connectivity.ConnectivityChanged += OnConnectivityChanged;
@@ -42,17 +46,32 @@ public partial class MapPage : ContentPage
         UpdateConnectivityStatus();
     }
 
+    private string _searchFilter = string.Empty;
+
     private async Task LoadMapAsync()
     {
         try
         {
-            var pois = _geofenceService.GetPOIs();
+            var allPois = _geofenceService.GetPOIs();
+            var filteredPois = allPois;
+
+            if (!string.IsNullOrWhiteSpace(_searchFilter))
+            {
+                var query = _searchFilter.ToLower();
+                filteredPois = allPois.Where(p => 
+                    (p.Name != null && p.Name.ToLower().Contains(query)) || 
+                    (p.Description != null && p.Description.ToLower().Contains(query)) ||
+                    (p.Address != null && p.Address.ToLower().Contains(query)) ||
+                    (p.Category != null && p.Category.ToLower().Contains(query))
+                ).ToList();
+            }
+
             var userLoc = await GetCurrentLocationAsync();
             double userLat = userLoc?.Latitude ?? 10.7769;
             double userLon = userLoc?.Longitude ?? 106.7009;
 
             // Generate Leaflet map HTML
-            string mapHtml = _mapHtmlGenerator.GenerateMapHtml(pois, userLat, userLon);
+            string mapHtml = _mapHtmlGenerator.GenerateMapHtml(filteredPois, userLat, userLon);
             
             // Load HTML into WebView
             tourMapWebView.Source = new HtmlWebViewSource { Html = mapHtml };
@@ -61,6 +80,87 @@ public partial class MapPage : ContentPage
         {
             System.Diagnostics.Debug.WriteLine($"Error loading map: {ex.Message}");
             await DisplayAlertAsync("Lỗi", "Không thể load bản đồ", "OK");
+        }
+    }
+
+    private void OnSearchBarBorderTapped(object? sender, EventArgs e)
+    {
+        searchBar.Focus();
+    }
+
+    private async void OnSearchButtonPressed(object? sender, EventArgs e)
+    {
+        _searchFilter = searchBar.Text ?? string.Empty;
+        await LoadMapAsync();
+    }
+
+    private async void OnSearchTextChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(e.NewTextValue))
+        {
+            _searchFilter = string.Empty;
+            await LoadMapAsync();
+        }
+    }
+
+    private async void OnWebViewNavigating(object? sender, WebNavigatingEventArgs e)
+    {
+        if (e.Url.Contains("poi-app:"))
+        {
+            e.Cancel = true;
+            
+            try 
+            {
+                var idPart = e.Url.Split(':').LastOrDefault();
+                if (int.TryParse(idPart, out int poiId))
+                {
+                    await OnPoiSelectedAsync(poiId);
+                }
+            }
+            catch (Exception ex) 
+            {
+                System.Diagnostics.Debug.WriteLine($"POI Select Error: {ex.Message}");
+            }
+        }
+    }
+
+    private POI? _selectedPoi;
+
+    private async Task OnPoiSelectedAsync(int id)
+    {
+        var pois = _geofenceService.GetPOIs();
+        _selectedPoi = pois?.FirstOrDefault(p => p.Id == id);
+
+        if (_selectedPoi != null)
+        {
+            MainThread.BeginInvokeOnMainThread(() => {
+                lblQuickName.Text = _selectedPoi.Name;
+                lblQuickCategory.Text = _selectedPoi.Category ?? "Địa điểm";
+                lblQuickAddress.Text = _selectedPoi.Address ?? "Thông tin địa chỉ đang cập nhật";
+                
+                if (!string.IsNullOrEmpty(_selectedPoi.ImageUrl))
+                    imgQuickPOI.Source = _selectedPoi.ImageUrl;
+                else
+                    imgQuickPOI.Source = "placeholder_poi.png";
+
+                // Force visibility without complex translation for now to ensure it works
+                pnlQuickView.TranslationY = 0;
+                pnlQuickView.IsVisible = true;
+                pnlQuickView.Opacity = 1;
+            });
+        }
+    }
+
+    private void OnClosePanelClicked(object? sender, EventArgs e)
+    {
+        pnlQuickView.IsVisible = false;
+    }
+
+    private async void OnQuickViewDetailsClicked(object? sender, EventArgs e)
+    {
+        if (_selectedPoi != null)
+        {
+            await Navigation.PushAsync(new POIDetailsPage(_geofenceService, _apiService, _databaseService) { POIItem = _selectedPoi });
         }
     }
 

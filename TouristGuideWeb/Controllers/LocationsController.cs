@@ -19,9 +19,13 @@ public class LocationsController : Controller
         _locationApiService = locationApiService;
     }
 
-    public async Task<IActionResult> Index(CancellationToken cancellationToken)
+    public async Task<IActionResult> Index(string? searchString, string? category, CancellationToken cancellationToken)
     {
-        var locations = await _locationApiService.GetAllAsync(cancellationToken);
+        ViewData["CurrentFilter"] = searchString;
+        ViewData["CurrentCategory"] = category;
+        ViewBag.Categories = await _locationApiService.GetCategoriesAsync(cancellationToken);
+
+        var locations = await _locationApiService.GetAllAsync(cancellationToken, searchString, category);
         if (User.IsInRole("Owner") && !User.IsInRole("Admin"))
         {
             locations = locations.Where(l => string.Equals(l.OwnerEmail, User.Identity?.Name, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -29,9 +33,10 @@ public class LocationsController : Controller
         return View(locations);
     }
 
-    public async Task<IActionResult> IndexMap(CancellationToken cancellationToken)
+    public async Task<IActionResult> IndexMap(string? searchString, string? category, CancellationToken cancellationToken)
     {
-        var locations = await _locationApiService.GetAllAsync(cancellationToken);
+        ViewData["CurrentCategory"] = category;
+        var locations = await _locationApiService.GetAllAsync(cancellationToken, searchString, category);
         if (User.IsInRole("Owner") && !User.IsInRole("Admin"))
         {
             locations = locations.Where(l => string.Equals(l.OwnerEmail, User.Identity?.Name, StringComparison.OrdinalIgnoreCase)).ToList();

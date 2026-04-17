@@ -4,21 +4,54 @@
     ViewData["Title"] = "Locations";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3 mb-0">Danh sach dia diem</h1>
-    <div class="d-flex gap-2">
-        <button type="submit" form="exportPdfForm" class="btn btn-outline-danger" id="exportSelectedBtn" disabled>
-            <i class="fa-solid fa-file-pdf me-1"></i>Xuat PDF da chon
-        </button>
-        <a asp-action="ExportQrPdf" class="btn btn-danger">
-            <i class="fa-solid fa-file-export me-1"></i>Xuat PDF tat ca
-        </a>
-        <a asp-action="IndexMap" class="btn btn-outline-success">
-            <i class="fa-solid fa-map-location-dot me-1"></i>Xem ban do
-        </a>
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="fa-solid fa-plus me-1"></i>Them moi
-        </a>
+<div class="row mb-3">
+    <div class="col">
+        <h1 class="h3 mb-0">Danh sach dia diem</h1>
+    </div>
+    <div class="col-auto">
+        <form asp-action="Index" method="get" class="d-flex gap-2">
+            <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" class="form-control" placeholder="Tìm kiếm địa điểm..." style="width: 200px;" />
+            
+            <select name="category" class="form-select" style="width: 180px;" onchange="this.form.submit()">
+                <option value="">Tất cả danh mục</option>
+                @{
+                    var currentCategory = ViewData["CurrentCategory"] as string;
+                    var categories = ViewBag.Categories as List<string> ?? new List<string>();
+                    foreach (var cat in categories)
+                    {
+                        if (cat == currentCategory)
+                        {
+                            <option value="@cat" selected>@cat</option>
+                        }
+                        else
+                        {
+                            <option value="@cat">@cat</option>
+                        }
+                    }
+                }
+            </select>
+
+            <button type="submit" class="btn btn-secondary">
+                <i class="fa-solid fa-magnifying-glass me-1"></i>Tìm
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Xoá lọc</a>
+        </form>
+    </div>
+    <div class="col-auto">
+        <div class="d-flex gap-2">
+            <button type="submit" form="exportPdfForm" class="btn btn-outline-danger" id="exportSelectedBtn" disabled>
+                <i class="fa-solid fa-file-pdf me-1"></i>Xuat PDF da chon
+            </button>
+            <a asp-action="ExportQrPdf" class="btn btn-danger">
+                <i class="fa-solid fa-file-export me-1"></i>Xuat PDF tat ca
+            </a>
+            <a asp-action="IndexMap" class="btn btn-outline-success">
+                <i class="fa-solid fa-map-location-dot me-1"></i>Xem ban do
+            </a>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fa-solid fa-plus me-1"></i>Them moi
+            </a>
+        </div>
     </div>
 </div>
 

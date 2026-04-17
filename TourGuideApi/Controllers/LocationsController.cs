@@ -23,9 +23,38 @@ public class LocationsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Location>>> GetLocations()
+    public async Task<ActionResult<IEnumerable<Location>>> GetLocations([FromQuery] string? query, [FromQuery] string? category)
     {
-        return await _context.Locations.ToListAsync();
+        var locations = _context.Locations.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            locations = locations.Where(l => l.Category == category);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            query = query.ToLower();
+            locations = locations.Where(l => 
+                (l.Name != null && l.Name.ToLower().Contains(query)) || 
+                (l.Address != null && l.Address.ToLower().Contains(query)) ||
+                (l.Category != null && l.Category.ToLower().Contains(query)));
+        }
+
+        return await locations.ToListAsync();
+    }
+
+    [HttpGet("categories")]
+    public async Task<ActionResult<IEnumerable<string>>> GetCategories()
+    {
+        var categories = await _context.Locations
+            .Where(l => !string.IsNullOrEmpty(l.Category))
+            .Select(l => l.Category!)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToListAsync();
+
+        return categories;
     }
 
     [HttpGet("{id:int}")]

@@ -6,11 +6,11 @@ namespace TouristGuideApp.Services;
 #nullable enable
 public interface IApiService
 {
-    Task<List<POI>> GetPOIsAsync(CancellationToken cancellationToken = default);
+    Task<List<POI>> GetPOIsAsync(CancellationToken cancellationToken = default, string? query = null);
     Task SyncPOIsToLocalAsync(IDatabaseService databaseService, string? languageCode = null);
 
     // Backward compatibility
-    Task<IReadOnlyList<TouristGuideApp.Models.Location>> GetLocationsAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<TouristGuideApp.Models.Location>> GetLocationsAsync(CancellationToken cancellationToken = default, string? query = null);
     Task<TouristGuideApp.Models.Location?> GetLocationAsync(int id, CancellationToken cancellationToken = default);
     Task<TouristGuideApp.Models.Location?> GetLocationByQrAsync(string code, CancellationToken cancellationToken = default);
     Task<bool> CreateLocationAsync(TouristGuideApp.Models.Location location, CancellationToken cancellationToken = default);
@@ -59,7 +59,7 @@ public class ApiService : IApiService
     /// <summary>
     /// Get POIs from API (converts Location to POI)
     /// </summary>
-    public async Task<List<POI>> GetPOIsAsync(CancellationToken cancellationToken = default)
+    public async Task<List<POI>> GetPOIsAsync(CancellationToken cancellationToken = default, string? query = null)
     {
         try
         {
@@ -68,7 +68,13 @@ public class ApiService : IApiService
                 PropertyNameCaseInsensitive = true
             };
 
-            var response = await _httpClient.GetAsync("api/locations", cancellationToken);
+            var url = "api/locations";
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                url += $"?query={Uri.EscapeDataString(query)}";
+            }
+
+            var response = await _httpClient.GetAsync(url, cancellationToken);
             response.EnsureSuccessStatusCode();
 
             var locations = await response.Content.ReadFromJsonAsync<List<Models.Location>>(options, cancellationToken);
@@ -282,9 +288,14 @@ public class ApiService : IApiService
 
     // --- Backward Compatibility Methods ---
 
-    public async Task<IReadOnlyList<Models.Location>> GetLocationsAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<Models.Location>> GetLocationsAsync(CancellationToken cancellationToken = default, string? query = null)
     {
-        var result = await _httpClient.GetFromJsonAsync<List<Models.Location>>("api/locations", cancellationToken);
+        var url = "api/locations";
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            url += $"?query={Uri.EscapeDataString(query)}";
+        }
+        var result = await _httpClient.GetFromJsonAsync<List<Models.Location>>(url, cancellationToken);
         return result ?? new List<Models.Location>();
     }
 

@@ -28,20 +28,37 @@ public class LocationApiService
             ?? throw new InvalidOperationException("Missing configuration: ApiSettings:BaseUrl");
     }
 
-    public async Task<List<Location>> GetLocationsAsync(CancellationToken cancellationToken = default)
+    public async Task<List<Location>> GetLocationsAsync(CancellationToken cancellationToken = default, string? query = null, string? category = null)
     {
-        if (_memoryCache.TryGetValue(LocationsListCacheKey, out List<Location>? cachedLocations) && cachedLocations is not null)
+        // Don't use cache if searching or filtering
+        if (string.IsNullOrWhiteSpace(query) && string.IsNullOrWhiteSpace(category))
         {
-            return cachedLocations;
+            if (_memoryCache.TryGetValue(LocationsListCacheKey, out List<Location>? cachedLocations) && cachedLocations is not null)
+            {
+                return cachedLocations;
+            }
         }
 
         using var client = CreateClient();
         try
         {
-            var result = await client.GetFromJsonAsync<List<Location>>("api/locations", cancellationToken);
+            var url = "api/locations";
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                url += url.Contains('?') ? $"&query={Uri.EscapeDataString(query)}" : $"?query={Uri.EscapeDataString(query)}";
+            }
+            if (!string.IsNullOrWhiteSpace(category))
+            {
+                url += url.Contains('?') ? $"&category={Uri.EscapeDataString(category)}" : $"?category={Uri.EscapeDataString(category)}";
+            }
 
+            var result = await client.GetFromJsonAsync<List<Location>>(url, cancellationToken);
             var locations = result ?? new List<Location>();
-            _memoryCache.Set(LocationsListCacheKey, locations, TimeSpan.FromMinutes(5));
+
+            if (string.IsNullOrWhiteSpace(query) && string.IsNullOrWhiteSpace(category))
+            {
+                _memoryCache.Set(LocationsListCacheKey, locations, TimeSpan.FromMinutes(5));
+            }
 
             return locations;
         }
@@ -55,9 +72,23 @@ public class LocationApiService
         }
     }
 
-    public Task<List<Location>> GetAllAsync(CancellationToken cancellationToken = default)
+    public Task<List<Location>> GetAllAsync(CancellationToken cancellationToken = default, string? query = null, string? category = null)
     {
-        return GetLocationsAsync(cancellationToken);
+        return GetLocationsAsync(cancellationToken, query, category);
+    }
+
+    public async Task<List<string>> GetCategoriesAsync(CancellationToken cancellationToken = default)
+    {
+        using var client = CreateClient();
+        try
+        {
+            var result = await client.GetFromJsonAsync<List<string>>("api/locations/categories", cancellationToken);
+            return result ?? new List<string>();
+        }
+        catch
+        {
+            return new List<string>();
+        }
     }
 
     public async Task<Location?> GetLocationByIdAsync(int id, CancellationToken cancellationToken = default)

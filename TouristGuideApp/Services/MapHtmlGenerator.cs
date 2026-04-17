@@ -42,7 +42,8 @@ namespace TouristGuideApp.Services
             sb.AppendLine("    <div id='map'></div>");
             sb.AppendLine("    <script src='https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js'></script>");
             sb.AppendLine("    <script>");
-            sb.AppendLine("        var map = L.map('map').setView([10.7769, 106.7009], 14);");
+            sb.AppendLine("        var map = L.map('map', { zoomControl: false }).setView([10.7769, 106.7009], 14);");
+            sb.AppendLine("        L.control.zoom({ position: 'bottomright' }).addTo(map);");
             sb.AppendLine("        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {");
             sb.AppendLine("            maxZoom: 19, attribution: '&copy; OpenStreetMap'");
             sb.AppendLine("        }).addTo(map);");
@@ -53,9 +54,10 @@ namespace TouristGuideApp.Services
             {
                 foreach (var poi in pois)
                 {
-                    var n = poi.Name?.Replace("'", "\\'").Replace("\n", " ") ?? "";
-                    var d = poi.Description?.Replace("'", "\\'").Replace("\n", " ") ?? "";
-                    sb.AppendLine($"        L.marker([{poi.Latitude}, {poi.Longitude}]).addTo(map).bindPopup('<b>{n}</b><br/>{d}');");
+                    sb.AppendLine($"        var m{poi.Id} = L.marker([{poi.Latitude}, {poi.Longitude}]).addTo(map);");
+                    sb.AppendLine($"        m{poi.Id}.on('click', function() {{");
+                    sb.AppendLine($"            window.location.href = 'poi-app:{poi.Id}';");
+                    sb.AppendLine("        });");
                 }
             }
             sb.AppendLine("    </script>");
@@ -115,7 +117,8 @@ namespace TouristGuideApp.Services
             // ── MAP INIT ─────────────────────────────────────────────────────────
             double cLat = poiList.Count > 0 ? poiList[0].Latitude : userLat;
             double cLon = poiList.Count > 0 ? poiList[0].Longitude : userLon;
-            sb.AppendLine($"        var map = L.map('map').setView([{cLat.ToString(inv)},{cLon.ToString(inv)}],15);");
+            sb.AppendLine($"        var map = L.map('map', {{ zoomControl: false }}).setView([{cLat.ToString(inv)},{cLon.ToString(inv)}],15);");
+            sb.AppendLine("        L.control.zoom({ position: 'bottomright' }).addTo(map);");
             sb.AppendLine("        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{");
             sb.AppendLine("            maxZoom:19, attribution:'&copy; OpenStreetMap'");
             sb.AppendLine("        }).addTo(map);");

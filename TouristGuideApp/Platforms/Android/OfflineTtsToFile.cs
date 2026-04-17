@@ -178,6 +178,7 @@ internal static class OfflineTtsToFile
             }
         }
 
+        [Obsolete]
         public override void OnError(string? utteranceId)
         {
             if (!string.IsNullOrWhiteSpace(utteranceId))
