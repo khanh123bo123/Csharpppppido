@@ -86,7 +86,12 @@
                          alt="QR Code"
                          class="img-fluid border p-2 bg-white"
                          style="max-width: 280px;" />
-                    <p class="text-muted mt-2 mb-0">Scan to get code: @Model.QrCodeData</p>
+                    <p class="text-muted mt-2 mb-3">Scan to get code: @Model.QrCodeData</p>
+                    <a href="@Url.Action("GenerateQr", "Locations", new { qrData = Model.QrCodeData })" 
+                       download="QRCode_@(Model.Id).png" 
+                       class="btn btn-outline-primary btn-sm mt-2">
+                        <i class="bi bi-download"></i> Tải hình ảnh về máy
+                    </a>
                 }
                 else
                 {
