@@ -86,4 +86,17 @@ public class TourApiService
         var response = await client.DeleteAsync($"api/Tours/{tourId}/locations/{locationId}", cancellationToken);
         return response.IsSuccessStatusCode;
     }
+
+    public async Task<bool> ReorderAsync(int tourId, List<ReorderItemDto> items, CancellationToken cancellationToken = default)
+    {
+        using var client = CreateClient();
+        var response = await client.PutAsJsonAsync($"api/Tours/{tourId}/locations/reorder", items, cancellationToken);
+        return response.IsSuccessStatusCode;
+    }
+}
+
+public class ReorderItemDto
+{
+    public int LocationId { get; set; }
+    public int OrderIndex { get; set; }
 }

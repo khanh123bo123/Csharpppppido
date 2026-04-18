@@ -1,22 +1,12 @@
 -- Database Initialization Script for TourGuide System
 -- Run this after `dotnet ef database update`
 
--- Insert default admin user
--- Password: AdminPassword123!
--- Email: admin@tourguidequan4.com
-INSERT INTO Users (Email, PasswordHash, FullName, Role, IsActive, CreatedAt, UpdatedAt)
-VALUES (
-    'admin@tourguidequan4.com',
-    '$2a$11$PLACEHOLDER_BCRYPT_HASH', -- Replace with actual BCrypt hash
-    'Administrator',
-    'Admin',
-    1,
-    CURRENT_TIMESTAMP,
-    CURRENT_TIMESTAMP
-);
+-- Notes about admin users:
+-- - TourGuideApi seeds a default admin in EF Core migrations (see AppDbContext.HasData).
+-- - TouristGuideWeb seeds an Identity admin user on first startup.
 
 -- Sample Location Data (District 4, Ho Chi Minh City)
-INSERT INTO Locations (Name, Description, Latitude, Longitude, QrCodeData, CreatedAt)
+INSERT INTO "Locations" ("Name", "Description", "Latitude", "Longitude", "QrCodeData", "CreatedAt")
 VALUES 
 (
     'Quán Hủ Tiếu Nam Vang',
@@ -45,9 +35,9 @@ VALUES
 
 -- Sample Localizations (Multilingual Content)
 -- Location 1: Quán Hủ Tiếu Nam Vang - Vietnamese
-INSERT INTO Localizations (
-    LocationId, LanguageCode, LocalizedName, LocalizedDescription,
-    TtsVoiceCode, AudioGenerationStatus, CreatedAt, UpdatedAt
+INSERT INTO "Localizations" (
+    "LocationId", "LanguageCode", "LocalizedName", "LocalizedDescription",
+    "TtsVoiceCode", "AudioGenerationStatus", "IsWarmupProcessed", "CreatedAt", "UpdatedAt"
 )
 VALUES (
     1, 'vi-VN',
@@ -55,14 +45,15 @@ VALUES (
     'Hủ tiếu nước nổi tiếng Sài Gòn, được thành lập từ năm 1960 với công thức độc đáo của gia đình',
     'vi-VN-HoaiMyNeural',
     'pending',
+    FALSE,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 );
 
 -- Location 1: Quán Hủ Tiếu Nam Vang - English
-INSERT INTO Localizations (
-    LocationId, LanguageCode, LocalizedName, LocalizedDescription,
-    TtsVoiceCode, AudioGenerationStatus, CreatedAt, UpdatedAt
+INSERT INTO "Localizations" (
+    "LocationId", "LanguageCode", "LocalizedName", "LocalizedDescription",
+    "TtsVoiceCode", "AudioGenerationStatus", "IsWarmupProcessed", "CreatedAt", "UpdatedAt"
 )
 VALUES (
     1, 'en-US',
@@ -70,14 +61,15 @@ VALUES (
     'Hu Tieu Nam Vang is a famous Vietnamese noodle soup restaurant established in 1960 with unique family recipe',
     'en-US-AriaNeural',
     'pending',
+    FALSE,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 );
 
 -- Location 1: Quán Hủ Tiếu Nam Vang - Chinese
-INSERT INTO Localizations (
-    LocationId, LanguageCode, LocalizedName, LocalizedDescription,
-    TtsVoiceCode, AudioGenerationStatus, CreatedAt, UpdatedAt
+INSERT INTO "Localizations" (
+    "LocationId", "LanguageCode", "LocalizedName", "LocalizedDescription",
+    "TtsVoiceCode", "AudioGenerationStatus", "IsWarmupProcessed", "CreatedAt", "UpdatedAt"
 )
 VALUES (
     1, 'zh-CN',
@@ -85,14 +77,15 @@ VALUES (
     '南旺粉汤店是西贡著名的粉汤餐厅，始建于1960年，拥有独特的家族配方',
     'zh-CN-XiaoxiaoNeural',
     'pending',
+    FALSE,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 );
 
 -- Location 1: Quán Hủ Tiếu Nam Vang - Japanese
-INSERT INTO Localizations (
-    LocationId, LanguageCode, LocalizedName, LocalizedDescription,
-    TtsVoiceCode, AudioGenerationStatus, CreatedAt, UpdatedAt
+INSERT INTO "Localizations" (
+    "LocationId", "LanguageCode", "LocalizedName", "LocalizedDescription",
+    "TtsVoiceCode", "AudioGenerationStatus", "IsWarmupProcessed", "CreatedAt", "UpdatedAt"
 )
 VALUES (
     1, 'ja-JP',
@@ -100,14 +93,15 @@ VALUES (
     'フーティウナムヴァンはサイゴン周辺の有名なヌードルスープレストランで、1960年に創業しました',
     'ja-JP-NanamiNeural',
     'pending',
+    FALSE,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 );
 
 -- Location 1: Quán Hủ Tiếu Nam Vang - Korean
-INSERT INTO Localizations (
-    LocationId, LanguageCode, LocalizedName, LocalizedDescription,
-    TtsVoiceCode, AudioGenerationStatus, CreatedAt, UpdatedAt
+INSERT INTO "Localizations" (
+    "LocationId", "LanguageCode", "LocalizedName", "LocalizedDescription",
+    "TtsVoiceCode", "AudioGenerationStatus", "IsWarmupProcessed", "CreatedAt", "UpdatedAt"
 )
 VALUES (
     1, 'ko-KR',
@@ -115,14 +109,13 @@ VALUES (
     '후티우 남방 식당은 1960년에 설립된 사이공의 유명한 국수 수프 레스토랑입니다',
     'ko-KR-SunHiNeural',
     'pending',
+    FALSE,
     CURRENT_TIMESTAMP,
     CURRENT_TIMESTAMP
 );
 
 -- Notes:
--- 1. Always use CURRENT_TIMESTAMP or GETDATE() for timestamps
--- 2. For User passwords, generate BCrypt hashes in C# code:
---    var hash = BCrypt.Net.BCrypt.HashPassword("password");
--- 3. BIT = boolean (1 = true, 0 = false)
--- 4. Use CURRENT_TIMESTAMP for AUTO timestamps in SQLite
--- 5. After inserting sample data, run audio generation warmup in code
+-- 1. Postgres uses case-sensitive identifiers when quoted; EF Core migrations create PascalCase tables, so this script uses double quotes.
+-- 2. Use CURRENT_TIMESTAMP for timestamps.
+-- 3. Use TRUE/FALSE for booleans.
+-- 4. After inserting sample data, run audio generation warmup in code.

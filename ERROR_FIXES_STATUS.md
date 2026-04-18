@@ -54,7 +54,7 @@ Edit the Jwt:Key to something unique (minimum 32 characters):
   },
   "Ollama": {
     "BaseUrl": "http://localhost:11434",
-    "Model": "qwen2.5:3b"
+    "Model": "qwen2.5:14b"
   }
 }
 ```
@@ -186,4 +186,3 @@ You can now:
 ✅ Deploy and test the system  
 
 **Next Step**: Run `INSTALL_PACKAGES.bat` to install NuGet dependencies!
-

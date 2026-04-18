@@ -52,22 +52,60 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var tl in Model.AssignedLocations.OrderBy(x => x.OrderIndex))
+                                @{ var orderedLocations = Model.AssignedLocations.OrderBy(x => x.OrderIndex).ToList(); }
+                                @for (int i = 0; i < orderedLocations.Count; i++)
                                 {
+                                    var tl = orderedLocations[i];
+                                    var isFirst = (i == 0);
+                                    var isLast = (i == orderedLocations.Count - 1);
                                     <tr>
                                         <td>
-                                            <span class="badge bg-primary rounded-circle p-2 fs-6">@tl.OrderIndex</span>
+                                            <span class="badge bg-primary rounded-circle p-2 fs-6">@(i + 1)</span>
                                         </td>
                                         <td>
                                             <div class="fw-bold text-gray-900">@tl.Location?.Name</div>
-                                            <div class="text-muted small">@tl.Location?.Category</div>
+                                            @if (tl.Location?.Category?.StartsWith("minor:") == true)
+                                            {
+                                                var label = tl.Location.Category switch
+                                                {
+                                                    "minor:wc" => "🚻 WC",
+                                                    "minor:ticket" => "🎫 Bán vé",
+                                                    "minor:parking" => "🅿️ Gửi xe",
+                                                    "minor:dock" => "⛵ Bến thuyền",
+                                                    _ => "Tiện ích"
+                                                };
+                                                <span class="badge bg-warning text-dark small">@label</span>
+                                            }
+                                            else if (!string.IsNullOrEmpty(tl.Location?.Category))
+                                            {
+                                                <span class="badge bg-info text-dark small">@tl.Location.Category</span>
+                                            }
                                         </td>
-                                        <td class="text-end">
-                                            <form asp-action="RemoveLocation" method="post" class="d-inline">
+                                        <td class="text-end text-nowrap">
+                                            @* Move Up *@
+                                            <form asp-action="MoveLocationUp" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@Model.CurrentTour.Id" />
+                                                <input type="hidden" name="locationId" value="@tl.LocationId" />
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary rounded-circle" title="Di chuyển lên" @(isFirst ? "disabled" : "")>
+                                                    <i class="fa-solid fa-chevron-up"></i>
+                                                </button>
+                                            </form>
+                                            @* Move Down *@
+                                            <form asp-action="MoveLocationDown" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@Model.CurrentTour.Id" />
+                                                <input type="hidden" name="locationId" value="@tl.LocationId" />
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary rounded-circle" title="Di chuyển xuống" @(isLast ? "disabled" : "")>
+                                                    <i class="fa-solid fa-chevron-down"></i>
+                                                </button>
+                                            </form>
+                                            @* Remove *@
+                                            <form asp-action="RemoveLocation" method="post" class="d-inline ms-1">
                                                 <input type="hidden" name="id" value="@Model.CurrentTour.Id" />
                                                 <input type="hidden" name="locationId" value="@tl.LocationId" />
                                                 <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle" onclick="return confirm('Gỡ điểm này khỏi lộ trình?');" title="Gỡ ra">
-                                                    <i class="bi bi-x-circle"></i>
+                                                    <i class="fa-solid fa-xmark"></i>
                                                 </button>
                                             </form>
                                         </td>

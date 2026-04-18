@@ -36,6 +36,9 @@ public sealed class DisabledLocalizationTranslationService : ILocalizationTransl
         CancellationToken cancellationToken = default)
     {
         throw new LocalizationTranslationNotConfiguredException(
-            "Chưa cấu hình dịch tự động. Hãy cài Ollama và cấu hình Ollama:BaseUrl + Ollama:Model (khuyến nghị trong TourGuideApi/appsettings.Local.json) để bật auto-translate.");
+            "Chưa cấu hình dịch tự động. Hãy cấu hình Translation:Provider và một trong các lựa chọn sau: " +
+            "(1) Gemini:ApiKey (+ Gemini:Model) để dịch online, hoặc " +
+            "(2) Ollama:BaseUrl + Ollama:Model để dịch offline. " +
+            "Khuyến nghị đặt trong TourGuideApi/appsettings.Local.json hoặc environment variables.");
     }
 }

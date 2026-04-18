@@ -90,6 +90,17 @@ Enhanced geofencing service that:
 - Enforces 5-minute cooldown between audio plays per POI
 - Supports on-demand audio playback with `ignoreCooldown` flag
 
+### 6. **Offline Maps System** ✅
+- **Leaflet.js Interactive Map**: Rendered in a WebView.
+- **Three-Tier Map Tiles**: Cloud (OpenStreetMap), Offline Pack (Cached locally), Hybrid Q4.
+- **Services**: `OfflineMapService` handles local tile storage, and `MapHtmlGenerator` dynamically creates the Leaflet map with user locations and POIs.
+- **Dynamic Connection Detection**: Automatically switches between Online/Offline modes.
+
+### 7. **Admin Web Dashboard (ASP.NET Core MVC)** ✅
+- Complete internal dashboard built with **ASP.NET Core MVC** (`TouristGuideWeb`).
+- Directly accesses the SQLite database context to manage content quickly without a middleman API call.
+- **Features**: Manage POIs, Users (RBAC), Localizations, view Statistics, and generate custom Tour exports with QR Codes/PDFs (`QuestPDF`, `QRCoder`).
+
 ---
 
 ## 🚀 Getting Started
@@ -122,7 +133,7 @@ dotnet add package Microsoft.IdentityModel.Tokens
   },
   "Ollama": {
     "BaseUrl": "http://localhost:11434",
-    "Model": "qwen2.5:3b"
+    "Model": "qwen2.5:14b"
   }
 }
 ```
@@ -278,7 +289,7 @@ Uses a local/self-hosted **Ollama** server:
 {
   "Ollama": {
     "BaseUrl": "http://localhost:11434",
-    "Model": "qwen2.5:3b"
+    "Model": "qwen2.5:14b"
   }
 }
 ```
@@ -367,42 +378,54 @@ await _textToSpeechService.WarmupLocalizationsAsync(location.Id);
 
 ## 🗂️ Project Structure
 
-### Backend
+### Backend API
 ```
 TourGuideApi/
 ├── Models/
 │   ├── Location.cs
-│   ├── Localization.cs          [NEW]
-│   ├── User.cs                  [NEW]
+│   ├── Localization.cs
+│   ├── User.cs
 │   └── POI.cs
 ├── Controllers/
 │   ├── LocationsController.cs
-│   ├── LocalizationsController.cs [NEW]
-│   └── AuthController.cs         [NEW]
+│   ├── LocalizationsController.cs
+│   └── AuthController.cs
 ├── Services/
-│   ├── ITextToSpeechService.cs   [UPDATED]
+│   ├── ITextToSpeechService.cs
 │   ├── EdgeTtsTextToSpeechService.cs
-│   ├── ILocalizationTranslationService.cs
 │   └── OllamaLocalizationTranslationService.cs
-├── Data/
-│   └── AppDbContext.cs           [UPDATED]
-└── Program.cs                    [UPDATED]
+└── Data/
+    └── AppDbContext.cs
+```
+
+### Admin Web Dashboard
+```
+TouristGuideWeb/
+├── Controllers/
+│   ├── AudioController.cs
+│   ├── DashboardController.cs
+│   ├── HistoryController.cs
+│   ├── LocalizationsController.cs
+│   ├── LocationsController.cs
+│   ├── StatisticsController.cs
+│   └── ToursController.cs
+├── Models/
+├── Views/
+└── wwwroot/
 ```
 
 ### Mobile App
 ```
 TouristGuideApp/
 ├── Models/
-│   ├── POI.cs
-│   ├── Location.cs
-│   ├── Localization.cs           [NEW]
-│   └── SupportedLanguages.cs     [NEW]
 ├── Services/
 │   ├── AudioService.cs           [ENHANCED 4-Tier]
 │   ├── GeofenceService.cs        [ENHANCED]
 │   ├── ApiService.cs             [ENHANCED]
 │   ├── DatabaseService.cs
 │   ├── SyncService.cs            [NEW]
+│   ├── OfflineMapService.cs      [NEW]
+│   ├── MapHtmlGenerator.cs       [NEW]
 │   └── LocationService.cs
 └── Views/
 ```
@@ -421,18 +444,7 @@ TouristGuideApp/
 - Store MP3 files in device storage for TIER 1 playback
 - Implement progressive downloading with progress UI
 
-### 3. **Admin Web Dashboard** 🚧
-- React/Next.js interface for content management
-- Upload POI images and descriptions
-- Manage localizations and voice preferences
-- Monitor audio generation status
-
-### 4. **PMTiles Maps for Offline** 🚧
-- Generate MBTiles for District 4 area
-- Implement offline map display in MAUI
-- Reduce dependency on online map services
-
-### 5. **Database Encryption** 🚧
+### 3. **Database Encryption** 🚧
 - Encrypt sensitive POI owner information (PII)
 - Use SQL Cipher for SQLite on mobile
 - Implement field-level encryption on backend

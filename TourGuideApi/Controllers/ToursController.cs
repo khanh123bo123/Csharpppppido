@@ -111,4 +111,33 @@ public class ToursController : ControllerBase
         await _context.SaveChangesAsync();
         return NoContent();
     }
+
+    // Reorder locations within a tour (swap / bulk update OrderIndex)
+    [HttpPut("{id}/locations/reorder")]
+    public async Task<IActionResult> ReorderLocations(int id, [FromBody] List<ReorderItem> items)
+    {
+        if (items == null || items.Count == 0) return BadRequest("Items list is required.");
+
+        var tourLocations = await _context.TourLocations
+            .Where(tl => tl.TourId == id)
+            .ToListAsync();
+
+        foreach (var item in items)
+        {
+            var tl = tourLocations.FirstOrDefault(x => x.LocationId == item.LocationId);
+            if (tl != null)
+            {
+                tl.OrderIndex = item.OrderIndex;
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+}
+
+public class ReorderItem
+{
+    public int LocationId { get; set; }
+    public int OrderIndex { get; set; }
 }

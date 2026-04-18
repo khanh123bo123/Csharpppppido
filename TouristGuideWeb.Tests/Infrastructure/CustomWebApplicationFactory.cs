@@ -9,8 +9,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -31,15 +31,12 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         builder.ConfigureServices(services =>
         {
             services.RemoveAll<DbContextOptions<AppIdentityDbContext>>();
+            services.RemoveAll<IDbContextOptionsConfiguration<AppIdentityDbContext>>();
             services.RemoveAll<AppIdentityDbContext>();
-            services.RemoveAll<SqliteConnection>();
 
-            var sqliteConnection = new SqliteConnection("DataSource=:memory:");
-            sqliteConnection.Open();
-            services.AddSingleton(sqliteConnection);
-
+            var databaseName = $"IdentityTestDb-{Guid.NewGuid():N}";
             services.AddDbContext<AppIdentityDbContext>(options =>
-                options.UseSqlite(sqliteConnection));
+                options.UseInMemoryDatabase(databaseName));
 
             services.RemoveAll<IHttpClientFactory>();
             services.AddSingleton(Store);
@@ -65,7 +62,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
             using var scope = serviceProvider.CreateScope();
             var identityDb = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
             identityDb.Database.EnsureDeleted();
-            identityDb.Database.Migrate();
+            identityDb.Database.EnsureCreated();
         });
     }
 }

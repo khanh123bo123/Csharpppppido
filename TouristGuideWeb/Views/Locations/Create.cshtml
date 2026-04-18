@@ -30,11 +30,41 @@
                             <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
 
-                        <div class="col-md-6">
-                            <label asp-for="Category" class="form-label fw-semibold">Loại món/Danh mục</label>
-                            <input asp-for="Category" class="form-control" placeholder="VD: Phở, Bánh Mì..." />
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Loại địa điểm <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-4 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="poiTypeRadio" id="poiTypeMajor" value="Major" checked onchange="togglePoiType()">
+                                    <label class="form-check-label fw-semibold" for="poiTypeMajor">
+                                        <i class="fa-solid fa-utensils text-primary me-1"></i> Quán ăn (Major)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="poiTypeRadio" id="poiTypeMinor" value="Minor" onchange="togglePoiType()">
+                                    <label class="form-check-label fw-semibold" for="poiTypeMinor">
+                                        <i class="fa-solid fa-signs-post text-warning me-1"></i> Tiện ích (Minor)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6" id="majorCategoryGroup">
+                            <label class="form-label fw-semibold">Danh mục ẩm thực</label>
+                            <input type="text" id="majorCategoryInput" class="form-control" placeholder="VD: Phở, Bánh Mì, Hải Sản..." />
                             <span asp-validation-for="Category" class="text-danger"></span>
                         </div>
+
+                        <div class="col-md-6" id="minorCategoryGroup" style="display: none;">
+                            <label class="form-label fw-semibold">Loại tiện ích <span class="text-danger">*</span></label>
+                            <select id="minorCategorySelect" class="form-select">
+                                <option value="minor:wc">🚻 Nhà vệ sinh (WC)</option>
+                                <option value="minor:ticket">🎫 Quầy bán vé</option>
+                                <option value="minor:parking">🅿️ Bãi giữ xe</option>
+                                <option value="minor:dock">⛵ Bến thuyền</option>
+                            </select>
+                        </div>
+
+                        <input asp-for="Category" type="hidden" id="categoryHiddenInput" />
 
                         <div class="col-md-6">
                             <label asp-for="PhoneNumber" class="form-label fw-semibold">Số điện thoại</label>
@@ -169,5 +199,34 @@
             marker.setLatLng(e.latlng);
             setInputs(e.latlng.lat, e.latlng.lng);
         });
+
+        // POI Type toggle logic
+        function togglePoiType() {
+            const isMajor = document.getElementById('poiTypeMajor').checked;
+            document.getElementById('majorCategoryGroup').style.display = isMajor ? '' : 'none';
+            document.getElementById('minorCategoryGroup').style.display = isMajor ? 'none' : '';
+            syncCategory();
+        }
+
+        function syncCategory() {
+            const isMajor = document.getElementById('poiTypeMajor').checked;
+            const hidden = document.getElementById('categoryHiddenInput');
+            if (isMajor) {
+                hidden.value = document.getElementById('majorCategoryInput').value || '';
+            } else {
+                hidden.value = document.getElementById('minorCategorySelect').value;
+            }
+        }
+
+        document.getElementById('majorCategoryInput').addEventListener('input', syncCategory);
+        document.getElementById('minorCategorySelect').addEventListener('change', syncCategory);
+        
+        // Sync before submit
+        document.querySelector('form').addEventListener('submit', function() {
+            syncCategory();
+        });
+
+        // Initial sync
+        syncCategory();
     </script>
 }

@@ -74,6 +74,12 @@
                         <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Auth" && ViewContext.RouteData.Values["Action"]?.ToString() == "ChangePassword" ? "active" : "")">
                             <a asp-controller="Auth" asp-action="ChangePassword"><i class="fa-solid fa-lock"></i> Mật khẩu</a>
                         </li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Prd" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+                            <a asp-controller="Prd" asp-action="Index"><i class="fa-solid fa-file-lines"></i> PRD v1.0</a>
+                        </li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Prd" && ViewContext.RouteData.Values["Action"]?.ToString() == "UseCase" ? "active" : "")">
+                            <a asp-controller="Prd" asp-action="UseCase"><i class="fa-solid fa-diagram-project"></i> Use Case</a>
+                        </li>
                     }
                     else if (User.Identity?.IsAuthenticated == true)
                     {

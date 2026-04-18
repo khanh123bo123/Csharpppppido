@@ -37,7 +37,7 @@ Replace the JWT and TTS sections:
   },
   "Ollama": {
     "BaseUrl": "http://localhost:11434",
-    "Model": "qwen2.5:3b"
+    "Model": "qwen2.5:14b"
   },
   "Cors": {
     "AllowedOrigins": ["http://localhost:3000", "http://10.0.2.2:5214"]
@@ -215,7 +215,7 @@ curl -X POST http://localhost:5214/api/localizations/1/generate-audio \
   },
   "Ollama": {
     "BaseUrl": "http://localhost:11434",
-    "Model": "qwen2.5:3b"
+    "Model": "qwen2.5:14b"
   },
   "Cors": {
     "AllowedOrigins": ["https://yourdomain.com"]

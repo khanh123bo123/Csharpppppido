@@ -10,9 +10,13 @@
 **/appsettings.Local.json
 
 # SQLite transient files (never commit)
+*.db
 *.db-wal
 *.db-shm
 *.db-journal
+
+# Local build-check artifacts (never commit)
+TouristGuideWeb/build_check/
 
 # User-specific files
 *.rsuser

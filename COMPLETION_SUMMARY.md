@@ -252,7 +252,7 @@ GET    /api/auth/users/{id}
   },
   "Ollama": {
     "BaseUrl": "http://localhost:11434",
-    "Model": "qwen2.5:3b"
+    "Model": "qwen2.5:14b"
   }
 }
 ```

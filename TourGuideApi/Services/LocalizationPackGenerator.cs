@@ -72,7 +72,7 @@ public class LocalizationPackGenerator
         }
         await _context.SaveChangesAsync(cancellationToken);
 
-        // 2. BẮT ĐẦU GỌI OLLAMA DỊCH (quá trình này mất vài phút)
+        // 2. BẮT ĐẦU DỊCH TỰ ĐỘNG (quá trình này mất vài phút)
         var targetLanguages = SupportedLanguages
             .Where(l => !string.Equals(l, "vi-VN", StringComparison.OrdinalIgnoreCase))
             .ToArray();
@@ -88,7 +88,7 @@ public class LocalizationPackGenerator
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Ollama translation failed. Keeping Vietnamese text.");
+            _logger.LogWarning(ex, "Auto-translation failed. Keeping Vietnamese text.");
             translated = new Dictionary<string, LocalizedText>();
             foreach (var lang in targetLanguages)
             {

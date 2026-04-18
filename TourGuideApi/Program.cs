@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TourGuideApi.Data;
@@ -7,12 +8,32 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Railway provides PORT. Bind to it when present.
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(port) && int.TryParse(port, out var portNumber))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{portNumber}");
+}
+
+// When running behind a reverse proxy (Railway), respect forwarded headers.
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+}
+
 // Local (gitignored) overrides for machine-specific settings.
 builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        npgsqlOptions => npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory_TourGuideApi")));
 
 // Configure JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"];
@@ -64,7 +85,31 @@ builder.Services.AddHttpClient("OllamaTranslation", client =>
     client.Timeout = TimeSpan.FromSeconds(120);
 });
 
-builder.Services.AddScoped<ILocalizationTranslationService, OllamaLocalizationTranslationService>();
+builder.Services.AddHttpClient("GeminiTranslation", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(120);
+});
+
+// Translation provider selection:
+// - Preferred: set Translation:Provider = Gemini and provide Gemini:ApiKey
+// - Offline/dev: Translation:Provider = Ollama and provide Ollama:BaseUrl + Ollama:Model
+// - Disabled: Translation:Provider = Disabled
+var translationProvider = (builder.Configuration["Translation:Provider"] ?? string.Empty).Trim();
+var hasGeminiKey = !string.IsNullOrWhiteSpace(builder.Configuration["Gemini:ApiKey"]);
+var hasOllamaBaseUrl = !string.IsNullOrWhiteSpace(builder.Configuration["Ollama:BaseUrl"]);
+
+if (translationProvider.Equals("Gemini", StringComparison.OrdinalIgnoreCase) || (string.IsNullOrWhiteSpace(translationProvider) && hasGeminiKey))
+{
+    builder.Services.AddScoped<ILocalizationTranslationService, GeminiLocalizationTranslationService>();
+}
+else if (translationProvider.Equals("Ollama", StringComparison.OrdinalIgnoreCase) || (string.IsNullOrWhiteSpace(translationProvider) && hasOllamaBaseUrl))
+{
+    builder.Services.AddScoped<ILocalizationTranslationService, OllamaLocalizationTranslationService>();
+}
+else
+{
+    builder.Services.AddScoped<ILocalizationTranslationService, DisabledLocalizationTranslationService>();
+}
 builder.Services.AddScoped<LocalizationPackGenerator>();
 
 builder.Services.AddControllers();
@@ -90,6 +135,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+app.UseForwardedHeaders();
 
 var ollamaBaseUrl = app.Configuration["Ollama:BaseUrl"];
 var ollamaModel = app.Configuration["Ollama:Model"];

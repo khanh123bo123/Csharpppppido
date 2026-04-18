@@ -170,4 +170,59 @@ public class ToursController : Controller
 
         return RedirectToAction(nameof(Details), new { id });
     }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> MoveLocationUp(int id, int locationId, CancellationToken cancellationToken)
+    {
+        return await SwapLocationOrder(id, locationId, -1, cancellationToken);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> MoveLocationDown(int id, int locationId, CancellationToken cancellationToken)
+    {
+        return await SwapLocationOrder(id, locationId, 1, cancellationToken);
+    }
+
+    private async Task<IActionResult> SwapLocationOrder(int tourId, int locationId, int direction, CancellationToken cancellationToken)
+    {
+        var tour = await _tourApiService.GetByIdAsync(tourId, cancellationToken);
+        if (tour == null) return NotFound();
+
+        if (User.IsInRole("Owner") && !User.IsInRole("Admin") && !string.Equals(tour.OwnerEmail, User.Identity?.Name, StringComparison.OrdinalIgnoreCase))
+            return Forbid();
+
+        var assigned = await _tourApiService.GetLocationsAsync(tourId, cancellationToken);
+        var ordered = assigned.OrderBy(a => a.OrderIndex).ToList();
+
+        var currentIndex = ordered.FindIndex(a => a.LocationId == locationId);
+        if (currentIndex < 0)
+        {
+            TempData["ErrorMessage"] = "Không tìm thấy địa điểm trong lộ trình.";
+            return RedirectToAction(nameof(Details), new { id = tourId });
+        }
+
+        var swapIndex = currentIndex + direction;
+        if (swapIndex < 0 || swapIndex >= ordered.Count)
+        {
+            return RedirectToAction(nameof(Details), new { id = tourId });
+        }
+
+        // Swap OrderIndex values
+        var currentItem = ordered[currentIndex];
+        var swapItem = ordered[swapIndex];
+        var tempOrder = currentItem.OrderIndex;
+
+        var reorderItems = new List<ReorderItemDto>
+        {
+            new() { LocationId = currentItem.LocationId, OrderIndex = swapItem.OrderIndex },
+            new() { LocationId = swapItem.LocationId, OrderIndex = tempOrder }
+        };
+
+        var success = await _tourApiService.ReorderAsync(tourId, reorderItems, cancellationToken);
+        if (!success) TempData["ErrorMessage"] = "Không thể thay đổi thứ tự.";
+
+        return RedirectToAction(nameof(Details), new { id = tourId });
+    }
 }

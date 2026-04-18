@@ -66,6 +66,7 @@
                 </th>
                 <th>Id</th>
                 <th>Ten</th>
+                <th>Loại</th>
                 <th>Toa do</th>
                 <th>Hanh dong</th>
             </tr>
@@ -83,6 +84,28 @@
                 </td>
                 <td>@item.Id</td>
                 <td>@item.Name</td>
+                <td>
+                    @if (item.Category?.StartsWith("minor:") == true)
+                    {
+                        var minorLabel = item.Category switch
+                        {
+                            "minor:wc" => "🚻 WC",
+                            "minor:ticket" => "🎫 Bán vé",
+                            "minor:parking" => "🅿️ Gửi xe",
+                            "minor:dock" => "⛵ Bến thuyền",
+                            _ => "Tiện ích"
+                        };
+                        <span class="badge bg-warning text-dark">@minorLabel</span>
+                    }
+                    else if (!string.IsNullOrEmpty(item.Category))
+                    {
+                        <span class="badge bg-primary">@item.Category</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Chưa phân loại</span>
+                    }
+                </td>
                 <td>@item.Latitude.ToString("0.######"), @item.Longitude.ToString("0.######")</td>
                 <td class="text-nowrap">
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Edit">

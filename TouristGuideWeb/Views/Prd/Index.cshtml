@@ -1,0 +1,410 @@
+@{
+    ViewData["Title"] = "PRD v1.0 — Admin Dashboard";
+}
+
+<div class="prd-viewer-container">
+    <!-- Header Bar -->
+    <div class="prd-header d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="prd-icon">
+                <i class="fa-solid fa-file-lines"></i>
+            </div>
+            <div>
+                <h4 class="fw-bold mb-0" style="color: #2C4C3B;">Product Requirements Document</h4>
+                <span class="text-muted" style="font-size: 0.85rem;">
+                    Version 1.0 — Cập nhật: @DateTime.Now.ToString("dd/MM/yyyy")
+                </span>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="toggleToc()" title="Mục lục">
+                <i class="fa-solid fa-list me-1"></i> Mục lục
+            </button>
+            <a href="/docs/PRD_v1.0.md" download class="btn btn-outline-primary btn-sm rounded-pill" title="Tải file gốc">
+                <i class="fa-solid fa-download me-1"></i> Tải MD
+            </a>
+            <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="window.print()" title="In">
+                <i class="fa-solid fa-print me-1"></i> In
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- TOC Sidebar (toggleable) -->
+        <div class="col-lg-3 d-none" id="tocSidebar">
+            <div class="prd-toc sticky-top" style="top: 20px;">
+                <h6 class="fw-bold text-muted mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">MỤC LỤC</h6>
+                <div id="tocContent"></div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-12" id="mainContent">
+            <div class="prd-body card-premium" id="prdContent">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="text-muted mt-2">Đang tải tài liệu...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .prd-viewer-container {
+        max-width: 100%;
+    }
+
+    .prd-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #2C4C3B, #3d6b52);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        box-shadow: 0 4px 12px rgba(44, 76, 59, 0.3);
+    }
+
+    .prd-body {
+        padding: 2.5rem;
+        line-height: 1.75;
+        font-size: 0.95rem;
+        color: #334155;
+    }
+
+    .prd-body h1 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #1e293b;
+        border-bottom: 3px solid #2C4C3B;
+        padding-bottom: 12px;
+        margin-top: 2rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .prd-body h1:first-child {
+        margin-top: 0;
+    }
+
+    .prd-body h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: #2C4C3B;
+        margin-top: 2.5rem;
+        margin-bottom: 1rem;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .prd-body h3 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #334155;
+        margin-top: 1.8rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .prd-body h4 {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #475569;
+        margin-top: 1.5rem;
+        margin-bottom: 0.6rem;
+    }
+
+    .prd-body table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0 1.5rem;
+        font-size: 0.88rem;
+    }
+
+    .prd-body table th {
+        background: #f1f5f9;
+        color: #1e293b;
+        font-weight: 700;
+        padding: 10px 14px;
+        border: 1px solid #e2e8f0;
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    .prd-body table td {
+        padding: 9px 14px;
+        border: 1px solid #e2e8f0;
+        vertical-align: top;
+    }
+
+    .prd-body table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .prd-body code {
+        background: #f1f5f9;
+        color: #b34a1e;
+        padding: 2px 7px;
+        border-radius: 4px;
+        font-size: 0.85em;
+        font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    .prd-body pre {
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 1.2rem;
+        border-radius: 10px;
+        overflow-x: auto;
+        margin: 1rem 0;
+    }
+
+    .prd-body pre code {
+        background: none;
+        color: inherit;
+        padding: 0;
+    }
+
+    .prd-body blockquote {
+        border-left: 4px solid #2C4C3B;
+        background: #f0fdf4;
+        padding: 12px 18px;
+        margin: 1rem 0;
+        border-radius: 0 8px 8px 0;
+        color: #166534;
+    }
+
+    .prd-body blockquote p:last-child {
+        margin-bottom: 0;
+    }
+
+    /* GitHub-style alerts */
+    .prd-body .markdown-alert {
+        padding: 12px 18px;
+        margin: 1rem 0;
+        border-radius: 8px;
+        border-left: 4px solid;
+    }
+
+    .prd-body .markdown-alert-note {
+        background: #eff6ff;
+        border-color: #3b82f6;
+        color: #1e40af;
+    }
+
+    .prd-body .markdown-alert-tip {
+        background: #f0fdf4;
+        border-color: #22c55e;
+        color: #166534;
+    }
+
+    .prd-body .markdown-alert-important {
+        background: #fefce8;
+        border-color: #eab308;
+        color: #854d0e;
+    }
+
+    .prd-body .markdown-alert-warning {
+        background: #fff7ed;
+        border-color: #f97316;
+        color: #9a3412;
+    }
+
+    .prd-body .markdown-alert-caution {
+        background: #fef2f2;
+        border-color: #ef4444;
+        color: #991b1b;
+    }
+
+    .prd-body hr {
+        border: none;
+        border-top: 2px solid #e2e8f0;
+        margin: 2.5rem 0;
+    }
+
+    .prd-body ul, .prd-body ol {
+        padding-left: 1.5em;
+    }
+
+    .prd-body li {
+        margin-bottom: 0.3em;
+    }
+
+    .prd-body a {
+        color: #2C4C3B;
+        text-decoration: underline;
+        text-decoration-color: rgba(44, 76, 59, 0.3);
+        text-underline-offset: 3px;
+    }
+
+    .prd-body a:hover {
+        text-decoration-color: #2C4C3B;
+    }
+
+    /* Mermaid diagrams */
+    .prd-body .mermaid {
+        text-align: center;
+        margin: 1.5rem 0;
+    }
+
+    /* TOC */
+    .prd-toc {
+        background: white;
+        border-radius: 12px;
+        padding: 1.2rem;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+    }
+
+    .prd-toc a {
+        display: block;
+        padding: 5px 0;
+        color: #64748b;
+        text-decoration: none;
+        font-size: 0.82rem;
+        border-left: 2px solid transparent;
+        padding-left: 10px;
+        transition: all 0.2s;
+    }
+
+    .prd-toc a:hover, .prd-toc a.active {
+        color: #2C4C3B;
+        border-left-color: #2C4C3B;
+        background: #f0fdf4;
+    }
+
+    .prd-toc a.toc-h2 { padding-left: 10px; font-weight: 600; }
+    .prd-toc a.toc-h3 { padding-left: 24px; font-size: 0.8rem; }
+
+    @@media print {
+        .prd-header, #tocSidebar, .sidebar, .main-content > .content-body > main > div > .prd-viewer-container > .prd-header { display: none !important; }
+        .prd-body { box-shadow: none; padding: 0; }
+    }
+</style>
+
+@section Scripts {
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Mermaid for diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <script>
+        mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+
+        async function loadPrd() {
+            try {
+                const response = await fetch('/docs/PRD_v1.0.md?v=' + Date.now());
+                if (!response.ok) throw new Error('Failed to load PRD');
+                const markdown = await response.text();
+
+                // Custom renderer for GitHub-style alerts
+                const renderer = new marked.Renderer();
+                const originalBlockquote = renderer.blockquote;
+                
+                renderer.blockquote = function(body) {
+                    // Handle the body parameter (could be object or string)
+                    let text = '';
+                    if (typeof body === 'object' && body !== null) {
+                        text = body.body || body.text || String(body);
+                    } else {
+                        text = String(body);
+                    }
+
+                    const alertTypes = {
+                        '[!NOTE]': 'note',
+                        '[!TIP]': 'tip',
+                        '[!IMPORTANT]': 'important',
+                        '[!WARNING]': 'warning',
+                        '[!CAUTION]': 'caution'
+                    };
+
+                    for (const [marker, type] of Object.entries(alertTypes)) {
+                        if (text.includes(marker)) {
+                            const icons = {
+                                note: 'ℹ️',
+                                tip: '💡',
+                                important: '⚠️',
+                                warning: '🔶',
+                                caution: '🔴'
+                            };
+                            const cleanText = text
+                                .replace(`<p>${marker}`, '<p>')
+                                .replace(marker, '');
+                            return `<div class="markdown-alert markdown-alert-${type}">
+                                <strong>${icons[type]} ${type.toUpperCase()}</strong><br/>
+                                ${cleanText}
+                            </div>`;
+                        }
+                    }
+                    return `<blockquote>${text}</blockquote>`;
+                };
+
+                marked.setOptions({
+                    renderer: renderer,
+                    gfm: true,
+                    breaks: false
+                });
+
+                const html = marked.parse(markdown);
+                document.getElementById('prdContent').innerHTML = html;
+
+                // Render Mermaid diagrams
+                document.querySelectorAll('.prd-body pre code.language-mermaid').forEach((el, i) => {
+                    const mermaidDiv = document.createElement('div');
+                    mermaidDiv.className = 'mermaid';
+                    mermaidDiv.textContent = el.textContent;
+                    el.closest('pre').replaceWith(mermaidDiv);
+                });
+                await mermaid.run();
+
+                // Build TOC
+                buildToc();
+
+            } catch (err) {
+                document.getElementById('prdContent').innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fa-solid fa-triangle-exclamation text-danger" style="font-size: 2rem;"></i>
+                        <p class="text-danger mt-2">Không thể tải tài liệu PRD: ${err.message}</p>
+                        <a href="/docs/PRD_v1.0.md" class="btn btn-outline-primary mt-2">Tải file gốc</a>
+                    </div>`;
+            }
+        }
+
+        function buildToc() {
+            const headings = document.querySelectorAll('#prdContent h1, #prdContent h2, #prdContent h3');
+            const toc = document.getElementById('tocContent');
+            let html = '';
+            headings.forEach((h, i) => {
+                const id = 'heading-' + i;
+                h.id = id;
+                const level = h.tagName.toLowerCase();
+                if (level === 'h1' || level === 'h2' || level === 'h3') {
+                    html += `<a href="#${id}" class="toc-${level}">${h.textContent}</a>`;
+                }
+            });
+            toc.innerHTML = html;
+        }
+
+        let tocVisible = false;
+        function toggleToc() {
+            tocVisible = !tocVisible;
+            const sidebar = document.getElementById('tocSidebar');
+            const main = document.getElementById('mainContent');
+            if (tocVisible) {
+                sidebar.classList.remove('d-none');
+                sidebar.classList.add('d-block');
+                main.classList.remove('col-lg-12');
+                main.classList.add('col-lg-9');
+            } else {
+                sidebar.classList.add('d-none');
+                sidebar.classList.remove('d-block');
+                main.classList.remove('col-lg-9');
+                main.classList.add('col-lg-12');
+            }
+        }
+
+        loadPrd();
+    </script>
+}

@@ -1,0 +1,331 @@
+@{
+    ViewData["Title"] = "Use Case Diagram — Admin Dashboard";
+}
+
+<div class="prd-viewer-container">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; box-shadow: 0 4px 12px rgba(59,130,246,0.3);">
+                <i class="fa-solid fa-diagram-project"></i>
+            </div>
+            <div>
+                <h4 class="fw-bold mb-0" style="color: #2C4C3B;">Use Case Diagram</h4>
+                <span class="text-muted" style="font-size: 0.85rem;">Admin Dashboard — Phố Ẩm Thực Vĩnh Khánh (3 Actors, 22 Use Cases)</span>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm rounded-pill">
+                <i class="fa-solid fa-file-lines me-1"></i> PRD v1.0
+            </a>
+            <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="switchTab('mermaid')">
+                <i class="fa-solid fa-code me-1"></i> Mermaid
+            </button>
+            <button class="btn btn-outline-success btn-sm rounded-pill" onclick="switchTab('image')">
+                <i class="fa-solid fa-image me-1"></i> Hình ảnh
+            </button>
+            <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="switchTab('plantuml')">
+                <i class="fa-solid fa-terminal me-1"></i> PlantUML
+            </button>
+        </div>
+    </div>
+
+    <!-- Tab: Mermaid Diagram -->
+    <div id="tabMermaid" class="card-premium p-4">
+        <div class="text-center mb-3">
+            <span class="badge bg-primary px-3 py-2 rounded-pill">
+                <i class="fa-solid fa-diagram-project me-1"></i> Mermaid (Interactive)
+            </span>
+        </div>
+        <div class="mermaid" style="overflow-x: auto;">
+flowchart LR
+    G["🧑 Guest"]
+
+    subgraph System["Hệ thống Admin Dashboard"]
+        direction TB
+
+        subgraph M1["M1 — Authentication"]
+            UC01["UC-01: Xem Landing Page"]
+            UC02["UC-02: Đăng nhập Admin"]
+            UC03["UC-03: Đăng nhập Owner"]
+            UC04["UC-04: Đăng ký Owner"]
+            UC05["UC-05: Đổi mật khẩu"]
+            UC06["UC-06: Đăng xuất"]
+            UC07["UC-07: Xem Dashboard"]
+        end
+
+        subgraph M2["M2 — POIs Management"]
+            UC08["UC-08: Xem danh sách POI"]
+            UC09["UC-09: Xem POI trên bản đồ"]
+            UC10["UC-10: Tạo POI Major/Minor"]
+            UC11["UC-11: Sửa POI"]
+            UC12["UC-12: Xóa POI"]
+            UC13["UC-13: Xem chi tiết POI"]
+            UC14["UC-14: Xuất QR Code PDF"]
+            UC15["UC-15: Chọn tọa độ trên map"]
+        end
+
+        subgraph M3["M3 — Tours Management"]
+            UC16["UC-16: Xem danh sách Tour"]
+            UC17["UC-17: Tạo Tour"]
+            UC18["UC-18: Sửa Tour"]
+            UC19["UC-19: Xóa Tour"]
+            UC20["UC-20: Thêm POI vào Tour"]
+            UC21["UC-21: Gỡ POI khỏi Tour"]
+            UC22["UC-22: Sắp xếp POI trong Tour"]
+        end
+    end
+
+    A["👨‍💼 Admin"]
+    O["🏪 Owner"]
+
+    G --> UC01
+    G --> UC02
+    G --> UC03
+    G --> UC04
+
+    UC05 --> A
+    UC06 --> A
+    UC07 --> A
+    UC08 --> A
+    UC09 --> A
+    UC10 --> A
+    UC11 --> A
+    UC12 --> A
+    UC13 --> A
+    UC14 --> A
+    UC16 --> A
+    UC17 --> A
+    UC18 --> A
+    UC19 --> A
+    UC20 --> A
+    UC21 --> A
+    UC22 --> A
+
+    UC05 --> O
+    UC06 --> O
+    UC07 --> O
+    UC08 --> O
+    UC09 --> O
+    UC10 --> O
+    UC11 --> O
+    UC12 --> O
+    UC13 --> O
+    UC14 --> O
+    UC16 --> O
+    UC17 --> O
+    UC18 --> O
+    UC19 --> O
+    UC20 --> O
+    UC21 --> O
+    UC22 --> O
+
+    UC10 -.->|include| UC15
+    UC11 -.->|include| UC15
+    UC14 -.->|extend| UC13
+        </div>
+    </div>
+
+    <!-- Tab: AI Generated Image -->
+    <div id="tabImage" class="card-premium p-4" style="display: none;">
+        <div class="text-center mb-3">
+            <span class="badge bg-success px-3 py-2 rounded-pill">
+                <i class="fa-solid fa-image me-1"></i> Hình ảnh (PNG — dùng cho báo cáo)
+            </span>
+            <a href="/docs/usecase_diagram.png" download class="btn btn-outline-primary btn-sm rounded-pill ms-2">
+                <i class="fa-solid fa-download me-1"></i> Tải PNG
+            </a>
+        </div>
+        <div class="text-center">
+            <img src="/docs/usecase_diagram.png" alt="Use Case Diagram" class="img-fluid rounded shadow-sm" style="max-height: 80vh;" />
+        </div>
+    </div>
+
+    <!-- Tab: PlantUML Source -->
+    <div id="tabPlantuml" class="card-premium p-4" style="display: none;">
+        <div class="text-center mb-3">
+            <span class="badge bg-secondary px-3 py-2 rounded-pill">
+                <i class="fa-solid fa-terminal me-1"></i> PlantUML Source (chuẩn UML 2.0)
+            </span>
+            <button class="btn btn-outline-primary btn-sm rounded-pill ms-2" onclick="copyPlantUml()">
+                <i class="fa-solid fa-copy me-1"></i> Copy
+            </button>
+            <a href="http://www.plantuml.com/plantuml/uml/" target="_blank" class="btn btn-outline-secondary btn-sm rounded-pill ms-1">
+                <i class="fa-solid fa-external-link me-1"></i> Mở PlantUML.com
+            </a>
+        </div>
+        <pre class="rounded" style="background: #1e293b; color: #e2e8f0; padding: 1.5rem; font-size: 0.82rem; max-height: 70vh; overflow: auto;"><code id="plantumlCode">@@startuml UseCase_AdminDashboard
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam usecase {
+    BackgroundColor&lt;&lt; M1 &gt;&gt; #E8F5E9
+    BackgroundColor&lt;&lt; M2 &gt;&gt; #E3F2FD
+    BackgroundColor&lt;&lt; M3 &gt;&gt; #FFF3E0
+    BorderColor #555
+}
+
+' === LEFT ACTOR ===
+actor "Guest" as Guest
+
+rectangle "Hệ thống Admin Dashboard\nPhố Ẩm Thực Vĩnh Khánh" {
+
+    package "M1 — Authentication" &lt;&lt;M1&gt;&gt; {
+        usecase "UC-01: Xem Landing Page" as UC01
+        usecase "UC-02: Đăng nhập (Admin)" as UC02
+        usecase "UC-03: Đăng nhập (Owner)" as UC03
+        usecase "UC-04: Đăng ký Owner" as UC04
+        usecase "UC-05: Đổi mật khẩu" as UC05
+        usecase "UC-06: Đăng xuất" as UC06
+        usecase "UC-07: Xem Dashboard" as UC07
+    }
+
+    package "M2 — POIs Management" &lt;&lt;M2&gt;&gt; {
+        usecase "UC-08: Xem danh sách POI" as UC08
+        usecase "UC-09: Xem POI trên bản đồ" as UC09
+        usecase "UC-10: Tạo POI\n(Major / Minor)" as UC10
+        usecase "UC-11: Sửa POI" as UC11
+        usecase "UC-12: Xóa POI" as UC12
+        usecase "UC-13: Xem chi tiết POI" as UC13
+        usecase "UC-14: Xuất QR Code PDF" as UC14
+        usecase "UC-15: Chọn tọa độ\ntrên bản đồ" as UC15
+    }
+
+    package "M3 — Tours Management" &lt;&lt;M3&gt;&gt; {
+        usecase "UC-16: Xem danh sách Tour" as UC16
+        usecase "UC-17: Tạo Tour" as UC17
+        usecase "UC-18: Sửa Tour" as UC18
+        usecase "UC-19: Xóa Tour" as UC19
+        usecase "UC-20: Thêm POI vào Tour" as UC20
+        usecase "UC-21: Gỡ POI khỏi Tour" as UC21
+        usecase "UC-22: Sắp xếp thứ tự\nPOI trong Tour" as UC22
+    }
+}
+
+' === RIGHT ACTORS ===
+actor "Admin" as Admin
+actor "Owner" as Owner
+
+' Guest (LEFT) --&gt; M1 only
+Guest --&gt; UC01
+Guest --&gt; UC02
+Guest --&gt; UC03
+Guest --&gt; UC04
+
+' Admin (RIGHT) --&gt; M1 (partial) + M2 + M3
+UC05 &lt;-- Admin
+UC06 &lt;-- Admin
+UC07 &lt;-- Admin
+UC08 &lt;-- Admin
+UC09 &lt;-- Admin
+UC10 &lt;-- Admin
+UC11 &lt;-- Admin
+UC12 &lt;-- Admin
+UC13 &lt;-- Admin
+UC14 &lt;-- Admin
+UC16 &lt;-- Admin
+UC17 &lt;-- Admin
+UC18 &lt;-- Admin
+UC19 &lt;-- Admin
+UC20 &lt;-- Admin
+UC21 &lt;-- Admin
+UC22 &lt;-- Admin
+
+' Owner (RIGHT) --&gt; M1 (partial) + M2 + M3
+UC05 &lt;-- Owner
+UC06 &lt;-- Owner
+UC07 &lt;-- Owner
+UC08 &lt;-- Owner
+UC09 &lt;-- Owner
+UC10 &lt;-- Owner
+UC11 &lt;-- Owner
+UC12 &lt;-- Owner
+UC13 &lt;-- Owner
+UC14 &lt;-- Owner
+UC16 &lt;-- Owner
+UC17 &lt;-- Owner
+UC18 &lt;-- Owner
+UC19 &lt;-- Owner
+UC20 &lt;-- Owner
+UC21 &lt;-- Owner
+UC22 &lt;-- Owner
+
+' Relationships
+UC10 ..&gt; UC15 : &lt;&lt;include&gt;&gt;
+UC11 ..&gt; UC15 : &lt;&lt;include&gt;&gt;
+UC14 ..&gt; UC13 : &lt;&lt;extend&gt;&gt;
+
+note right of Owner
+  Owner chỉ thao tác
+  trên POI/Tour có
+  OwnerEmail khớp
+end note
+
+note right of Admin
+  Admin toàn quyền
+  trên tất cả dữ liệu
+end note
+@@enduml</code></pre>
+    </div>
+
+    <!-- Legend -->
+    <div class="card-premium p-4 mt-4">
+        <h6 class="fw-bold mb-3" style="color: #2C4C3B;">
+            <i class="fa-solid fa-circle-info me-1"></i> Chú thích
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-secondary rounded-pill px-3">Guest</span>
+                    <span class="text-muted small">Người chưa đăng nhập</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="badge bg-primary rounded-pill px-3">Admin</span>
+                    <span class="text-muted small">Quản trị viên (toàn quyền)</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success rounded-pill px-3">Owner</span>
+                    <span class="text-muted small">Chủ quán (chỉ dữ liệu sở hữu)</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="small text-muted mb-1"><strong style="color: #4ade80;">●</strong> M1 — Authentication (7 UC)</div>
+                <div class="small text-muted mb-1"><strong style="color: #60a5fa;">●</strong> M2 — POIs Management (8 UC)</div>
+                <div class="small text-muted"><strong style="color: #fb923c;">●</strong> M3 — Tours Management (7 UC)</div>
+            </div>
+            <div class="col-md-4">
+                <div class="small text-muted mb-1">─── Association (tác nhân → use case)</div>
+                <div class="small text-muted mb-1">- - - «include» (bao hàm bắt buộc)</div>
+                <div class="small text-muted">- - - «extend» (mở rộng tùy chọn)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: { curve: 'basis', padding: 15 },
+            securityLevel: 'loose'
+        });
+
+        function switchTab(tab) {
+            document.getElementById('tabMermaid').style.display = tab === 'mermaid' ? '' : 'none';
+            document.getElementById('tabImage').style.display = tab === 'image' ? '' : 'none';
+            document.getElementById('tabPlantuml').style.display = tab === 'plantuml' ? '' : 'none';
+        }
+
+        function copyPlantUml() {
+            const el = document.getElementById('plantumlCode');
+            let code = el.textContent;
+            const atSign = String.fromCharCode(64);
+            code = code.replace(/@@/g, atSign);
+            navigator.clipboard.writeText(code).then(function() {
+                Swal.fire({ icon: 'success', title: 'Đã copy!', text: 'Dán vào plantuml.com để render.', timer: 1500, showConfirmButton: false });
+            });
+        }
+    </script>
+}

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -6,9 +7,32 @@ using TouristGuideWeb.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Railway provides PORT. Bind to it when present.
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrWhiteSpace(port) && int.TryParse(port, out var portNumber))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{portNumber}");
+}
+
+// When running behind a reverse proxy (Railway), respect forwarded headers.
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+}
+
+// Local (gitignored) overrides for machine-specific settings.
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+
 // Add services to the container.
 builder.Services.AddDbContext<AppIdentityDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("IdentityConnection")));
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("IdentityConnection"),
+        npgsqlOptions => npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory_TouristGuideWeb")));
 
 builder.Services
     .AddDefaultIdentity<IdentityUser>(options =>
@@ -44,8 +68,11 @@ builder.Services.AddScoped<TouristGuideWeb.Services.LocalizationApiService>();
 builder.Services.AddScoped<TouristGuideWeb.Services.TtsSettingsApiService>();
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
+app.UseForwardedHeaders();
+
+if (!app.Environment.IsEnvironment("Testing"))
 {
+    using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
     await dbContext.Database.MigrateAsync();
 
@@ -61,51 +88,71 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
+    var adminEmail = app.Configuration["ApiSettings:AdminEmail"];
+    var adminPassword = app.Configuration["ApiSettings:AdminPassword"];
 
-    const string adminEmail = "admin@gmail.com";
-    const string adminPassword = "Admin@123";
-
-    var adminUser = await userManager.FindByEmailAsync(adminEmail);
-    if (adminUser is null)
+    if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
     {
-        adminUser = new IdentityUser
+        if (app.Environment.IsDevelopment())
         {
-            UserName = adminEmail,
-            Email = adminEmail,
-            EmailConfirmed = true
-        };
-
-        var createResult = await userManager.CreateAsync(adminUser, adminPassword);
-        if (!createResult.Succeeded)
+            adminEmail = "admin@gmail.com";
+            adminPassword = "Admin@123";
+        }
+        else
         {
-            var errors = string.Join("; ", createResult.Errors.Select(e => e.Description));
-            throw new InvalidOperationException($"Failed to create seeded admin user: {errors}");
+            app.Logger.LogWarning("Admin user seeding skipped: missing ApiSettings:AdminEmail / ApiSettings:AdminPassword.");
+            adminEmail = null;
+            adminPassword = null;
         }
     }
-    else
+
+    if (!string.IsNullOrWhiteSpace(adminEmail) && !string.IsNullOrWhiteSpace(adminPassword))
     {
-        var hasExpectedPassword = await userManager.CheckPasswordAsync(adminUser, adminPassword);
-        if (!hasExpectedPassword)
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+        if (adminUser is null)
         {
-            var resetToken = await userManager.GeneratePasswordResetTokenAsync(adminUser);
-            var resetResult = await userManager.ResetPasswordAsync(adminUser, resetToken, adminPassword);
-            if (!resetResult.Succeeded)
+            adminUser = new IdentityUser
             {
-                var errors = string.Join("; ", resetResult.Errors.Select(e => e.Description));
-                throw new InvalidOperationException($"Failed to reset seeded admin password: {errors}");
+                UserName = adminEmail,
+                Email = adminEmail,
+                EmailConfirmed = true
+            };
+
+            var createResult = await userManager.CreateAsync(adminUser, adminPassword);
+            if (!createResult.Succeeded)
+            {
+                var errors = string.Join("; ", createResult.Errors.Select(e => e.Description));
+                throw new InvalidOperationException($"Failed to create seeded admin user: {errors}");
+            }
+        }
+        else
+        {
+            if (app.Environment.IsDevelopment())
+            {
+                var hasExpectedPassword = await userManager.CheckPasswordAsync(adminUser, adminPassword);
+                if (!hasExpectedPassword)
+                {
+                    var resetToken = await userManager.GeneratePasswordResetTokenAsync(adminUser);
+                    var resetResult = await userManager.ResetPasswordAsync(adminUser, resetToken, adminPassword);
+                    if (!resetResult.Succeeded)
+                    {
+                        var errors = string.Join("; ", resetResult.Errors.Select(e => e.Description));
+                        throw new InvalidOperationException($"Failed to reset seeded admin password: {errors}");
+                    }
+                }
+            }
+
+            if (!adminUser.EmailConfirmed)
+            {
+                adminUser.EmailConfirmed = true;
+                await userManager.UpdateAsync(adminUser);
             }
         }
 
-        if (!adminUser.EmailConfirmed)
+        if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
         {
-            adminUser.EmailConfirmed = true;
-            await userManager.UpdateAsync(adminUser);
+            await userManager.AddToRoleAsync(adminUser, "Admin");
         }
-    }
-
-    if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
-    {
-        await userManager.AddToRoleAsync(adminUser, "Admin");
     }
 }
 

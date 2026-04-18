@@ -13,19 +13,25 @@ using Microsoft.Extensions.Logging;
 namespace TourGuideApi.Services;
 
 /// <summary>
-/// Auto-translation using a local/self-hosted Ollama server.
+/// Auto-translation using Google Gemini (Generative Language API) via API key.
 /// Translates from Vietnamese (vi-VN) into multiple target languages.
+///
+/// Config:
+/// - Translation:Provider = Gemini
+/// - Gemini:ApiKey
+/// - Gemini:Model (e.g., gemini-1.5-flash)
+/// - Gemini:BaseUrl (optional, default https://generativelanguage.googleapis.com)
 /// </summary>
-public sealed class OllamaLocalizationTranslationService : ILocalizationTranslationService
+public sealed class GeminiLocalizationTranslationService : ILocalizationTranslationService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IConfiguration _configuration;
-    private readonly ILogger<OllamaLocalizationTranslationService> _logger;
+    private readonly ILogger<GeminiLocalizationTranslationService> _logger;
 
-    public OllamaLocalizationTranslationService(
+    public GeminiLocalizationTranslationService(
         IHttpClientFactory httpClientFactory,
         IConfiguration configuration,
-        ILogger<OllamaLocalizationTranslationService> logger)
+        ILogger<GeminiLocalizationTranslationService> logger)
     {
         _httpClientFactory = httpClientFactory;
         _configuration = configuration;
@@ -62,24 +68,27 @@ public sealed class OllamaLocalizationTranslationService : ILocalizationTranslat
             return new Dictionary<string, LocalizedText>(StringComparer.OrdinalIgnoreCase);
         }
 
-        var baseUrl = (_configuration["Ollama:BaseUrl"] ?? string.Empty).Trim();
+        var apiKey = (_configuration["Gemini:ApiKey"] ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            throw new LocalizationTranslationNotConfiguredException(
+                "Chưa cấu hình Gemini API key. Hãy đặt Gemini:ApiKey (khuyến nghị trong TourGuideApi/appsettings.Local.json hoặc env var Gemini__ApiKey) để bật auto-translate.");
+        }
+
+        var baseUrl = (_configuration["Gemini:BaseUrl"] ?? "https://generativelanguage.googleapis.com").Trim();
         if (string.IsNullOrWhiteSpace(baseUrl))
         {
-            throw new LocalizationTranslationNotConfiguredException(
-                "Chưa cấu hình dịch tự động. Hãy cài Ollama và cấu hình Ollama:BaseUrl (mặc định: http://localhost:11434)." );
+            baseUrl = "https://generativelanguage.googleapis.com";
         }
 
-        var model = (_configuration["Ollama:Model"] ?? string.Empty).Trim();
+        var model = (_configuration["Gemini:Model"] ?? string.Empty).Trim();
         if (string.IsNullOrWhiteSpace(model))
         {
-            throw new LocalizationTranslationNotConfiguredException(
-                "Chưa cấu hình model dịch tự động. Hãy đặt Ollama:Model (ví dụ: qwen2.5:14b) và đảm bảo model đã được pull (ollama pull qwen2.5:14b)." );
+            // Keep a sane default; users can override in appsettings.Local.json.
+            model = "gemini-1.5-flash";
         }
 
-        // Quality strategy: translate one language per request.
-        // This improves faithfulness and reduces JSON formatting errors.
-        using var client = _httpClientFactory.CreateClient("OllamaTranslation");
-        var endpoint = new Uri(new Uri(baseUrl.TrimEnd('/') + "/", UriKind.Absolute), "api/chat");
+        using var client = _httpClientFactory.CreateClient("GeminiTranslation");
 
         var output = new Dictionary<string, LocalizedText>(StringComparer.OrdinalIgnoreCase);
 
@@ -87,8 +96,9 @@ public sealed class OllamaLocalizationTranslationService : ILocalizationTranslat
         {
             output[lang] = await TranslateSingleLanguageWithRetryAsync(
                 client,
-                endpoint,
+                baseUrl,
                 model,
+                apiKey,
                 vietnameseName,
                 vietnameseDescription,
                 lang,
@@ -100,8 +110,9 @@ public sealed class OllamaLocalizationTranslationService : ILocalizationTranslat
 
     private async Task<LocalizedText> TranslateSingleLanguageWithRetryAsync(
         HttpClient client,
-        Uri endpoint,
+        string baseUrl,
         string model,
+        string apiKey,
         string vietnameseName,
         string vietnameseDescription,
         string languageCode,
@@ -111,8 +122,9 @@ public sealed class OllamaLocalizationTranslationService : ILocalizationTranslat
         {
             return await TranslateSingleLanguageOnceAsync(
                 client,
-                endpoint,
+                baseUrl,
                 model,
+                apiKey,
                 vietnameseName,
                 vietnameseDescription,
                 languageCode,
@@ -122,13 +134,14 @@ public sealed class OllamaLocalizationTranslationService : ILocalizationTranslat
         catch (InvalidOperationException ex) when (IsLikelyFormatOrValidationIssue(ex.Message))
         {
             _logger.LogInformation(
-                "Retrying Ollama translation for {LanguageCode} due to format/validation issue.",
+                "Retrying Gemini translation for {LanguageCode} due to format/validation issue.",
                 languageCode);
 
             return await TranslateSingleLanguageOnceAsync(
                 client,
-                endpoint,
+                baseUrl,
                 model,
+                apiKey,
                 vietnameseName,
                 vietnameseDescription,
                 languageCode,
@@ -139,35 +152,45 @@ public sealed class OllamaLocalizationTranslationService : ILocalizationTranslat
 
     private async Task<LocalizedText> TranslateSingleLanguageOnceAsync(
         HttpClient client,
-        Uri endpoint,
+        string baseUrl,
         string model,
+        string apiKey,
         string vietnameseName,
         string vietnameseDescription,
         string languageCode,
         bool isRetry,
         CancellationToken cancellationToken)
     {
+        // API: POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}
+        // We keep this configurable via Gemini:BaseUrl + Gemini:Model.
+        var endpoint = BuildEndpoint(baseUrl, model, apiKey);
+
         var systemPrompt = BuildSystemPrompt(languageCode);
         var userPrompt = BuildUserPromptSingle(vietnameseName, vietnameseDescription, languageCode, isRetry);
 
+        // Avoid relying on newer optional fields; provide one combined prompt.
+        // Gemini can still follow JSON-only instructions, but we keep strict parsing + retry.
         var requestBody = new
         {
-            model,
-            stream = false,
-            // Ask Ollama to return strict JSON if supported. Older versions ignore unknown fields.
-            format = "json",
-            options = new
+            contents = new object[]
             {
-                // Lower temperature for faithful translation.
-                temperature = isRetry ? 0.0 : 0.1,
-                top_p = 0.9,
-                // Keep context smaller to reduce RAM usage (useful on low-memory machines).
-                num_ctx = 2048
+                new
+                {
+                    role = "user",
+                    parts = new object[]
+                    {
+                        new
+                        {
+                            text = systemPrompt + "\n\n" + userPrompt
+                        }
+                    }
+                }
             },
-            messages = new object[]
+            generationConfig = new
             {
-                new { role = "system", content = systemPrompt },
-                new { role = "user", content = userPrompt }
+                temperature = isRetry ? 0.0 : 0.1,
+                topP = 0.9,
+                maxOutputTokens = 1024
             }
         };
 
@@ -180,25 +203,25 @@ public sealed class OllamaLocalizationTranslationService : ILocalizationTranslat
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Ollama translation request failed.");
+            _logger.LogWarning(ex, "Gemini translation request failed.");
             throw new InvalidOperationException(
-                "Không gọi được Ollama để dịch tự động. Hãy đảm bảo Ollama đang chạy (mặc định http://localhost:11434) và thử lại.");
+                "Không gọi được Gemini để dịch tự động. Hãy kiểm tra kết nối Internet và cấu hình Gemini:ApiKey/Gemini:Model.");
         }
 
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogWarning(
-                "Ollama translation failed. Status={Status}. Body={Body}",
+                "Gemini translation failed. Status={Status}. Body={Body}",
                 (int)response.StatusCode,
                 body);
 
-            throw new InvalidOperationException(BuildUserFacingOllamaErrorMessage((int)response.StatusCode, body, model));
+            throw new InvalidOperationException(BuildUserFacingGeminiErrorMessage((int)response.StatusCode, body));
         }
 
-        var assistantText = ExtractOllamaAssistantText(body);
+        var assistantText = ExtractGeminiText(body);
         if (string.IsNullOrWhiteSpace(assistantText))
         {
-            throw new InvalidOperationException("Ollama translation response was empty.");
+            throw new InvalidOperationException("Gemini translation response was empty.");
         }
 
         var json = TryExtractJsonObject(assistantText);
@@ -212,13 +235,13 @@ public sealed class OllamaLocalizationTranslationService : ILocalizationTranslat
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to parse Ollama JSON. RawText={RawText}", assistantText);
-            throw new InvalidOperationException("Ollama trả về JSON không hợp lệ.");
+            _logger.LogWarning(ex, "Failed to parse Gemini JSON. RawText={RawText}", assistantText);
+            throw new InvalidOperationException("Gemini trả về JSON không hợp lệ.");
         }
 
         if (localized is null)
         {
-            throw new InvalidOperationException("Ollama translation returned null JSON.");
+            throw new InvalidOperationException("Gemini translation returned null JSON.");
         }
 
         localized.LocalizedName = (localized.LocalizedName ?? string.Empty).Trim();
@@ -227,10 +250,34 @@ public sealed class OllamaLocalizationTranslationService : ILocalizationTranslat
         if (string.IsNullOrWhiteSpace(localized.LocalizedName)
             || string.IsNullOrWhiteSpace(localized.LocalizedDescription))
         {
-            throw new InvalidOperationException("Ollama response missing localizedName/localizedDescription.");
+            throw new InvalidOperationException("Gemini response missing localizedName/localizedDescription.");
         }
 
         return localized;
+    }
+
+    private static Uri BuildEndpoint(string baseUrl, string model, string apiKey)
+    {
+        var trimmedBaseUrl = (baseUrl ?? string.Empty).Trim().TrimEnd('/');
+        var trimmedModel = (model ?? string.Empty).Trim();
+
+        if (string.IsNullOrWhiteSpace(trimmedBaseUrl))
+        {
+            trimmedBaseUrl = "https://generativelanguage.googleapis.com";
+        }
+
+        if (string.IsNullOrWhiteSpace(trimmedModel))
+        {
+            trimmedModel = "gemini-1.5-flash";
+        }
+
+        var builder = new UriBuilder(trimmedBaseUrl)
+        {
+            Path = $"/v1beta/models/{trimmedModel}:generateContent",
+            Query = $"key={Uri.EscapeDataString(apiKey ?? string.Empty)}"
+        };
+
+        return builder.Uri;
     }
 
     private static string BuildSystemPrompt(string languageCode)
@@ -243,7 +290,6 @@ public sealed class OllamaLocalizationTranslationService : ILocalizationTranslat
         sb.AppendLine("Giữ tên riêng/địa danh/thương hiệu/món ăn theo tiếng Việt nếu phù hợp; nếu có bản dịch phổ biến (ví dụ Ho Chi Minh City) thì có thể dùng.");
         sb.AppendLine("Ưu tiên từ vựng CHUẨN MỰC, giàu sắc thái (hơi trang trọng) thay vì từ đơn giản; tránh tiếng lóng/văn nói.");
         sb.AppendLine("Văn phong tự nhiên, lịch sự, dễ nghe khi đọc TTS.");
-        sb.AppendLine("Trước khi trả kết quả: tự kiểm tra nhanh bằng cách dịch ngược về tiếng Việt trong đầu để chắc chắn không lệch nghĩa.");
         sb.AppendLine("Luôn trả về DUY NHẤT JSON hợp lệ (không markdown, không giải thích, không ký tự thừa).");
         sb.AppendLine($"Ngôn ngữ đầu ra: {DescribeTargetLanguage(languageCode)}.");
         return sb.ToString();
@@ -263,7 +309,6 @@ public sealed class OllamaLocalizationTranslationService : ILocalizationTranslat
         sb.AppendLine("- localizedName/localizedDescription KHÔNG được rỗng.");
         sb.AppendLine("- Không thêm thông tin mới, không bịa địa chỉ/giá/khuyến mãi.");
         sb.AppendLine("- Không đổi nghĩa, không tóm tắt.");
-        sb.AppendLine("- Dùng từ vựng phong phú/chính xác hơn (có thể hơi trang trọng) nhưng KHÔNG được thêm ý.");
         sb.AppendLine("- Nếu không chắc cách dịch tên riêng/món ăn, giữ nguyên tiếng Việt để tránh dịch sai.");
 
         if (isRetry)
@@ -301,29 +346,36 @@ public sealed class OllamaLocalizationTranslationService : ILocalizationTranslat
         return message.Contains("json", StringComparison.OrdinalIgnoreCase)
             || message.Contains("missing", StringComparison.OrdinalIgnoreCase)
             || message.Contains("schema", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("empty", StringComparison.OrdinalIgnoreCase);
+            || message.Contains("empty", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("invalid", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static string ExtractOllamaAssistantText(string responseBodyJson)
+    private static string ExtractGeminiText(string responseBodyJson)
     {
         using var doc = JsonDocument.Parse(responseBodyJson);
 
-        // /api/chat
-        if (doc.RootElement.TryGetProperty("message", out var message)
-            && message.ValueKind == JsonValueKind.Object
-            && message.TryGetProperty("content", out var contentEl)
-            && contentEl.ValueKind == JsonValueKind.String)
+        if (doc.RootElement.TryGetProperty("candidates", out var candidates)
+            && candidates.ValueKind == JsonValueKind.Array
+            && candidates.GetArrayLength() > 0)
         {
-            return contentEl.GetString() ?? string.Empty;
+            var first = candidates[0];
+            if (first.TryGetProperty("content", out var content)
+                && content.ValueKind == JsonValueKind.Object
+                && content.TryGetProperty("parts", out var parts)
+                && parts.ValueKind == JsonValueKind.Array
+                && parts.GetArrayLength() > 0)
+            {
+                var part = parts[0];
+                if (part.ValueKind == JsonValueKind.Object
+                    && part.TryGetProperty("text", out var textEl)
+                    && textEl.ValueKind == JsonValueKind.String)
+                {
+                    return textEl.GetString() ?? string.Empty;
+                }
+            }
         }
 
-        // /api/generate (fallback)
-        if (doc.RootElement.TryGetProperty("response", out var responseEl)
-            && responseEl.ValueKind == JsonValueKind.String)
-        {
-            return responseEl.GetString() ?? string.Empty;
-        }
-
+        // Some errors still return JSON, but without candidates.
         return string.Empty;
     }
 
@@ -359,43 +411,37 @@ public sealed class OllamaLocalizationTranslationService : ILocalizationTranslat
         return trimmed;
     }
 
-    private static string BuildUserFacingOllamaErrorMessage(int httpStatusCode, string responseBody, string model)
+    private static string BuildUserFacingGeminiErrorMessage(int httpStatusCode, string responseBody)
     {
-        var error = TryParseOllamaError(responseBody);
+        var error = TryParseGeminiError(responseBody);
         error = (error ?? string.Empty).Trim();
 
-        if (!string.IsNullOrWhiteSpace(error)
-            && error.Contains("model", StringComparison.OrdinalIgnoreCase)
-            && error.Contains("not", StringComparison.OrdinalIgnoreCase)
-            && error.Contains("found", StringComparison.OrdinalIgnoreCase))
+        if (httpStatusCode == 400)
         {
-            return $"Ollama chưa có model '{model}'. Hãy chạy: ollama pull {model}";
-        }
-
-        if (httpStatusCode == 404)
-        {
-            return "Không tìm thấy endpoint của Ollama (404). Hãy kiểm tra Ollama:BaseUrl (mặc định http://localhost:11434).";
+            return !string.IsNullOrWhiteSpace(error)
+                ? $"Gemini trả về lỗi (400). {error}"
+                : "Gemini trả về lỗi (400). Hãy kiểm tra Gemini:Model và nội dung yêu cầu.";
         }
 
         if (httpStatusCode == 401 || httpStatusCode == 403)
         {
-            return "Ollama bị từ chối truy cập (401/403). Hãy kiểm tra cấu hình reverse proxy hoặc quyền truy cập tới Ollama.";
+            return "Gemini bị từ chối truy cập (401/403). Hãy kiểm tra Gemini:ApiKey (và quota/billing nếu có).";
         }
 
         if (httpStatusCode == 429)
         {
-            return "Ollama đang bận (429). Hãy thử lại sau.";
+            return "Gemini đang bị giới hạn (429). Hãy thử lại sau hoặc nâng quota.";
         }
 
         if (!string.IsNullOrWhiteSpace(error))
         {
-            return $"Gọi Ollama thất bại ({httpStatusCode}). {error}";
+            return $"Gọi Gemini thất bại ({httpStatusCode}). {error}";
         }
 
-        return $"Gọi Ollama thất bại ({httpStatusCode}). Hãy kiểm tra Ollama đang chạy và model '{model}' có sẵn.";
+        return $"Gọi Gemini thất bại ({httpStatusCode}).";
     }
 
-    private static string? TryParseOllamaError(string responseBody)
+    private static string? TryParseGeminiError(string responseBody)
     {
         if (string.IsNullOrWhiteSpace(responseBody))
         {
@@ -406,9 +452,19 @@ public sealed class OllamaLocalizationTranslationService : ILocalizationTranslat
         {
             using var doc = JsonDocument.Parse(responseBody);
             if (doc.RootElement.TryGetProperty("error", out var errorEl)
-                && errorEl.ValueKind == JsonValueKind.String)
+                && errorEl.ValueKind == JsonValueKind.Object)
             {
-                return errorEl.GetString();
+                if (errorEl.TryGetProperty("message", out var messageEl)
+                    && messageEl.ValueKind == JsonValueKind.String)
+                {
+                    return messageEl.GetString();
+                }
+
+                if (errorEl.TryGetProperty("status", out var statusEl)
+                    && statusEl.ValueKind == JsonValueKind.String)
+                {
+                    return statusEl.GetString();
+                }
             }
         }
         catch
