@@ -1,4 +1,5 @@
 @model TouristGuideWeb.Models.LocationEditViewModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
 @{
     ViewData["Title"] = "Edit Location";
@@ -20,7 +21,7 @@
 
     <div class="col-md-6">
         <label asp-for="Description" class="form-label"></label>
-        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+        <textarea asp-for="Description" id="descriptionEditor" class="form-control" rows="5"></textarea>
         <span asp-validation-for="Description" class="text-danger"></span>
     </div>
 
@@ -97,6 +98,17 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
     <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     <script>
+        // Initialize CKEditor
+        ClassicEditor
+            .create(document.querySelector('#descriptionEditor'), {
+                ckfinder: {
+                    uploadUrl: '@(Configuration["ApiSettings:BaseUrl"]?.TrimEnd('/') ?? "")/api/uploads'
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            });
+
         if (window.jQuery && $.validator) {
             $.validator.setDefaults({
                 onkeyup: function (element) {

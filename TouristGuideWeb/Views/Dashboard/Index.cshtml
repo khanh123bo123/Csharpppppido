@@ -28,8 +28,23 @@
     </div>
 </div>
 
-<!-- 4 Statistical Cards (Chevron Style) -->
+<!-- Quick Stats Cards -->
 <div class="chevron-container">
+    <div class="chevron-wrapper">
+        <div class="chevron-card" style="background: linear-gradient(135deg, #6366F1, #4F46E5);">
+            <div class="d-flex align-items-center">
+                <div class="bg-white p-1 rounded shadow-sm me-3">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=http%3A%2F%2F172.20.10.2%3A5214%2Ftai-app" 
+                         alt="Download App" style="width: 60px; height: 60px;" />
+                </div>
+                <div>
+                    <div class="chev-title" style="color: rgba(255,255,255,0.9); font-size: 0.7rem;">CÀI ĐẶT APP</div>
+                    <div class="chev-value" style="font-size: 1.1rem; margin-bottom: 2px;">Quét để tải về</div>
+                    <a href="/Home/Download" class="text-white small opacity-75 text-decoration-underline">Hướng dẫn</a>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="chevron-wrapper">
         <div class="chevron-card grad-orange">
             <div class="chev-title">QUÁN ĂN</div>
@@ -46,16 +61,93 @@
     </div>
     <div class="chevron-wrapper">
         <div class="chevron-card grad-green">
-            <div class="chev-title">KHÁCH THAM QUAN</div>
-            <div class="chev-value">—</div>
-            <div class="chev-desc">Chưa có dữ liệu<br/>theo dõi.</div>
+            <div class="chev-title">HỘI VIÊN</div>
+            <div class="chev-value">@Model.TotalUsers</div>
+            <div class="chev-desc">Số tài khoản đăng ký<br/>qua ứng dụng di động.</div>
+        </div>
+    </div>
+        <div class="chevron-card grad-purple">
+            <div class="chev-title">LƯỢT NGHE TTS</div>
+            <div class="chev-value" id="listen-count-value">@Model.TotalAudios</div>
+            <div class="chev-desc">Lượt thuyết minh tự<br/>động.</div>
         </div>
     </div>
     <div class="chevron-wrapper">
-        <div class="chevron-card grad-purple">
-            <div class="chev-title">LƯỢT NGHE TTS</div>
-            <div class="chev-value">@Model.TotalAudios</div>
-            <div class="chev-desc">Lượt thuyết minh tự<br/>động.</div>
+        <div class="chevron-card grad-cyan">
+            <div class="chev-title">ĐANG ONLINE</div>
+            <div class="chev-value" id="online-count-value">@Model.OnlineDevicesCount</div>
+            <div class="chev-desc">Thiết bị đang hoạt động<br/>trong 5 phút qua.</div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Ratings Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card-premium">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0 text-dark-blue">
+                        <i class="fa-solid fa-star text-warning me-2"></i>Đánh giá mới nhất
+                    </h5>
+                    <span class="badge bg-light text-muted">Hiển thị 50 lượt gần nhất</span>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 200px;">Quán ăn / POI</th>
+                                <th style="width: 120px;">Đánh giá</th>
+                                <th>Người đánh giá</th>
+                                <th style="width: 180px;">Thời gian</th>
+                                <th style="width: 150px;">Địa chỉ IP / Thiết bị</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.RecentRatings == null || !Model.RecentRatings.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted italic">Chưa có đánh giá nào được ghi nhận.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                foreach (var rating in Model.RecentRatings)
+                                {
+                                    <tr>
+                                        <td class="fw-bold">@rating.LocationName</td>
+                                        <td>
+                                            <div class="text-warning">
+                                                @for (int i = 0; i < 5; i++)
+                                                {
+                                                    <i class="fa-@(i < rating.Stars ? "solid" : "regular") fa-star"></i>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(rating.UserEmail))
+                                            {
+                                                <span class="badge bg-primary">@rating.UserEmail</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Khách vãng lai</span>
+                                            }
+                                        </td>
+                                        <td class="text-muted small">@rating.RatedAt.AddHours(7).ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td class="small">
+                                            <div class="text-truncate" style="max-width: 140px;" title="@rating.UserIp / @rating.DeviceIdentifier">
+                                                @(rating.UserIp ?? "N/A")
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -91,9 +183,13 @@
         </div>
 
         <!-- Chart -->
-        <div class="card-premium mb-0" style="height: 280px;">
-            <div class="card-body h-100">
-                <div class="h-100 w-100">
+        <div class="card-premium mb-0" style="height: 320px;">
+            <div class="card-body h-100 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 text-dark-blue" style="font-size: 1rem;">Phân loại địa điểm</h5>
+                    <span class="badge bg-light text-muted" style="font-weight: 500;">Theo tỉnh thành / danh mục</span>
+                </div>
+                <div style="height: calc(100% - 40px); position: relative;">
                     <canvas id="provinceChart"></canvas>
                 </div>
             </div>
@@ -121,84 +217,159 @@
             <div class="col-md-6">
                 <a asp-controller="Locations" asp-action="Index" class="action-card" style="background: linear-gradient(135deg, #A855F7, #3B82F6); height: 140px;">
                     <i class="fa-solid fa-map-location icon-top-right"></i>
-                    <div class="action-title">Quản lý trưởng</div>
-                    <div class="action-desc">Quản lý thông tin quán ăn, bản án.</div>
+                    <div class="action-title">Quản lý chính</div>
+                    <div class="action-desc">Quản lý thông tin quán ăn và bản đồ.</div>
                 </a>
             </div>
             <div class="col-md-6">
                 <a asp-controller="Tours" asp-action="Index" class="action-card grad-green" style="height: 140px;">
                     <i class="fa-solid fa-list-check icon-top-right"></i>
-                    <div class="action-title">Tạo lộ trình</div>
-                    <div class="action-desc">Quản lý thông tin và bá đính.</div>
+                    <div class="action-title">Quản lý lộ trình</div>
+                    <div class="action-desc">Quản lý thông tin và các địa điểm.</div>
                 </a>
             </div>
             <div class="col-md-6">
                 <a asp-controller="Localizations" asp-action="Index" class="action-card" style="background: linear-gradient(135deg, #10B981, #059669); height: 140px;">
                     <i class="fa-solid fa-globe icon-top-right"></i>
                     <div class="action-title">Quản lý ngôn ngữ</div>
-                    <div class="action-desc">Quản lý phòng đón và ngôn ngữ.</div>
+                    <div class="action-desc">Quản lý bản dịch và đa ngôn ngữ.</div>
                 </a>
             </div>
             <div class="col-md-6">
                 <a asp-controller="Statistics" asp-action="Index" class="action-card" style="background: linear-gradient(135deg, #D946EF, #9333EA); height: 140px;">
                     <i class="fa-regular fa-file-lines icon-top-right"></i>
-                    <div class="action-title">Báo cáo chi tiết</div>
-                    <div class="action-desc">Lượt lý thuyết minh tự động.</div>
+                    <div class="action-title">Thống kê chi tiết</div>
+                    <div class="action-desc">Theo dõi lượt thuyết minh tự động.</div>
                 </a>
             </div>
         </div>
     </div>
 </div>
 
+
+
 @section Scripts {
         <script>
-            const labels = @Html.Raw(labelsJson);
-            const data = @Html.Raw(valuesJson);
+            document.addEventListener('DOMContentLoaded', function() {
+                const labels = @Html.Raw(labelsJson);
+                const data = @Html.Raw(valuesJson);
 
-            const ctx = document.getElementById('provinceChart');
-            if (ctx) {
-                Chart.defaults.color = "#627d98";
-                Chart.defaults.borderColor = "rgba(0, 0, 0, 0.05)";
+                const ctx = document.getElementById('provinceChart');
+                if (ctx) {
+                    Chart.defaults.color = "#627d98";
+                    Chart.defaults.font.family = "'Inter', sans-serif";
+                    Chart.defaults.borderColor = "rgba(0, 0, 0, 0.05)";
 
-                if (labels.length === 0) {
-                    const canvas = document.getElementById('provinceChart');
-                    const parent = canvas.parentElement;
-                    parent.innerHTML = `<div style="height:100%; display:flex; align-items:center; justify-content:center; color:#adb5bd; flex-direction:column; gap:8px;">
-                        <i class="fa-solid fa-chart-bar" style="font-size:2rem; opacity:0.4;"></i>
-                        <span style="font-size:0.9rem;">Chưa có dữ liệu thống kê</span>
-                    </div>`;
-                } else {
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                label: 'Số quán',
-                                data: data,
-                                borderWidth: 0,
-                                backgroundColor: 'rgba(255, 107, 53, 0.8)',
-                                borderRadius: 6
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: { precision: 0 },
-                                    grid: { color: "rgba(0, 0, 0, 0.04)" }
-                                },
-                                x: {
-                                    grid: { display: false }
-                                }
+                    if (labels.length === 0) {
+                        const parent = ctx.parentElement;
+                        parent.innerHTML = `<div style="height:100%; display:flex; align-items:center; justify-content:center; color:#adb5bd; flex-direction:column; gap:8px;">
+                            <i class="fa-solid fa-chart-bar" style="font-size:2rem; opacity:0.4;"></i>
+                            <span style="font-size:0.9rem;">Chưa có dữ liệu thống kê</span>
+                        </div>`;
+                    } else {
+                        // Create gradient
+                        const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
+                        gradient.addColorStop(0, 'rgba(255, 107, 53, 0.9)');
+                        gradient.addColorStop(1, 'rgba(255, 158, 94, 0.6)');
+
+                        new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: labels.map(l => l.length > 20 ? l.substring(0, 17) + '...' : l),
+                                datasets: [{
+                                    label: 'Số lượng',
+                                    data: data,
+                                    borderWidth: 0,
+                                    backgroundColor: gradient,
+                                    hoverBackgroundColor: 'rgba(255, 107, 53, 1)',
+                                    borderRadius: 8,
+                                    barThickness: 35
+                                }]
                             },
-                            plugins: {
-                                legend: { display: false }
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                layout: {
+                                    padding: { top: 10, bottom: 0 }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        ticks: { 
+                                            precision: 0,
+                                            padding: 10
+                                        },
+                                        grid: { 
+                                            color: "rgba(0, 0, 0, 0.04)",
+                                            drawBorder: false
+                                        }
+                                    },
+                                    x: {
+                                        grid: { display: false },
+                                        ticks: {
+                                            padding: 10,
+                                            font: { size: 11 }
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: {
+                                        backgroundColor: '#1e293b',
+                                        padding: 12,
+                                        titleFont: { size: 13, weight: 'bold' },
+                                        bodyFont: { size: 12 },
+                                        cornerRadius: 8,
+                                        displayColors: false,
+                                        callbacks: {
+                                            title: (items) => labels[items[0].dataIndex]
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+
+            // Online Count Refresh logic
+            function refreshOnlineCount() {
+                fetch('/Dashboard/GetOnlineCount')
+                    .then(response => response.json())
+                    .then(data => {
+                        const el = document.getElementById('online-count-value');
+                        if (el && data && typeof data.onlineCount !== 'undefined') {
+                            const current = parseInt(el.innerText);
+                            if (current !== data.onlineCount) {
+                                el.innerText = data.onlineCount;
+                                el.style.transition = 'transform 0.2s';
+                                el.style.transform = 'scale(1.2)';
+                                setTimeout(() => el.style.transform = 'scale(1)', 200);
                             }
                         }
-                    });
-                }
+                    })
+                    .catch(err => console.error('Error refreshing online count:', err));
             }
+
+            function refreshListenStats() {
+                fetch('/Dashboard/GetListenStats')
+                    .then(response => response.json())
+                    .then(data => {
+                        const el = document.getElementById('listen-count-value');
+                        if (el && data && typeof data.totalListens !== 'undefined') {
+                            const current = parseInt(el.innerText);
+                            if (current !== data.totalListens) {
+                                el.innerText = data.totalListens;
+                                el.style.transition = 'transform 0.2s';
+                                el.style.transform = 'scale(1.2)';
+                                setTimeout(() => el.style.transform = 'scale(1)', 200);
+                            }
+                        }
+                    })
+                    .catch(err => console.error('Error refreshing listen stats:', err));
+            }
+
+            setInterval(refreshOnlineCount, 10000); // Every 10 seconds
+            setInterval(refreshListenStats, 10000); // Every 10 seconds
         </script>
 }

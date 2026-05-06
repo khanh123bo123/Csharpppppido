@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?><root><resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader><resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader><resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+<?xml version="1.0" encoding="utf-8"?><root><resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader><resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader><resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="AppTitle_Main" xml:space="preserve"><value>🫕 Culinary Tourism</value></data>
   <data name="Tab_QR" xml:space="preserve"><value>Scan QR</value></data>
   <data name="POI_Details_Desc" xml:space="preserve"><value>Description</value></data>
@@ -50,4 +50,50 @@
   <data name="Tab_Settings" xml:space="preserve"><value>Settings</value></data>
   <data name="TourMap_Loading" xml:space="preserve"><value>Loading...</value></data>
   <data name="QR_ScanTitle" xml:space="preserve"><value>Scan Location QR</value></data>
+  <data name="POI_DetailTitle" xml:space="preserve"><value>Location Details</value></data>
+  <data name="POI_Intro" xml:space="preserve"><value>Introduction</value></data>
+  <data name="POI_Distance_Prefix" xml:space="preserve"><value>📍 Away from you</value></data>
+  <data name="POI_FoundCount" xml:space="preserve"><value>Found {0} locations</value></data>
+  <data name="POI_FilterCount" xml:space="preserve"><value>Filter result: {0} locations</value></data>
+  <data name="POI_NoneFound" xml:space="preserve"><value>No matching locations found</value></data>
+  <data name="POI_EmptyList" xml:space="preserve"><value>No locations to display</value></data>
+  <data name="POI_StopTracking" xml:space="preserve"><value>⏹ Stop Tracking</value></data>
+  <data name="POI_StartTracking" xml:space="preserve"><value>📡 Start Tracking</value></data>
+  <data name="Alert_Error" xml:space="preserve"><value>Error</value></data>
+  <data name="Alert_NoConnection" xml:space="preserve"><value>Cannot connect to server</value></data>
+  <data name="Alert_LanguageTitle" xml:space="preserve"><value>Select Narration Language</value></data>
+  <data name="Tour_EmptyList" xml:space="preserve"><value>No tours available.</value></data>
+  <data name="Tour_Minutes" xml:space="preserve"><value>minutes</value></data>
+  <data name="Tour_DetailTitle" xml:space="preserve"><value>Tour Details</value></data>
+  <data name="Tour_DetailFormat" xml:space="preserve"><value>{0}\nLocations: {1}\nDistance: {2} km\nDo you want to open the first destination?</value></data>
+  <data name="Alert_Yes" xml:space="preserve"><value>Yes</value></data>
+  <data name="Alert_No" xml:space="preserve"><value>No</value></data>
+  <data name="Alert_Info" xml:space="preserve"><value>Information</value></data>
+  <data name="Tour_NoLocations" xml:space="preserve"><value>This tour has no locations yet.</value></data>
+  <data name="Tour_LoadError" xml:space="preserve"><value>Cannot load tours list.</value></data>
+  <data name="Map_SearchPlaceholder" xml:space="preserve"><value>Search for locations...</value></data>
+  <data name="Map_UpdatingLang" xml:space="preserve"><value>Updating language...</value></data>
+  <data name="Map_FoundCount" xml:space="preserve"><value>Loaded {0} locations</value></data>
+  <data name="Map_NoData" xml:space="preserve"><value>No location data. Check API connection!</value></data>
+  <data name="Map_LoadError" xml:space="preserve"><value>Cannot load map</value></data>
+  <data name="Map_DefaultCategory" xml:space="preserve"><value>Location</value></data>
+  <data name="Map_NoAddress" xml:space="preserve"><value>Address information is updating</value></data>
+  <data name="Map_SearchNear" xml:space="preserve"><value>Searching for restaurants near you...</value></data>
+  <data name="Map_Online" xml:space="preserve"><value>Mode: Online ☁️</value></data>
+  <data name="Map_Offline" xml:space="preserve"><value>Mode: Offline 📦</value></data>
+  <data name="Map_Caching" xml:space="preserve"><value>Caching...</value></data>
+  <data name="Map_CacheBtn" xml:space="preserve"><value>Cache Map</value></data>
+  <data name="Map_CacheSuccess" xml:space="preserve"><value>Map saved offline successfully</value></data>
+  <data name="Map_CacheError" xml:space="preserve"><value>Cannot cache map: {0}</value></data>
+  <data name="Map_CacheError" xml:space="preserve"><value>Cannot cache map: {0}</value></data>
+  <data name="QR_ManualInput" xml:space="preserve"><value>Enter QR code manually</value></data>
+  <data name="QR_ManualInput" xml:space="preserve"><value>Enter QR code manually</value></data>
+  <data name="Alert_Update_Title" xml:space="preserve"><value>Update</value></data>
+  <data name="Alert_Update_Confirm" xml:space="preserve"><value>Do you want to download and install the latest update?</value></data>
+  <data name="Alert_Update_Downloading" xml:space="preserve"><value>System is downloading the update, please wait a moment...</value></data>
+  <data name="Alert_Update_Error" xml:space="preserve"><value>Cannot download update. Please check your network connection or API server.</value></data>
+  <data name="Alert_Yes" xml:space="preserve"><value>Yes</value></data>
+  <data name="Alert_No" xml:space="preserve"><value>No</value></data>
+  <data name="Label_LoggedInAs" xml:space="preserve"><value>You are logged in as: {0}</value></data>
+  <data name="Label_NotLoggedIn" xml:space="preserve"><value>You are not logged in</value></data>
 </root>

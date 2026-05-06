@@ -20,7 +20,7 @@ if (!builder.Environment.IsDevelopment())
     builder.Services.Configure<ForwardedHeadersOptions>(options =>
     {
         options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-        options.KnownNetworks.Clear();
+        options.KnownIPNetworks.Clear();
         options.KnownProxies.Clear();
     });
 }
@@ -30,9 +30,7 @@ builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, relo
 
 // Add services to the container.
 builder.Services.AddDbContext<AppIdentityDbContext>(options =>
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("IdentityConnection"),
-        npgsqlOptions => npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory_TouristGuideWeb")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("IdentityConnection")));
 
 builder.Services
     .AddDefaultIdentity<IdentityUser>(options =>
@@ -66,6 +64,7 @@ builder.Services.AddScoped<TouristGuideWeb.Services.LocationApiService>();
 builder.Services.AddScoped<TouristGuideWeb.Services.TourApiService>();
 builder.Services.AddScoped<TouristGuideWeb.Services.LocalizationApiService>();
 builder.Services.AddScoped<TouristGuideWeb.Services.TtsSettingsApiService>();
+builder.Services.AddScoped<TouristGuideWeb.Services.AuthApiService>();
 var app = builder.Build();
 
 app.UseForwardedHeaders();
@@ -74,7 +73,7 @@ if (!app.Environment.IsEnvironment("Testing"))
 {
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
-    await dbContext.Database.MigrateAsync();
+    await dbContext.Database.EnsureCreatedAsync();
 
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
@@ -164,7 +163,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();

@@ -6,7 +6,7 @@
 
 <div class="row mb-3">
     <div class="col">
-        <h1 class="h3 mb-0">Danh sach dia diem</h1>
+        <h1 class="h3 mb-0">Danh sách địa điểm</h1>
     </div>
     <div class="col-auto">
         <form asp-action="Index" method="get" class="d-flex gap-2">
@@ -40,16 +40,21 @@
     <div class="col-auto">
         <div class="d-flex gap-2">
             <button type="submit" form="exportPdfForm" class="btn btn-outline-danger" id="exportSelectedBtn" disabled>
-                <i class="fa-solid fa-file-pdf me-1"></i>Xuat PDF da chon
+                <i class="fa-solid fa-file-pdf me-1"></i>Xuất PDF đã chọn
             </button>
             <a asp-action="ExportQrPdf" class="btn btn-danger">
-                <i class="fa-solid fa-file-export me-1"></i>Xuat PDF tat ca
+                <i class="fa-solid fa-file-export me-1"></i>Xuất PDF tất cả
             </a>
-            <a asp-action="IndexMap" class="btn btn-outline-success">
-                <i class="fa-solid fa-map-location-dot me-1"></i>Xem ban do
-            </a>
+            
+            <form asp-action="ReprocessAll" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn kích hoạt dịch lại toàn bộ các địa điểm không? Quá trình này sẽ tốn tài nguyên máy chủ.');">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-warning">
+                    <i class="fa-solid fa-language me-1"></i> Dịch lại toàn bộ
+                </button>
+            </form>
+
             <a asp-action="Create" class="btn btn-primary">
-                <i class="fa-solid fa-plus me-1"></i>Them moi
+                <i class="fa-solid fa-plus me-1"></i>Thêm mới
             </a>
         </div>
     </div>
@@ -65,10 +70,12 @@
                     <input type="checkbox" id="selectAllRows" class="form-check-input" title="Chon tat ca" />
                 </th>
                 <th>Id</th>
-                <th>Ten</th>
+                <th>Tên</th>
+                <th>Đánh giá</th>
                 <th>Loại</th>
-                <th>Toa do</th>
-                <th>Hanh dong</th>
+                <th>Tọa độ</th>
+                <th class="text-center">Mã QR</th>
+                <th>Hành động</th>
             </tr>
         </thead>
         <tbody>
@@ -84,6 +91,22 @@
                 </td>
                 <td>@item.Id</td>
                 <td>@item.Name</td>
+                <td>
+                    @if (item.RatingCount > 0)
+                    {
+                        <div class="text-warning small">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="fa-@(i <= Math.Round(item.AverageRating) ? "solid" : "regular") fa-star"></i>
+                            }
+                            <span class="text-muted ms-1">(@item.AverageRating)</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <span class="text-muted small">Chưa có</span>
+                    }
+                </td>
                 <td>
                     @if (item.Category?.StartsWith("minor:") == true)
                     {
@@ -107,6 +130,23 @@
                     }
                 </td>
                 <td>@item.Latitude.ToString("0.######"), @item.Longitude.ToString("0.######")</td>
+                <td class="text-center">
+                    @if (!string.IsNullOrEmpty(item.QrCodeData))
+                    {
+                        <div class="d-flex flex-column align-items-center">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=@(Uri.EscapeDataString(item.QrCodeData))" 
+                                 alt="QR Code" 
+                                 class="border rounded shadow-sm"
+                                 style="width: 64px; height: 64px; cursor: pointer; background: white;"
+                                 onclick="window.open(this.src)" />
+                            <span class="text-muted mt-1" style="font-size: 0.7rem;">@item.QrCodeData</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <span class="text-muted small">N/A</span>
+                    }
+                </td>
                 <td class="text-nowrap">
                     <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning" title="Edit">
                         <i class="fa-solid fa-pen-to-square"></i>
@@ -137,16 +177,16 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deleteConfirmModalLabel">Xac nhan xoa</h5>
+                <h5 class="modal-title" id="deleteConfirmModalLabel">Xác nhận xoá</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                Ban co chac chan muon xoa dia diem <strong id="deleteLocationName"></strong>?
+                Bạn có chắc chắn muốn xoá địa điểm <strong id="deleteLocationName"></strong>?
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Huy</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                 <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
-                    <i class="fa-solid fa-trash me-1"></i>Xoa
+                    <i class="fa-solid fa-trash me-1"></i>Xoá
                 </button>
             </div>
         </div>
@@ -158,16 +198,16 @@
         $(function () {
             const table = new DataTable('#locationsTable', {
                 language: {
-                    search: 'Tim kiem:',
-                    lengthMenu: 'Hien thi _MENU_ dong',
-                    info: 'Hien thi _START_ den _END_ cua _TOTAL_ dong',
+                    search: 'Tìm kiếm:',
+                    lengthMenu: 'Hiển thị _MENU_ dòng',
+                    info: 'Hiển thị _START_ đến _END_ của _TOTAL_ dòng',
                     paginate: {
-                        first: 'Dau',
-                        last: 'Cuoi',
+                        first: 'Đầu',
+                        last: 'Cuối',
                         next: 'Sau',
-                        previous: 'Truoc'
+                        previous: 'Trước'
                     },
-                    emptyTable: 'Khong co du lieu'
+                    emptyTable: 'Không có dữ liệu'
                 },
                 columnDefs: [
                     { targets: [0, 4], orderable: false, searchable: false }
@@ -204,7 +244,7 @@
                 updateExportState();
             });
 
-            $('.btn-delete').on('click', function () {
+            $(document).on('click', '.btn-delete', function () {
                 selectedId = $(this).data('id');
                 const name = $(this).data('name');
                 $('#deleteLocationName').text(name);

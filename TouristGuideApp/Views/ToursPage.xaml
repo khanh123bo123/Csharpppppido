@@ -27,7 +27,7 @@
                      RefreshColor="#B84A39">
             <CollectionView x:Name="ToursList" SelectionMode="None"
                             BackgroundColor="#FDFBF7"
-                            EmptyView="Chưa có lộ trình nào.">
+                            EmptyView="{Binding [Tour_EmptyList], Source={x:Static services:LocalizationResourceManager.Instance}}">
                 <CollectionView.Header>
                     <BoxView HeightRequest="8" Color="Transparent"/>
                 </CollectionView.Header>
@@ -74,7 +74,9 @@
                                     <HorizontalStackLayout Grid.Column="0" Spacing="16" VerticalOptions="Center">
                                         <HorizontalStackLayout Spacing="5">
                                             <Label Text="⏱" FontSize="13"/>
-                                            <Label Text="{Binding EstimatedDurationMinutes, StringFormat='{0} phút'}"
+                                            <Label Text="{Binding EstimatedDurationMinutes, StringFormat='{0} '}"
+                                                   FontSize="13" TextColor="#888"/>
+                                            <Label Text="{Binding [Tour_Minutes], Source={x:Static services:LocalizationResourceManager.Instance}}"
                                                    FontSize="13" TextColor="#888"/>
                                         </HorizontalStackLayout>
                                     </HorizontalStackLayout>

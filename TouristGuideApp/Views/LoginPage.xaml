@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:services="clr-namespace:TouristGuideApp.Services"
+             x:Class="TouristGuideApp.Views.LoginPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="#FDFBF7">
+
+    <Grid>
+        <!-- Background decorative elements -->
+        <Ellipse Fill="#B84A39" Opacity="0.1" WidthRequest="300" HeightRequest="300" 
+                 HorizontalOptions="Start" VerticalOptions="Start" Margin="-100,-100,0,0"/>
+        <Ellipse Fill="#B84A39" Opacity="0.05" WidthRequest="200" HeightRequest="200" 
+                 HorizontalOptions="End" VerticalOptions="End" Margin="0,0,-50,-50"/>
+
+        <ScrollView VerticalOptions="Center">
+            <VerticalStackLayout Padding="30" Spacing="0">
+                
+                <!-- Logo/Branding -->
+                <Image Source="app_icon.png" HeightRequest="100" WidthRequest="100" 
+                       HorizontalOptions="Center" Margin="0,0,0,20"/>
+                
+                <Label Text="Chào mừng bạn!" FontSize="28" FontAttributes="Bold" 
+                       TextColor="#B84A39" HorizontalOptions="Center"/>
+                <Label Text="Đăng nhập để khám phá Vĩnh Khánh" FontSize="14" 
+                       TextColor="#666" HorizontalOptions="Center" Margin="0,5,0,40"/>
+
+                <!-- Login Form -->
+                <Border StrokeThickness="0" BackgroundColor="White" Padding="20" StrokeShape="RoundRectangle 20">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="0,10" Radius="20" Opacity="0.05"/>
+                    </Border.Shadow>
+                    
+                    <VerticalStackLayout Spacing="15">
+                        <VerticalStackLayout Spacing="5">
+                            <Label Text="Email" FontSize="13" TextColor="#888" Margin="5,0"/>
+                            <Border Stroke="#EEE" StrokeThickness="1" StrokeShape="RoundRectangle 12" Padding="15,0" BackgroundColor="White">
+                                <Entry x:Name="EmailEntry" Placeholder="your@email.com" Keyboard="Email" 
+                                       TextColor="#333" PlaceholderColor="#999" BackgroundColor="White" HeightRequest="45"/>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="5">
+                            <Label Text="Mật khẩu" FontSize="13" TextColor="#888" Margin="5,0"/>
+                            <Border Stroke="#EEE" StrokeThickness="1" StrokeShape="RoundRectangle 12" Padding="15,0" BackgroundColor="White">
+                                <Entry x:Name="PasswordEntry" Placeholder="••••••••" IsPassword="True" 
+                                       TextColor="#333" PlaceholderColor="#999" BackgroundColor="White" HeightRequest="45"/>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <Button Text="ĐĂNG NHẬP" Clicked="OnLoginClicked" 
+                                BackgroundColor="#B84A39" TextColor="White" 
+                                CornerRadius="12" HeightRequest="50" FontAttributes="Bold"
+                                Margin="0,10,0,0"/>
+
+                        <Button Text="KHÁM PHÁ NGAY (KHÁCH)" Clicked="OnSkipLoginClicked" 
+                                BackgroundColor="Transparent" TextColor="#B84A39" 
+                                BorderColor="#B84A39" BorderWidth="1"
+                                CornerRadius="12" HeightRequest="50" FontAttributes="Bold"
+                                Margin="0,5,0,0"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Footer links -->
+                <HorizontalStackLayout HorizontalOptions="Center" Margin="0,30,0,0" Spacing="5">
+                    <Label Text="Chưa có tài khoản?" VerticalOptions="Center" TextColor="#666"/>
+                    <Label Text="Đăng ký ngay" VerticalOptions="Center" TextColor="#B84A39" FontAttributes="Bold">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnRegisterTapped"/>
+                        </Label.GestureRecognizers>
+                    </Label>
+                </HorizontalStackLayout>
+
+                <Label x:Name="ApiConfigLabel"
+                       Text="Cấu hình máy chủ API"
+                       HorizontalOptions="Center"
+                       Margin="0,12,0,0"
+                       TextColor="#2C4C3B"
+                       FontAttributes="Bold">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnConfigureApiTapped"/>
+                    </Label.GestureRecognizers>
+                </Label>
+
+                <ActivityIndicator x:Name="LoadingIndicator" IsRunning="False" 
+                                   Color="#B84A39" Margin="0,20,0,0"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

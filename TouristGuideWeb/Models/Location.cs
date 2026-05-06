@@ -31,4 +31,30 @@ public class Location
     
     // Multi-tenant owner tracking
     public string? OwnerEmail { get; set; }
+
+    public double AverageRating { get; set; } = 0;
+    public int RatingCount { get; set; } = 0;
+}
+
+public class ScanLogDto
+{
+    public int Id { get; set; }
+    public int LocationId { get; set; }
+    public string? LocationName { get; set; }
+    public string LanguageCode { get; set; } = "vi-VN";
+    public DateTime ScannedAt { get; set; }
+    public string? DeviceIdentifier { get; set; }
+    public string? UserIp { get; set; }
+}
+
+public class RatingDto
+{
+    public int Id { get; set; }
+    public int LocationId { get; set; }
+    public string? LocationName { get; set; }
+    public int Stars { get; set; }
+    public DateTime RatedAt { get; set; }
+    public string? UserEmail { get; set; }
+    public string? DeviceIdentifier { get; set; }
+    public string? UserIp { get; set; }
 }

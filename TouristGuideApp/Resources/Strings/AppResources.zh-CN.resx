@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?><root><resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader><resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader><resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+<?xml version="1.0" encoding="utf-8"?><root><resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader><resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader><resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="AppTitle_Main" xml:space="preserve"><value>🫕 烹饪旅游</value></data>
   <data name="Tab_QR" xml:space="preserve"><value>扫描二维码</value></data>
   <data name="POI_Details_Desc" xml:space="preserve"><value>详细描述</value></data>
@@ -50,4 +50,50 @@
   <data name="Tab_Settings" xml:space="preserve"><value>设置</value></data>
   <data name="TourMap_Loading" xml:space="preserve"><value>加载中...</value></data>
   <data name="QR_ScanTitle" xml:space="preserve"><value>扫描地点二维码</value></data>
+  <data name="POI_DetailTitle" xml:space="preserve"><value>地点详情</value></data>
+  <data name="POI_Intro" xml:space="preserve"><value>介绍</value></data>
+  <data name="POI_Distance_Prefix" xml:space="preserve"><value>📍 距离您</value></data>
+  <data name="POI_FoundCount" xml:space="preserve"><value>找到 {0} 个地点</value></data>
+  <data name="POI_FilterCount" xml:space="preserve"><value>筛选结果: {0} 个地点</value></data>
+  <data name="POI_NoneFound" xml:space="preserve"><value>未找到匹配地点</value></data>
+  <data name="POI_EmptyList" xml:space="preserve"><value>暂无地点显示</value></data>
+  <data name="POI_StopTracking" xml:space="preserve"><value>⏹ 停止追踪</value></data>
+  <data name="POI_StartTracking" xml:space="preserve"><value>📡 开始追踪</value></data>
+  <data name="Alert_Error" xml:space="preserve"><value>错误</value></data>
+  <data name="Alert_NoConnection" xml:space="preserve"><value>无法连接到服务器</value></data>
+  <data name="Alert_LanguageTitle" xml:space="preserve"><value>选择解说语言</value></data>
+  <data name="Tour_EmptyList" xml:space="preserve"><value>暂无可用路线。</value></data>
+  <data name="Tour_Minutes" xml:space="preserve"><value>分钟</value></data>
+  <data name="Tour_DetailTitle" xml:space="preserve"><value>路线详情</value></data>
+  <data name="Tour_DetailFormat" xml:space="preserve"><value>{0}\n地点数: {1}\n距离: {2} km\n是否打开第一个目的地？</value></data>
+  <data name="Alert_Yes" xml:space="preserve"><value>是</value></data>
+  <data name="Alert_No" xml:space="preserve"><value>否</value></data>
+  <data name="Alert_Info" xml:space="preserve"><value>提示</value></data>
+  <data name="Tour_NoLocations" xml:space="preserve"><value>此路线暂无地点。</value></data>
+  <data name="Tour_LoadError" xml:space="preserve"><value>无法加载路线列表。</value></data>
+  <data name="Map_SearchPlaceholder" xml:space="preserve"><value>搜索地点...</value></data>
+  <data name="Map_UpdatingLang" xml:space="preserve"><value>正在更新语言...</value></data>
+  <data name="Map_FoundCount" xml:space="preserve"><value>已加载 {0} 个地点</value></data>
+  <data name="Map_NoData" xml:space="preserve"><value>无地点数据。请检查 API 连接！</value></data>
+  <data name="Map_LoadError" xml:space="preserve"><value>无法加载地图</value></data>
+  <data name="Map_DefaultCategory" xml:space="preserve"><value>地点</value></data>
+  <data name="Map_NoAddress" xml:space="preserve"><value>地址信息正在更新</value></data>
+  <data name="Map_SearchNear" xml:space="preserve"><value>正在搜索附近餐厅...</value></data>
+  <data name="Map_Online" xml:space="preserve"><value>模式: 在线 ☁️</value></data>
+  <data name="Map_Offline" xml:space="preserve"><value>模式: 离线 📦</value></data>
+  <data name="Map_Caching" xml:space="preserve"><value>正在缓存...</value></data>
+  <data name="Map_CacheBtn" xml:space="preserve"><value>缓存地图</value></data>
+  <data name="Map_CacheSuccess" xml:space="preserve"><value>地图已成功保存到本地</value></data>
+  <data name="Map_CacheError" xml:space="preserve"><value>无法缓存地图: {0}</value></data>
+  <data name="Map_CacheError" xml:space="preserve"><value>无法缓存地图: {0}</value></data>
+  <data name="QR_ManualInput" xml:space="preserve"><value>手动输入二维码</value></data>
+  <data name="QR_ManualInput" xml:space="preserve"><value>手动输入二维码</value></data>
+  <data name="Alert_Update_Title" xml:space="preserve"><value>更新</value></data>
+  <data name="Alert_Update_Confirm" xml:space="preserve"><value>您要下载并安装最新的更新吗？</value></data>
+  <data name="Alert_Update_Downloading" xml:space="preserve"><value>系统正在下载更新，请稍候...</value></data>
+  <data name="Alert_Update_Error" xml:space="preserve"><value>无法下载更新。请检查您的网络连接或 API 服务器。</value></data>
+  <data name="Alert_Yes" xml:space="preserve"><value>确定</value></data>
+  <data name="Alert_No" xml:space="preserve"><value>取消</value></data>
+  <data name="Label_LoggedInAs" xml:space="preserve"><value>您已登录为: {0}</value></data>
+  <data name="Label_NotLoggedIn" xml:space="preserve"><value>您尚未登录</value></data>
 </root>

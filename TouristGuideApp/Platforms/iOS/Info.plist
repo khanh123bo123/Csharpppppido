@@ -32,5 +32,19 @@
 	<string>MauiSplash</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Ứng dụng cần quyền sử dụng camera để quét mã QR các địa điểm.</string>
+	
+	<!-- Added Location keys required by iOS 14+ -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Ứng dụng cần quyền vị trí để hiển thị bản đồ và tìm các địa điểm du lịch ở gần bạn.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Ứng dụng cần quyền vị trí để cảnh báo khi bạn đi ngang qua các địa điểm du lịch.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Ứng dụng cần quyền vị trí để cung cấp hướng dẫn đường đi.</string>
+
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

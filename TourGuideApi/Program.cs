@@ -21,7 +21,7 @@ if (!builder.Environment.IsDevelopment())
     builder.Services.Configure<ForwardedHeadersOptions>(options =>
     {
         options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-        options.KnownNetworks.Clear();
+        options.KnownIPNetworks.Clear(); // Fix obsolete warning
         options.KnownProxies.Clear();
     });
 }
@@ -31,9 +31,7 @@ builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, relo
 
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        npgsqlOptions => npgsqlOptions.MigrationsHistoryTable("__EFMigrationsHistory_TourGuideApi")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Configure JWT Authentication
 var jwtKey = builder.Configuration["Jwt:Key"];
@@ -82,7 +80,7 @@ builder.Services.AddHostedService<AudioGenerationWorker>();
 // Translation service (Vietnamese -> 4 languages) for localization pack generation
 builder.Services.AddHttpClient("OllamaTranslation", client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(120);
+    client.Timeout = TimeSpan.FromSeconds(300); // Increased to 5 mins for 14b models
 });
 
 builder.Services.AddHttpClient("GeminiTranslation", client =>
@@ -113,18 +111,17 @@ else
 builder.Services.AddScoped<LocalizationPackGenerator>();
 
 builder.Services.AddControllers();
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<IOnlineTracker, OnlineTracker>();
 
 // Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAdminWeb", policy =>
     {
-        var origins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() 
-            ?? new[] { "https://localhost:7001", "http://localhost:3000" };
-        policy.WithOrigins(origins)
+        policy.AllowAnyOrigin()
               .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+              .AllowAnyHeader();
     });
 });
 
@@ -150,21 +147,102 @@ app.Logger.LogInformation(
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.Migrate();
+    
+    // EnsureCreated() creates the DB if it doesn't exist, but won't update schema.
+    // Since we're in Dev with SQLite and no migrations folder, 
+    // we'll manually ensure specific tables exist for a robust "fix triệt để".
+    dbContext.Database.EnsureCreated();
+
+    // Verification of critical tables (ScanLogs, Ratings)
+    try {
+        var conn = dbContext.Database.GetDbConnection();
+        if (conn.State != System.Data.ConnectionState.Open) conn.Open();
+        using var cmd = conn.CreateCommand();
+        
+        // Fix for missing ScanLogs table
+        cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='ScanLogs';";
+        var existsScanLogs = cmd.ExecuteScalar();
+        if (existsScanLogs == null) {
+            app.Logger.LogWarning("Table 'ScanLogs' missing. Creating manually...");
+            cmd.CommandText = @"CREATE TABLE ""ScanLogs"" (
+                ""Id"" INTEGER PRIMARY KEY AUTOINCREMENT,
+                ""LocationId"" INTEGER NOT NULL,
+                ""LanguageCode"" TEXT NULL,
+                ""ScannedAt"" TEXT NOT NULL,
+                ""DeviceIdentifier"" TEXT NULL,
+                ""UserIp"" TEXT NULL,
+                CONSTRAINT ""FK_ScanLogs_Locations_LocationId"" FOREIGN KEY (""LocationId"") REFERENCES ""Locations"" (""Id"") ON DELETE CASCADE
+            );";
+            cmd.ExecuteNonQuery();
+        }
+
+        // Fix for missing Ratings table
+        cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='Ratings';";
+        var existsRatings = cmd.ExecuteScalar();
+        if (existsRatings == null) {
+            app.Logger.LogWarning("Table 'Ratings' missing. Creating manually...");
+            cmd.CommandText = @"CREATE TABLE ""Ratings"" (
+                ""Id"" INTEGER PRIMARY KEY AUTOINCREMENT,
+                ""LocationId"" INTEGER NOT NULL,
+                ""Stars"" INTEGER NOT NULL,
+                ""RatedAt"" TEXT NOT NULL,
+                ""UserEmail"" TEXT NULL,
+                ""DeviceIdentifier"" TEXT NULL,
+                ""UserIp"" TEXT NULL,
+                CONSTRAINT ""FK_Ratings_Locations_LocationId"" FOREIGN KEY (""LocationId"") REFERENCES ""Locations"" (""Id"") ON DELETE CASCADE
+            );";
+            cmd.ExecuteNonQuery();
+        }
+
+        // Fix for missing ListenLogs table
+        cmd.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name='ListenLogs';";
+        var existsListenLogs = cmd.ExecuteScalar();
+        if (existsListenLogs == null) {
+            app.Logger.LogWarning("Table 'ListenLogs' missing. Creating manually...");
+            cmd.CommandText = @"CREATE TABLE ""ListenLogs"" (
+                ""Id"" INTEGER PRIMARY KEY AUTOINCREMENT,
+                ""LocationId"" INTEGER NOT NULL,
+                ""LanguageCode"" TEXT NOT NULL,
+                ""ListenedAt"" TEXT NOT NULL,
+                ""DeviceId"" TEXT NULL,
+                CONSTRAINT ""FK_ListenLogs_Locations_LocationId"" FOREIGN KEY (""LocationId"") REFERENCES ""Locations"" (""Id"") ON DELETE CASCADE
+            );";
+            cmd.ExecuteNonQuery();
+        }
+    } catch (Exception ex) {
+        app.Logger.LogError(ex, "Error during manual table verification.");
+    }
 }
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Vĩnh Khánh API v1");
-    });
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Vĩnh Khánh API v1");
+    c.RoutePrefix = "swagger"; 
+});
+
+// Redirect root to Swagger for easier access
+app.MapGet("/", () => Results.Redirect("/swagger"));
+
+// Shortcut for downloading the latest app
+app.MapGet("/tai-app", () => Results.File(
+    Path.Combine(app.Environment.ContentRootPath, "wwwroot", "downloads", "app-latest.apk"), 
+    "application/vnd.android.package-archive", 
+    "app-latest.apk"));
+
+// Enable static files with APK support for QR downloads
+var provider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+if (!provider.Mappings.ContainsKey(".apk"))
+{
+    provider.Mappings.Add(".apk", "application/vnd.android.package-archive");
 }
 
-// app.UseHttpsRedirection(); // Commented out to allow Android emulator to use HTTP on port 5214
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = provider
+});
+
 app.UseCors("AllowAdminWeb");
 
 app.UseAuthentication();

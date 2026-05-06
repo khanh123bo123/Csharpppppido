@@ -2,7 +2,7 @@
     ViewData["Title"] = "Welcome";
     ViewData["IsLandingPage"] = true;
 }
-<div class="landing-container min-vh-100 position-relative d-flex flex-column align-items-center justify-content-center" style="background: linear-gradient(rgba(11, 17, 32, 0.7), rgba(11, 17, 32, 0.8)), url('/images/login-bg.png') center/cover no-repeat fixed; font-family: 'Inter', sans-serif;">
+<div class="landing-container min-vh-100 position-relative d-flex flex-column align-items-center justify-content-center" style="background: linear-gradient(rgba(44, 0, 0, 0.8), rgba(20, 0, 0, 0.9)), url('/images/login-bg.png') center/cover no-repeat fixed; font-family: 'Inter', sans-serif;">
     
     <!-- Title Section with Glow -->
     <div class="text-center mb-5 position-relative" style="z-index: 10;">
@@ -75,10 +75,33 @@
                         <i class="fa-solid fa-file-signature me-1"></i> Nộp hồ sơ ký kết / Tạo tài khoản &rarr;
                     </a>
                     <a href="/Auth/Login?role=Owner" class="btn w-100 text-white rounded-pill fw-bold" style="background: linear-gradient(90deg, #1c7c64, #27a284); padding: 12px 20px; box-shadow: 0 4px 15px rgba(39, 162, 132, 0.4); border: 1px solid rgba(255,255,255,0.2);">
-                        Tạo tài khoản / Chủ Quán (Ký tên) &rarr;
+                        Đăng nhập Chủ Quán &rarr;
                     </a>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Mobile App Download Link & QR Section -->
+    <div class="mt-4 text-center d-flex flex-column align-items-center gap-3" style="z-index: 10;">
+        <div class="p-4 glass-card d-flex flex-column align-items-center" style="border: 1px solid rgba(255,107,53,0.3); background: rgba(255, 107, 53, 0.05); backdrop-filter: blur(10px);">
+            <h4 class="text-white fw-bold mb-3" style="font-size: 1.1rem;">
+                <i class="fa-solid fa-cloud-arrow-down me-2" style="color: #ff6b35;"></i> Tải Ứng Dụng Mobile
+            </h4>
+            
+            <!-- Standardized QR Code -->
+            <div class="p-2 bg-white rounded-3 mb-3 shadow-lg" style="width: 160px; height: 160px; border: 3px solid #ff6b35;">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=http%3A%2F%2F172.20.10.2%3A5214%2Ftai-app" 
+                     alt="Scan to download APK" class="img-fluid" style="width: 100%; height: 100%;" />
+            </div>
+            
+            <p class="text-white-50 small mb-3 px-3">Sử dụng <b>Camera</b> hoặc <b>Zalo</b> để quét mã<br/>Tải bản APK Android mới nhất (Về Đích)</p>
+            
+            <a href="http://172.20.10.2:5214/tai-app" target="_blank" 
+               class="btn text-white rounded-pill px-4" 
+               style="background: #ff6b35; font-size: 0.85rem; border: none; box-shadow: 0 4px 10px rgba(255,107,53,0.3);">
+                <i class="fa-solid fa-download me-1"></i> Tải trực tiếp (.apk)
+            </a>
         </div>
     </div>
     

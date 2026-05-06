@@ -17,6 +17,23 @@
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title">@Model.Name</h5>
+                <div class="mb-3">
+                    @if (Model.RatingCount > 0)
+                    {
+                        <span class="text-warning">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="fa-@(i <= Math.Round(Model.AverageRating) ? "solid" : "regular") fa-star"></i>
+                            }
+                        </span>
+                        <span class="fw-bold ms-1">@Model.AverageRating</span>
+                        <span class="text-muted ms-1 small">(@Model.RatingCount đánh giá)</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted small">Chưa có đánh giá</span>
+                    }
+                </div>
                 <p class="text-muted mb-2">@Model.Description</p>
                 <dl class="row mb-0">
                     <dt class="col-sm-4">Id</dt>

@@ -15,6 +15,8 @@ namespace TouristGuideApp.Views
         private readonly IGeofenceService _geofenceService;
         private readonly IApiService _apiService;
         private readonly IDatabaseService _databaseService;
+        private readonly IAudioService _audioService;
+        private readonly IAuthService _authService;
         private bool _autoPlayAfterLoad;
         private bool _openedFromQr;
 
@@ -62,12 +64,16 @@ namespace TouristGuideApp.Views
             }
         }
 
-        public POIDetailsPage(IGeofenceService geofenceService, IApiService apiService, IDatabaseService databaseService)
+        public POIDetailsPage(IGeofenceService geofenceService, IApiService apiService, IDatabaseService databaseService, IAudioService audioService, IAuthService authService)
         {
             InitializeComponent();
             _geofenceService = geofenceService;
             _apiService = apiService;
             _databaseService = databaseService;
+            _audioService = audioService;
+            _authService = authService;
+            
+            this.BindingContext = this;
         }
 
         private async Task LoadPoiFromServerLocationIdAsync(string idString)
@@ -89,19 +95,65 @@ namespace TouristGuideApp.Views
             try
             {
                 var location = await _apiService.GetLocationAsync(serverLocationId);
+                var currentLanguage = AppPreferences.GetNarrationLanguageCode();
+                
                 if (location != null)
                 {
-                    var poi = MapLocationToPoi(location);
+                    var poi = MapLocationToPoi(location, currentLanguage);
+                    
+                    // Fetch translation for this specific location
+                    if (!string.Equals(currentLanguage, SupportedLanguages.Vietnamese, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var localization = await _apiService.GetLocalizationAsync(serverLocationId, currentLanguage);
+                        if (localization != null)
+                        {
+                            // If the API failed to translate, it often returns the original Vietnamese text.
+                            // We check if the 'localized' text is actually just the same as the original.
+                            bool isRealTranslation = !string.Equals(localization.LocalizedName?.Trim(), poi.Name?.Trim(), StringComparison.OrdinalIgnoreCase);
+                            
+                            if (isRealTranslation)
+                            {
+                                if (!string.IsNullOrWhiteSpace(localization.LocalizedName))
+                                    poi.Name = localization.LocalizedName.Trim();
+                                
+                                if (!string.IsNullOrWhiteSpace(localization.LocalizedDescription))
+                                {
+                                    poi.Description = localization.LocalizedDescription.Trim();
+                                    poi.LanguageCode = currentLanguage;
+                                }
+                            }
+                            else 
+                            {
+                                // If it's not a real translation, we keep Vietnamese but we MUST 
+                                // tell the AudioService that the content is still vi-VN to avoid foreign accent.
+                                poi.LanguageCode = "vi-VN";
+                            }
+                        }
+                    }
+
                     await _databaseService.SavePOIAsync(poi);
                     await SetPoiAndMaybeAutoPlayAsync(poi);
                     return;
                 }
 
-                await DisplayAlert("Không tìm thấy", "Không tìm thấy địa điểm cho mã này.", "OK");
+                await DisplayAlertAsync("Không tìm thấy", "Không tìm thấy địa điểm cho mã này.", "OK");
             }
             catch
             {
-                await DisplayAlert("Offline", "Không có dữ liệu địa điểm trong máy và cũng không thể tải từ Internet.", "OK");
+                await DisplayAlertAsync("Offline", "Không có dữ liệu địa điểm trong máy và cũng không thể tải từ Internet.", "OK");
+            }
+        }
+
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+            
+            // If we have a POI loaded, but the global language changed while we were away, reload it
+            var expectedLang = AppPreferences.GetNarrationLanguageCode();
+            if (_poi != null && !string.Equals(_poi.LanguageCode, expectedLang, StringComparison.OrdinalIgnoreCase))
+            {
+                // Force reload
+                await LoadPoiFromServerLocationIdAsync(_poi.ServerLocationId.ToString());
             }
         }
 
@@ -124,14 +176,14 @@ namespace TouristGuideApp.Views
                     return;
                 }
 
-                await DisplayAlert("Offline", "Điểm này chưa được lưu offline. Hãy mở app khi có wifi để tải dữ liệu trước.", "OK");
+                await DisplayAlertAsync("Offline", "Điểm này chưa được lưu offline. Hãy mở app khi có wifi để tải dữ liệu trước.", "OK");
                 return;
             }
 
             var qrCodeData = ExtractQrCodeData(rawQr);
             if (string.IsNullOrWhiteSpace(qrCodeData))
             {
-                await DisplayAlert("Lỗi QR", "Mã QR không hợp lệ.", "OK");
+                await DisplayAlertAsync("Lỗi QR", "Mã QR không hợp lệ.", "OK");
                 return;
             }
 
@@ -142,7 +194,7 @@ namespace TouristGuideApp.Views
                 return;
             }
 
-            await DisplayAlert("Offline", "Mã QR hợp lệ nhưng địa điểm chưa được lưu offline. Hãy mở app khi có wifi để tải dữ liệu trước.", "OK");
+            await DisplayAlertAsync("Offline", "Mã QR hợp lệ nhưng địa điểm chưa được lưu offline. Hãy mở app khi có wifi để tải dữ liệu trước.", "OK");
         }
 
         private static int? TryExtractServerLocationId(string value)
@@ -193,7 +245,7 @@ namespace TouristGuideApp.Views
             return trimmed;
         }
 
-        private static POI MapLocationToPoi(TouristGuideApp.Models.Location location)
+        private static POI MapLocationToPoi(TouristGuideApp.Models.Location location, string targetLanguage)
         {
             return new POI
             {
@@ -208,7 +260,7 @@ namespace TouristGuideApp.Views
                 PhoneNumber = location.PhoneNumber,
                 ImageUrl = location.ImageUrl,
                 AudioUrl = location.AudioUrl,
-                LanguageCode = "vi-VN"
+                LanguageCode = targetLanguage
             };
         }
 
@@ -230,30 +282,110 @@ namespace TouristGuideApp.Views
         {
             if (_poi == null) return;
 
-            lblName.Text = _poi.Name;
-            lblCategory.Text = _poi.Category;
-            lblDistance.Text = $"Cách bạn {_poi.DistanceText}";
-            lblDescription.Text = _poi.Description;
-
-            lblAddress.Text = string.IsNullOrWhiteSpace(_poi.Address) ? "Chưa cập nhật địa chỉ" : _poi.Address;
-            lblPhone.Text = string.IsNullOrWhiteSpace(_poi.PhoneNumber) ? "Chưa cập nhật SĐT" : _poi.PhoneNumber;
+            _poi.ImageUrl = HtmlUtils.EnsureAbsoluteUrl(_poi.ImageUrl, _apiService.BaseAddress);
+            var processedHtml = HtmlUtils.FixImageUrls(_poi.Description, _apiService.BaseAddress);
+            var finalHtml = HtmlUtils.WrapInMobileLayout(processedHtml);
+            
+            wvDescription.Source = new HtmlWebViewSource { Html = finalHtml };
 
             if (!string.IsNullOrWhiteSpace(_poi.ImageUrl))
             {
-                imgLocation.IsVisible = true;
+                // Ensure absolute URL
+                if (!_poi.ImageUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+                {
+                    var baseUrl = _apiService.BaseAddress.TrimEnd('/');
+                    _poi.ImageUrl = $"{baseUrl}/{_poi.ImageUrl.TrimStart('/')}";
+                }
+                
                 imgLocation.Source = ImageSource.FromUri(new Uri(_poi.ImageUrl));
+                OnPropertyChanged(nameof(POIItem));
+            }
+        }
+
+        private async void OnBackTapped(object sender, EventArgs e)
+        {
+            await Shell.Current.GoToAsync("..");
+        }
+
+        private void OnDescriptionWebViewNavigated(object sender, WebNavigatedEventArgs e)
+        {
+            // Optional: dynamically adjust WebView height if needed
+        }
+
+        private async void OnCallTapped(object sender, EventArgs e)
+        {
+            if (_poi != null && !string.IsNullOrWhiteSpace(_poi.PhoneNumber))
+            {
+                if (PhoneDialer.Default.IsSupported)
+                    PhoneDialer.Default.Open(_poi.PhoneNumber);
             }
             else
             {
-                imgLocation.IsVisible = false;
+                await DisplayAlertAsync("Thông báo", "Địa điểm này chưa cập nhật số điện thoại.", "OK");
+            }
+        }
+
+        private async void OnDirectionTapped(object sender, EventArgs e)
+        {
+            if (_poi != null)
+            {
+                var location = new Microsoft.Maui.Devices.Sensors.Location(_poi.Latitude, _poi.Longitude);
+                var options = new MapLaunchOptions { Name = _poi.Name, NavigationMode = NavigationMode.Driving };
+
+                try
+                {
+                    await Microsoft.Maui.ApplicationModel.Map.Default.OpenAsync(location, options);
+                }
+                catch (Exception)
+                {
+                    await DisplayAlertAsync("Lỗi", "Không thể mở ứng dụng bản đồ.", "OK");
+                }
             }
         }
 
         private async void OnListenClicked(object sender, EventArgs e)
         {
-            if (_poi != null)
+            if (_poi == null) return;
+            
+            // Stop any existing playback first to ensure we can play again immediately
+            await _audioService.StopAsync();
+            
+            var currentLanguage = AppPreferences.GetNarrationLanguageCode();
+            string? audioUrlToUse = _poi.AudioUrl;
+            
+            // If we are in a non-Vietnamese mode, the default 'AudioUrl' (usually Vietnamese)
+            // should NOT be played. This forces AudioService to look for a localized MP3 or use TTS.
+            if (!string.Equals(currentLanguage, SupportedLanguages.Vietnamese, StringComparison.OrdinalIgnoreCase))
             {
-                await _geofenceService.PlaySpeechAsync(_poi, ignoreCooldown: true);
+                audioUrlToUse = null;
+            }
+
+            await _audioService.EnqueueSpeechAsync(_poi.Description, _poi.ServerLocationId, audioUrlToUse);
+        }
+
+        private async void OnStarClicked(object sender, EventArgs e)
+        {
+            if (_poi == null || sender is not Button btn) return;
+
+            if (int.TryParse(btn.CommandParameter?.ToString(), out int stars))
+            {
+                lblRatingStatus.Text = "Đang gửi đánh giá...";
+                
+                string deviceId = DeviceInfo.Current.Name;
+                string? userEmail = _authService.UserEmail;
+
+                bool success = await _apiService.SubmitRatingAsync(_poi.ServerLocationId, stars, deviceId, userEmail);
+                
+                if (success)
+                {
+                    lblRatingStatus.Text = $"Cảm ơn bạn đã đánh giá {stars} sao!";
+                    lblRatingStatus.TextColor = Colors.Green;
+                }
+                else
+                {
+                    lblRatingStatus.Text = "Không thể gửi đánh giá. Vui lòng thử lại!";
+                    lblRatingStatus.TextColor = Colors.Red;
+                }
             }
         }
     }

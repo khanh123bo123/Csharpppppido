@@ -118,6 +118,18 @@ namespace TouristGuideApp.Services
                 {
                     await database.ExecuteAsync("ALTER TABLE POI ADD COLUMN QrCodeData TEXT");
                 }
+
+                var hasAverageRating = columns.Any(c => string.Equals(c.Name, nameof(POI.AverageRating), StringComparison.OrdinalIgnoreCase));
+                if (!hasAverageRating)
+                {
+                    await database.ExecuteAsync("ALTER TABLE POI ADD COLUMN AverageRating REAL NOT NULL DEFAULT 0");
+                }
+
+                var hasRatingCount = columns.Any(c => string.Equals(c.Name, nameof(POI.RatingCount), StringComparison.OrdinalIgnoreCase));
+                if (!hasRatingCount)
+                {
+                    await database.ExecuteAsync("ALTER TABLE POI ADD COLUMN RatingCount INTEGER NOT NULL DEFAULT 0");
+                }
             }
             catch (Exception ex)
             {

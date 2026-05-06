@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using TouristGuideWeb.Models;
 using Microsoft.AspNetCore.Authorization;
+using TouristGuideWeb.Services;
 
 namespace TouristGuideWeb.Controllers;
 
@@ -9,10 +10,12 @@ namespace TouristGuideWeb.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
+    private readonly LocationApiService _locationApiService;
 
-    public HomeController(ILogger<HomeController> logger)
+    public HomeController(ILogger<HomeController> logger, LocationApiService locationApiService)
     {
         _logger = logger;
+        _locationApiService = locationApiService;
     }
 
     public IActionResult Index()
@@ -23,6 +26,18 @@ public class HomeController : Controller
         }
         
         ViewData["IsLandingPage"] = true;
+        return View();
+    }
+
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Analytics(CancellationToken cancellationToken)
+    {
+        var logs = await _locationApiService.GetScanLogsAsync(cancellationToken);
+        return View(logs);
+    }
+
+    public IActionResult Download()
+    {
         return View();
     }
 

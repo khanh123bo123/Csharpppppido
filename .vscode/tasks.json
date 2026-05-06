@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "build_api",
             "command": "dotnet",
             "type": "process",
             "args": [
@@ -14,26 +14,26 @@
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "publish",
+            "label": "build_web",
             "command": "dotnet",
             "type": "process",
             "args": [
-                "publish",
-                "${workspaceFolder}/TourGuideApi/TourGuideApi.csproj",
+                "build",
+                "${workspaceFolder}/TouristGuideWeb/TouristGuideWeb.csproj",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "watch",
+            "label": "build_app",
             "command": "dotnet",
             "type": "process",
             "args": [
-                "watch",
-                "run",
-                "--project",
-                "${workspaceFolder}/TourGuideApi/TourGuideApi.csproj"
+                "build",
+                "${workspaceFolder}/TouristGuideApp/TouristGuideApp.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
             "problemMatcher": "$msCompile"
         }

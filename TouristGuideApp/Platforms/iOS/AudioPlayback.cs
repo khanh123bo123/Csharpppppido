@@ -6,9 +6,13 @@ namespace TouristGuideApp.Platforms.iOS;
 
 internal static class AudioPlayback
 {
-    public static Task<bool> PlayAsync(string filePath)
+    public static async Task<bool> PlayAsync(string filePath)
     {
         var tcs = new TaskCompletionSource<bool>();
+        
+        // Safety timeout
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+        cts.Token.Register(() => tcs.TrySetResult(false));
 
         MainThread.BeginInvokeOnMainThread(() =>
         {
@@ -22,14 +26,19 @@ internal static class AudioPlayback
                     return;
                 }
 
-                player.FinishedPlaying += (_, __) =>
+                EventHandler<AVStatusEventArgs> finishedHandler = null;
+                finishedHandler = (_, __) =>
                 {
+                    player.FinishedPlaying -= finishedHandler;
                     try { player.Dispose(); } catch { }
                     tcs.TrySetResult(true);
                 };
 
+                player.FinishedPlaying += finishedHandler;
+
                 if (!player.Play())
                 {
+                    player.FinishedPlaying -= finishedHandler;
                     try { player.Dispose(); } catch { }
                     tcs.TrySetResult(false);
                 }
@@ -40,6 +49,6 @@ internal static class AudioPlayback
             }
         });
 
-        return tcs.Task;
+        return await tcs.Task;
     }
 }

@@ -52,22 +52,34 @@ public class LocalizationPackGenerator
                 {
                     LocationId = locationId,
                     LanguageCode = languageCode,
-                    LocalizedName = vietnameseName,          // Temporarily hold Vietnamese name
-                    LocalizedDescription = vietnameseDescription, // Temporarily hold Vietnamese description
+                    LocalizedName = languageCode == "vi-VN" ? vietnameseName : "(Translating...)",
+                    LocalizedDescription = languageCode == "vi-VN" ? vietnameseDescription : "(Translating...)",
                     TtsVoiceCode = GetDefaultVoice(languageCode),
-                    AudioGenerationStatus = "translating",   // Custom status indicating it's still being translated
+                    AudioGenerationStatus = languageCode == "vi-VN" ? "pending" : "translating",
                     CreatedAt = now,
                     UpdatedAt = now
                 };
                 _context.Localizations.Add(localization);
                 touched.Add(localization);
+                
+                if (languageCode == "vi-VN") 
+                {
+                    await _context.SaveChangesAsync(cancellationToken);
+                    _audioQueue.TryEnqueue(localization.Id);
+                }
             }
             else
             {
-                existing.AudioGenerationStatus = "translating";
+                existing.AudioGenerationStatus = languageCode == "vi-VN" ? "pending" : "translating";
                 existing.UpdatedAt = now;
                 _context.Localizations.Update(existing);
                 touched.Add(existing);
+                
+                if (languageCode == "vi-VN") 
+                {
+                    await _context.SaveChangesAsync(cancellationToken);
+                    _audioQueue.TryEnqueue(existing.Id);
+                }
             }
         }
         await _context.SaveChangesAsync(cancellationToken);
@@ -80,20 +92,36 @@ public class LocalizationPackGenerator
         Dictionary<string, LocalizedText> translated;
         try
         {
+            _logger.LogInformation("Requesting external translation for {Count} languages for Location {LocationId}", targetLanguages.Length, locationId);
             translated = await _translationService.TranslateFromVietnameseAsync(
                 vietnameseName,
                 vietnameseDescription,
                 targetLanguages,
                 cancellationToken);
+            _logger.LogInformation("External translation successful for Location {LocationId}", locationId);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Auto-translation failed. Keeping Vietnamese text.");
-            translated = new Dictionary<string, LocalizedText>();
-            foreach (var lang in targetLanguages)
+            _logger.LogWarning(ex, "Auto-translation failed for Location {LocationId}. Error: {Message}.", locationId, ex.Message);
+            
+            // On failure, update status to 'failed' and abort audio queuing for non-Vietnamese
+            foreach (var loc in touched)
             {
-                translated[lang] = new LocalizedText { LocalizedName = vietnameseName, LocalizedDescription = vietnameseDescription };
+                if (!string.Equals(loc.LanguageCode, "vi-VN", StringComparison.OrdinalIgnoreCase))
+                {
+                    loc.LocalizedName = string.Empty;
+                    loc.LocalizedDescription = string.Empty;
+                    loc.AudioGenerationStatus = "failed";
+                }
+                else 
+                {
+                    loc.AudioGenerationStatus = "pending";
+                    _audioQueue.TryEnqueue(loc.Id);
+                }
+                loc.UpdatedAt = DateTime.UtcNow;
             }
+            await _context.SaveChangesAsync(cancellationToken);
+            return;
         }
 
         // 3. CẬP NHẬT LẠI KẾT QUẢ DỊCH VÀ ĐẨY GỌI TTS AUDIO
@@ -101,20 +129,27 @@ public class LocalizationPackGenerator
         {
             if (!string.Equals(loc.LanguageCode, "vi-VN", StringComparison.OrdinalIgnoreCase))
             {
-                loc.LocalizedName = translated[loc.LanguageCode].LocalizedName;
-                loc.LocalizedDescription = translated[loc.LanguageCode].LocalizedDescription;
+                if (translated.TryGetValue(loc.LanguageCode, out var val))
+                {
+                    loc.LocalizedName = val.LocalizedName;
+                    loc.LocalizedDescription = val.LocalizedDescription;
+                    loc.AudioGenerationStatus = "pending";
+                    _audioQueue.TryEnqueue(loc.Id);
+                }
+                else 
+                {
+                    loc.AudioGenerationStatus = "failed";
+                }
             }
-            loc.AudioGenerationStatus = "pending";
+            else 
+            {
+                loc.AudioGenerationStatus = "pending";
+                _audioQueue.TryEnqueue(loc.Id);
+            }
             loc.UpdatedAt = DateTime.UtcNow;
         }
 
         await _context.SaveChangesAsync(cancellationToken);
-
-        // 4. QUEUE AUDIO
-        foreach (var loc in touched)
-        {
-            _audioQueue.TryEnqueue(loc.Id);
-        }
         
         _logger.LogInformation("Completed pack generation for Location {LocationId}", locationId);
     }

@@ -6,7 +6,7 @@
              Title="{Binding [Tab_POI], Source={x:Static services:LocalizationResourceManager.Instance}}"
              BackgroundColor="#FDFBF7">
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto">
+    <Grid RowDefinitions="Auto,Auto,Auto,*">
 
         <!-- ── Hero Header ── -->
         <Grid Grid.Row="0">
@@ -16,100 +16,159 @@
                     <GradientStop Color="#8B3E36" Offset="1"/>
                 </LinearGradientBrush>
             </Grid.Background>
-            <VerticalStackLayout Padding="20,18,20,22" Spacing="4">
-                <Label Text="{Binding [AppTitle_Main], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="24" FontAttributes="Bold" TextColor="White"/>
-                <Label Text="{Binding [AppDesc_Main], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="13" TextColor="#FFCCBC"/>
+            <VerticalStackLayout Padding="20,18,20,22" Spacing="10">
+                <Label Text="{Binding [AppTitle_Main], Source={x:Static services:LocalizationResourceManager.Instance}}" 
+                       FontSize="28" FontAttributes="Bold" TextColor="White"/>
+                
+                <!-- Search Bar -->
+                <Border StrokeThickness="0" StrokeShape="RoundRectangle 25" 
+                        BackgroundColor="#FFFFFFEE" HeightRequest="46" Margin="0,5,0,0">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="0,2" Radius="10" Opacity="0.1"/>
+                    </Border.Shadow>
+                    <Grid ColumnDefinitions="40,*,40" Padding="10,0">
+                        <Label Grid.Column="0" Text="🔍" VerticalOptions="Center" HorizontalOptions="Center" FontSize="18"/>
+                        <Entry Grid.Column="1" x:Name="searchBar" Placeholder="{Binding [POI_SearchPlaceholder], Source={x:Static services:LocalizationResourceManager.Instance}}" 
+                               FontSize="14" TextColor="#333" PlaceholderColor="#999"
+                               VerticalOptions="Center" TextChanged="OnSearchTextChanged"/>
+                        <Label Grid.Column="2" Text="🎙️" VerticalOptions="Center" HorizontalOptions="Center" FontSize="18"/>
+                    </Grid>
+                </Border>
             </VerticalStackLayout>
         </Grid>
 
+        <!-- ── Categories ── -->
+        <ScrollView Grid.Row="1" Orientation="Horizontal" HorizontalScrollBarVisibility="Never" Margin="0,15,0,5">
+            <HorizontalStackLayout Spacing="12" Padding="20,0">
+                <Border StrokeShape="RoundRectangle 20" BackgroundColor="#B84A39" Padding="15,8" StrokeThickness="0">
+                    <Label Text="{Binding [POI_Category_All], Source={x:Static services:LocalizationResourceManager.Instance}}" TextColor="White" FontAttributes="Bold" FontSize="13"/>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnCategoryTapped" CommandParameter="All"/>
+                    </Border.GestureRecognizers>
+                </Border>
+                <Border StrokeShape="RoundRectangle 20" BackgroundColor="White" Padding="15,8" StrokeThickness="1" Stroke="#EAE3D9">
+                    <Label Text="{Binding [POI_Category_Restaurant], Source={x:Static services:LocalizationResourceManager.Instance}}" TextColor="#555" FontSize="13"/>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnCategoryTapped" CommandParameter="Restaurant"/>
+                    </Border.GestureRecognizers>
+                </Border>
+                <Border StrokeShape="RoundRectangle 20" BackgroundColor="White" Padding="15,8" StrokeThickness="1" Stroke="#EAE3D9">
+                    <Label Text="{Binding [POI_Category_Cafe], Source={x:Static services:LocalizationResourceManager.Instance}}" TextColor="#555" FontSize="13"/>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnCategoryTapped" CommandParameter="Cafe"/>
+                    </Border.GestureRecognizers>
+                </Border>
+                <Border StrokeShape="RoundRectangle 20" BackgroundColor="White" Padding="15,8" StrokeThickness="1" Stroke="#EAE3D9">
+                    <Label Text="{Binding [POI_Category_Historic], Source={x:Static services:LocalizationResourceManager.Instance}}" TextColor="#555" FontSize="13"/>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnCategoryTapped" CommandParameter="Historic"/>
+                    </Border.GestureRecognizers>
+                </Border>
+                <Border StrokeShape="RoundRectangle 20" BackgroundColor="White" Padding="15,8" StrokeThickness="1" Stroke="#EAE3D9">
+                    <Label Text="{Binding [POI_Category_Shopping], Source={x:Static services:LocalizationResourceManager.Instance}}" TextColor="#555" FontSize="13"/>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnCategoryTapped" CommandParameter="Shopping"/>
+                    </Border.GestureRecognizers>
+                </Border>
+            </HorizontalStackLayout>
+        </ScrollView>
+
         <!-- ── Active POI Banner ── -->
-        <Border Grid.Row="1" Margin="16,12,16,0" Padding="0" StrokeThickness="0"
+        <Border Grid.Row="2" Margin="16,5,16,0" Padding="0" StrokeThickness="0"
                 StrokeShape="RoundRectangle 16" x:Name="frameActivePOI"
                 BackgroundColor="#2C4C3B">
             <Border.Shadow>
                 <Shadow Brush="#2C4C3B" Offset="0,4" Radius="12" Opacity="0.2"/>
             </Border.Shadow>
-            <Grid ColumnDefinitions="Auto,*" Padding="16,14" ColumnSpacing="14">
+            <Grid ColumnDefinitions="Auto,*" Padding="16,12" ColumnSpacing="14">
                 <Border Grid.Column="0" BackgroundColor="#FFFFFF22" StrokeThickness="0"
-                        StrokeShape="RoundRectangle 12" Padding="10">
-                    <Label Text="📍" FontSize="22"/>
+                        StrokeShape="RoundRectangle 12" Padding="8">
+                    <Label Text="📍" FontSize="20"/>
                 </Border>
-                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="1">
                     <Label Text="{Binding [POI_NearYou], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="10" FontAttributes="Bold"
                            TextColor="#A5D6A7" CharacterSpacing="1.5"/>
                     <Label x:Name="lblActivePOI"
                            Text="{Binding [POI_NoneNear], Source={x:Static services:LocalizationResourceManager.Instance}}"
-                           FontSize="15" FontAttributes="Bold"
+                           FontSize="14" FontAttributes="Bold"
                            TextColor="White" LineBreakMode="TailTruncation"/>
-                    <Label x:Name="lblUserLocation"
-                           Text="{Binding [POI_SearchingGPS], Source={x:Static services:LocalizationResourceManager.Instance}}"
-                           FontSize="11" TextColor="#FFFFFF99"
-                           LineBreakMode="TailTruncation"/>
                 </VerticalStackLayout>
             </Grid>
         </Border>
 
         <!-- ── POI List ── -->
-        <CollectionView Grid.Row="2"
+        <CollectionView Grid.Row="3"
                         x:Name="listPOIs"
-                        SelectionMode="Single"
-                        SelectionChanged="OnPOISelectionChanged"
+                        SelectionMode="None"
+                        ItemSizingStrategy="MeasureAllItems"
                         BackgroundColor="Transparent"
-                        Margin="0,8,0,0">
+                        Margin="10,10,10,0">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical" Span="2" 
+                                   HorizontalItemSpacing="12" VerticalItemSpacing="12" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.Footer>
+                <BoxView HeightRequest="80" Color="Transparent" />
+            </CollectionView.Footer>
             <CollectionView.Header>
-                <Grid Padding="20,10,20,4">
-                    <Label Text="{Binding [POI_List], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="11" FontAttributes="Bold"
+                <Grid Padding="4,10,20,4">
+                    <Label Text="{Binding [POI_List], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="12" FontAttributes="Bold"
                            TextColor="#B84A39" CharacterSpacing="1.5"/>
                 </Grid>
             </CollectionView.Header>
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border Margin="16,5" Padding="0" StrokeThickness="0"
-                            StrokeShape="RoundRectangle 14" BackgroundColor="White">
-                        <Border.Shadow>
-                            <Shadow Brush="Black" Offset="0,2" Radius="8" Opacity="0.05"/>
-                        </Border.Shadow>
+                    <Border Margin="0" Padding="0" StrokeThickness="0"
+                            StrokeShape="RoundRectangle 16" BackgroundColor="White">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Tapped="OnPOITapped" CommandParameter="{Binding .}"/>
                         </Border.GestureRecognizers>
 
-                        <Grid ColumnDefinitions="6,*" ColumnSpacing="0">
-                            <!-- Colour accent bar -->
-                            <BoxView Grid.Column="0" BackgroundColor="#B84A39"
-                                     WidthRequest="6" CornerRadius="14,0,0,14"/>
+                        <Grid RowDefinitions="110,Auto">
+                            <!-- Image Header -->
+                            <Image Grid.Row="0" Source="{Binding ImageUrl}" Aspect="AspectFill"
+                                   HeightRequest="110" BackgroundColor="#EEE"/>
+                            
+                            <!-- Rating Badge -->
+                            <Border Grid.Row="0" VerticalOptions="Start" HorizontalOptions="End" 
+                                    Margin="6" Padding="6,2" StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 8" BackgroundColor="#FFFFFFCC">
+                                <HorizontalStackLayout Spacing="2">
+                                    <Label Text="⭐" FontSize="8" VerticalOptions="Center"/>
+                                    <Label Text="{Binding AverageRating, StringFormat='{0:F1}'}" 
+                                           FontSize="10" FontAttributes="Bold" TextColor="#2C4C3B" VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+                            </Border>
 
-                            <Grid Grid.Column="1" ColumnDefinitions="*,Auto"
-                                  Padding="14,12" ColumnSpacing="10">
-                                <VerticalStackLayout Grid.Column="0" Spacing="3" VerticalOptions="Center">
-                                    <Label Text="{Binding Name}"
-                                           FontAttributes="Bold" FontSize="15"
-                                           TextColor="#2C4C3B"
-                                           LineBreakMode="TailTruncation"/>
-                                    <Label Text="{Binding Description}"
-                                           FontSize="12" TextColor="#888"
-                                           MaxLines="1" LineBreakMode="TailTruncation"/>
-                                </VerticalStackLayout>
-                                <Border Grid.Column="1" BackgroundColor="#FBE9E7"
-                                        StrokeThickness="0" StrokeShape="RoundRectangle 20"
-                                        Padding="10,5" VerticalOptions="Center">
-                                    <Label Text="{Binding DistanceText}"
-                                           FontSize="12" TextColor="#B84A39" FontAttributes="Bold"/>
-                                </Border>
-                            </Grid>
+                            <!-- Content -->
+                            <VerticalStackLayout Grid.Row="1" Padding="10,8" Spacing="1">
+                                <Label Text="{Binding Name}" FontSize="14" FontAttributes="Bold" 
+                                       TextColor="#2C4C3B" MaxLines="1" LineBreakMode="TailTruncation"/>
+                                <Label Text="{Binding Category}" FontSize="11" TextColor="#B84A39" FontAttributes="Bold" MaxLines="1"/>
+                                <Label Text="{Binding DistanceText, StringFormat='📍 {0}'}" FontSize="10" TextColor="#666"/>
+                            </VerticalStackLayout>
                         </Grid>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
-            <CollectionView.Footer>
-                <BoxView HeightRequest="12" Color="Transparent"/>
-            </CollectionView.Footer>
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="16,24" Spacing="8">
+                    <Label Text="{Binding [POI_EmptyList], Source={x:Static services:LocalizationResourceManager.Instance}}"
+                           FontAttributes="Bold"
+                           FontSize="14"
+                           TextColor="#666"
+                           HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
         </CollectionView>
 
-        <!-- ── Tracking Button ── -->
-        <Border Grid.Row="3" Margin="16,0,16,20" StrokeThickness="0"
-                StrokeShape="RoundRectangle 28" BackgroundColor="#B84A39">
+        <!-- ── Floating Tracking Button (FAB Style) ── -->
+        <Border Grid.Row="3" VerticalOptions="End" HorizontalOptions="Center"
+                Margin="0,0,0,20" StrokeThickness="0" WidthRequest="240"
+                StrokeShape="RoundRectangle 28" BackgroundColor="#B84A39"
+                HeightRequest="56">
             <Border.Shadow>
-                <Shadow Brush="#B84A39" Offset="0,4" Radius="12" Opacity="0.35"/>
+                <Shadow Brush="#B84A39" Offset="0,6" Radius="15" Opacity="0.4"/>
             </Border.Shadow>
             <Button x:Name="btnToggleTracking"
                     Text="{Binding [POI_StartTracking], Source={x:Static services:LocalizationResourceManager.Instance}}"
@@ -118,9 +177,8 @@
                     TextColor="White"
                     FontAttributes="Bold"
                     FontSize="15"
-                    HeightRequest="52"/>
+                    Padding="20,0"/>
         </Border>
 
     </Grid>
-
 </ContentPage>

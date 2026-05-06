@@ -39,7 +39,11 @@ public class EdgeTtsTextToSpeechService : ITextToSpeechService
 
     public async Task<string> GenerateSpeechAsync(string text, string languageCode, string voiceCode)
     {
-        if (string.IsNullOrWhiteSpace(text)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(text)) 
+        {
+            _logger.LogDebug("Empty text passed to TTS, returning empty result.");
+            return string.Empty;
+        }
 
         var edgeTtsExe = ResolveEdgeTtsExecutablePath();
         if (string.IsNullOrWhiteSpace(edgeTtsExe))
@@ -52,8 +56,9 @@ public class EdgeTtsTextToSpeechService : ITextToSpeechService
             ? DefaultVoiceMapping.GetValueOrDefault(languageCode, "en-US-AriaNeural")
             : voiceCode;
 
-        if (string.Equals(selectedVoice, "ja-JP-NanomiNeural", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(selectedVoice, "ja-JP-NanamiNeural", StringComparison.OrdinalIgnoreCase))
         {
+            // Already correct, but keeping structure if we need other fixes
             selectedVoice = "ja-JP-NanamiNeural";
         }
 
@@ -130,6 +135,11 @@ public class EdgeTtsTextToSpeechService : ITextToSpeechService
             }
 
             var audioBytes = await File.ReadAllBytesAsync(outputPath);
+            if (audioBytes.Length == 0)
+            {
+                _logger.LogWarning("Edge-TTS generated an empty file for text: {Text}", text.Length > 20 ? text[..20] + "..." : text);
+                return string.Empty;
+            }
             return Convert.ToBase64String(audioBytes);
         }
         catch (Exception ex)

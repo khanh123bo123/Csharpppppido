@@ -7,6 +7,7 @@ public static class AppPreferences
 {
     public const string NarrationLanguageCodeKey = "NarrationLanguageCode";
     public const string NarrationSpeechRateKey = "NarrationSpeechRate";
+    public const string ApiBaseUrlKey = "ApiBaseUrl";
 
     public static bool HasNarrationLanguageCode()
         => Preferences.Default.ContainsKey(NarrationLanguageCodeKey);
@@ -36,5 +37,22 @@ public static class AppPreferences
         // Keep within a sane range; 0.25 is supported but very slow.
         speechRate = Math.Clamp(speechRate, 0.1, 4.0);
         Preferences.Default.Set(NarrationSpeechRateKey, speechRate);
+    }
+
+    public static string? GetApiBaseUrl()
+    {
+        var value = Preferences.Default.Get<string?>(ApiBaseUrlKey, null);
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    public static void SetApiBaseUrl(string? apiBaseUrl)
+    {
+        if (string.IsNullOrWhiteSpace(apiBaseUrl))
+        {
+            Preferences.Default.Remove(ApiBaseUrlKey);
+            return;
+        }
+
+        Preferences.Default.Set(ApiBaseUrlKey, apiBaseUrl.Trim());
     }
 }

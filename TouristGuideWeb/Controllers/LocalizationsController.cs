@@ -74,7 +74,13 @@ public class LocalizationsController : Controller
             return Forbid();
 
         ViewBag.Location = location;
-        return View(new CreateLocalizationRequest { LocationId = locationId, LanguageCode = "vi-VN", LocalizedName = location.Name });
+        return View(new CreateLocalizationRequest 
+        { 
+            LocationId = locationId, 
+            LanguageCode = "vi-VN", 
+            LocalizedName = location.Name,
+            LocalizedDescription = location.Description 
+        });
     }
 
     [HttpPost]

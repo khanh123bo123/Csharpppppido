@@ -117,6 +117,48 @@
                     </Grid>
                 </Border>
 
+                <!-- Account Section -->
+                <Label Text="TÀI KHOẢN" FontSize="11" FontAttributes="Bold" TextColor="#B84A39" Margin="4,8,0,0"/>
+                <Border StrokeThickness="0" BackgroundColor="White" Padding="15" StrokeShape="RoundRectangle 14">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="0,2" Radius="8" Opacity="0.05"/>
+                    </Border.Shadow>
+                    <VerticalStackLayout Spacing="10">
+                        <Label x:Name="UserEmailLabel" Text="Bạn đang đăng nhập với: ..." FontSize="14" TextColor="#666"/>
+                        <Button Text="ĐĂNG XUẤT" Clicked="OnLogoutClicked" 
+                                BackgroundColor="#B84A39" TextColor="White" 
+                                CornerRadius="8" HeightRequest="45" FontAttributes="Bold"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- API Server Section -->
+                <Label x:Name="ApiServerSectionLabel" Text="MÁY CHỦ API" FontSize="11" FontAttributes="Bold" TextColor="#B84A39" Margin="4,8,0,0"/>
+                <Border x:Name="ApiServerSectionCard" StrokeThickness="0" BackgroundColor="White" Padding="15" StrokeShape="RoundRectangle 14">
+                    <Border.Shadow>
+                        <Shadow Brush="Black" Offset="0,2" Radius="8" Opacity="0.05"/>
+                    </Border.Shadow>
+                    <VerticalStackLayout Spacing="10">
+                        <Entry x:Name="ApiBaseUrlEntry"
+                               Placeholder="http://192.168.x.x:5214/"
+                               Keyboard="Url"
+                               TextColor="#333"/>
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" Text="LƯU URL API"
+                                    Clicked="OnSaveApiBaseUrlClicked"
+                                    BackgroundColor="#2C4C3B"
+                                    TextColor="White"
+                                    CornerRadius="8"
+                                    HeightRequest="42"/>
+                            <Button Grid.Column="1" Text="KIỂM TRA KẾT NỐI"
+                                    Clicked="OnTestApiConnectionClicked"
+                                    BackgroundColor="#B84A39"
+                                    TextColor="White"
+                                    CornerRadius="8"
+                                    HeightRequest="42"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
                 <!-- Section: Về ứng dụng -->
                 <Label Text="{Binding [Settings_AppTitle], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="11" FontAttributes="Bold"
                        TextColor="#B84A39" Margin="4,8,0,4"
@@ -140,6 +182,15 @@
                                FontAttributes="Bold"/>
                         <Label Text="{Binding [Settings_Version], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="12"
                                TextColor="#AAA" HorizontalOptions="Center"/>
+                        
+                        <Button Text="CẬP NHẬT ỨNG DỤNG"
+                                Margin="0,10,0,0"
+                                Clicked="OnUpdateAppClicked"
+                                BackgroundColor="#2C4C3B"
+                                TextColor="White"
+                                CornerRadius="8"
+                                HeightRequest="45"
+                                FontAttributes="Bold"/>
                     </VerticalStackLayout>
                 </Border>
 

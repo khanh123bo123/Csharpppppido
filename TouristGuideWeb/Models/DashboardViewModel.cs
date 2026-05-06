@@ -7,8 +7,11 @@ public class DashboardViewModel
     public int TotalLocations { get; set; }
     public int TotalTours { get; set; }
     public int TotalAudios { get; set; }
+    public int TotalUsers { get; set; }
     public List<ProvinceStatItem> ProvinceStats { get; set; } = new();
     public List<NearestLocationItem> NearestToHanoi { get; set; } = new();
+    public List<RatingDto> RecentRatings { get; set; } = new();
+    public int OnlineDevicesCount { get; set; }
 }
 
 public class ProvinceStatItem

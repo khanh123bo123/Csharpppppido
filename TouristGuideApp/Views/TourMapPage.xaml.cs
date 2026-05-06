@@ -59,11 +59,17 @@ public partial class TourMapPage : ContentPage
                 return;
             }
 
-            // Fetch each location detail and convert to POI
+            // Convert tour locations to POI markers for the map
             var pois = new List<POI>();
             foreach (var tl in tourLocations.OrderBy(x => x.OrderIndex))
             {
-                var location = await _apiService.GetLocationAsync(tl.LocationId);
+                // Use pre-fetched location if available, otherwise fetch it
+                var location = tl.Location;
+                if (location == null)
+                {
+                    location = await _apiService.GetLocationAsync(tl.LocationId);
+                }
+
                 if (location != null)
                 {
                     pois.Add(new POI

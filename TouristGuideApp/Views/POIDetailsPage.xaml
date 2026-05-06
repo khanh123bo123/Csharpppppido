@@ -1,100 +1,80 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:services="clr-namespace:TouristGuideApp.Services"
+             xmlns:models="clr-namespace:TouristGuideApp.Models"
              x:Class="TouristGuideApp.Views.POIDetailsPage"
-             Title="{Binding [POI_Details_Desc], Source={x:Static services:LocalizationResourceManager.Instance}}"
+             xmlns:views="clr-namespace:TouristGuideApp.Views"
+             xmlns:services="clr-namespace:TouristGuideApp.Services"
+             x:DataType="views:POIDetailsPage"
+             Title="{Binding [POI_DetailTitle], Source={x:Static services:LocalizationResourceManager.Instance}}"
              BackgroundColor="#FDFBF7">
 
-    <ScrollView>
-        <VerticalStackLayout Spacing="0">
+    <Grid BackgroundColor="#FDFBF7">
+        <ScrollView>
+            <VerticalStackLayout Spacing="0">
 
-            <!-- Hero Image -->
-            <Grid HeightRequest="450" BackgroundColor="#F0EBE3">
-                <Image x:Name="imgLocation"
-                       Aspect="AspectFill"/>
-            </Grid>
+                <!-- Hero Image Area -->
+                <Grid HeightRequest="350">
+                    <Image x:Name="imgLocation"
+                           Aspect="AspectFill" />
+                </Grid>
 
-            <!-- Content Card (overlapping image) -->
-            <Border Margin="16,-24,16,0" Padding="20" StrokeThickness="0"
-                    StrokeShape="RoundRectangle 20" BackgroundColor="White">
-                <Border.Shadow>
-                    <Shadow Brush="#2C4C3B" Offset="0,4" Radius="16" Opacity="0.08"/>
-                </Border.Shadow>
-
-                <VerticalStackLayout Spacing="14">
-
-                    <!-- Name -->
-                    <Label x:Name="lblName"
-                           FontSize="22" FontAttributes="Bold"
-                           TextColor="#2C4C3B"/>
-
-                    <!-- Category + Distance badges -->
-                    <HorizontalStackLayout Spacing="8">
-                        <Border BackgroundColor="#FBE9E7" StrokeThickness="0"
-                                StrokeShape="RoundRectangle 20" Padding="12,5">
-                            <Label x:Name="lblCategory" TextColor="#B84A39"
-                                   FontAttributes="Bold" FontSize="13"/>
-                        </Border>
-                        <Border BackgroundColor="#E8F5E9" StrokeThickness="0"
-                                StrokeShape="RoundRectangle 20" Padding="12,5">
-                            <Label x:Name="lblDistance" TextColor="#2C4C3B" FontSize="13"/>
-                        </Border>
-                    </HorizontalStackLayout>
-
-                    <!-- Divider -->
-                    <BoxView HeightRequest="1" Color="#EAE3D9"/>
-
-                    <!-- Contact Info -->
-                    <Grid ColumnDefinitions="28,*" RowDefinitions="Auto,Auto" RowSpacing="12" ColumnSpacing="10">
-
-                        <Border Grid.Row="0" Grid.Column="0"
-                                BackgroundColor="#FBE9E7" StrokeThickness="0"
-                                StrokeShape="RoundRectangle 8" Padding="4">
-                            <Label Text="📍" FontSize="15" HorizontalOptions="Center"/>
-                        </Border>
-                        <Label x:Name="lblAddress" Grid.Row="0" Grid.Column="1"
-                               TextColor="#444" VerticalOptions="Center" FontSize="14"/>
-
-                        <Border Grid.Row="1" Grid.Column="0"
-                                BackgroundColor="#E8F5E9" StrokeThickness="0"
-                                StrokeShape="RoundRectangle 8" Padding="4">
-                            <Label Text="📞" FontSize="15" HorizontalOptions="Center"/>
-                        </Border>
-                        <Label x:Name="lblPhone" Grid.Row="1" Grid.Column="1"
-                               TextColor="#444" VerticalOptions="Center" FontSize="14"/>
-                    </Grid>
-
-                    <!-- Divider -->
-                    <BoxView HeightRequest="1" Color="#EAE3D9"/>
-
-                    <!-- Description -->
-                    <Label Text="{Binding [POI_Details_Desc], Source={x:Static services:LocalizationResourceManager.Instance}}" FontAttributes="Bold"
-                           FontSize="16" TextColor="#2C4C3B"/>
-                    <Label x:Name="lblDescription" LineBreakMode="WordWrap"
-                           TextColor="#555" FontSize="14" LineHeight="1.5"/>
+                <!-- Content Area -->
+                <VerticalStackLayout Padding="24,10,24,30" Spacing="20">
+                    
+                    <!-- Title Section -->
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="{Binding POIItem.Category}" 
+                               TextColor="#B84A39" 
+                               FontSize="14" 
+                               FontAttributes="Bold"
+                               TextTransform="Uppercase"/>
+                        <Label Text="{Binding POIItem.Name}" 
+                               TextColor="#2C4C3B" 
+                               FontSize="28" 
+                               FontAttributes="Bold"/>
+                        <Label TextColor="#666666" FontSize="14">
+                            <Label.Text>
+                                <MultiBinding StringFormat="{}{0} {1}">
+                                    <Binding Path="[POI_Distance_Prefix]" Source="{x:Static services:LocalizationResourceManager.Instance}" />
+                                    <Binding Path="POIItem.DistanceText" />
+                                </MultiBinding>
+                            </Label.Text>
+                        </Label>
+                    </VerticalStackLayout>
 
                     <!-- Listen Button -->
-                    <Button x:Name="btnListen"
-                            Text="{Binding [POI_Listen], Source={x:Static services:LocalizationResourceManager.Instance}}"
+                    <Button Text="{Binding [POI_Listen], Source={x:Static services:LocalizationResourceManager.Instance}}"
+                            Clicked="OnListenClicked"
                             BackgroundColor="#B84A39"
                             TextColor="White"
-                            CornerRadius="25"
-                            HeightRequest="52"
-                            FontSize="15"
-                            FontAttributes="Bold"
-                            Margin="0,10,0,0"
-                            Clicked="OnListenClicked">
-                        <Button.Shadow>
-                            <Shadow Brush="#B84A39" Offset="0,4" Radius="12" Opacity="0.35"/>
-                        </Button.Shadow>
-                    </Button>
+                            HeightRequest="70"
+                            CornerRadius="35"
+                            FontAttributes="Bold"/>
+
+                    <!-- Description -->
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="{Binding [POI_Intro], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="18" FontAttributes="Bold" TextColor="#2C4C3B"/>
+                        <WebView x:Name="wvDescription" 
+                                 HeightRequest="500"
+                                 Navigated="OnDescriptionWebViewNavigated"/>
+                    </VerticalStackLayout>
+
+                    <!-- Rating -->
+                    <VerticalStackLayout Spacing="10" Margin="0,10,0,0">
+                        <Label Text="Đánh giá" FontSize="18" FontAttributes="Bold" TextColor="#2C4C3B"/>
+                        <HorizontalStackLayout Spacing="5">
+                            <Button Text="⭐ 1" Clicked="OnStarClicked" CommandParameter="1" WidthRequest="60"/>
+                            <Button Text="⭐ 2" Clicked="OnStarClicked" CommandParameter="2" WidthRequest="60"/>
+                            <Button Text="⭐ 3" Clicked="OnStarClicked" CommandParameter="3" WidthRequest="60"/>
+                            <Button Text="⭐ 4" Clicked="OnStarClicked" CommandParameter="4" WidthRequest="60"/>
+                            <Button Text="⭐ 5" Clicked="OnStarClicked" CommandParameter="5" WidthRequest="60"/>
+                        </HorizontalStackLayout>
+                        <Label x:Name="lblRatingStatus" Text="Bạn thấy sao về quán này?" FontSize="12" TextColor="#888888"/>
+                    </VerticalStackLayout>
 
                 </VerticalStackLayout>
-            </Border>
-
-            <BoxView HeightRequest="24" Color="Transparent"/>
-
-        </VerticalStackLayout>
-    </ScrollView>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
 </ContentPage>

@@ -13,8 +13,10 @@ public partial class MapPage : ContentPage
     private readonly IMapHtmlGenerator _mapHtmlGenerator;
     private readonly IApiService _apiService;
     private readonly IDatabaseService _databaseService;
+    private readonly IAudioService _audioService;
+    private readonly IAuthService _authService;
 
-    public MapPage(ILocationService locationService, IGeofenceService geofenceService, IOfflineMapService offlineMapService, IMapHtmlGenerator mapHtmlGenerator, IApiService apiService, IDatabaseService databaseService)
+    public MapPage(ILocationService locationService, IGeofenceService geofenceService, IOfflineMapService offlineMapService, IMapHtmlGenerator mapHtmlGenerator, IApiService apiService, IDatabaseService databaseService, IAudioService audioService, IAuthService authService)
     {
         InitializeComponent();
         _locationService = locationService;
@@ -23,28 +25,66 @@ public partial class MapPage : ContentPage
         _mapHtmlGenerator = mapHtmlGenerator;
         _apiService = apiService;
         _databaseService = databaseService;
+        _audioService = audioService;
+        _authService = authService;
 
         _locationService.LocationUpdated += OnLocationUpdated;
         Connectivity.ConnectivityChanged += OnConnectivityChanged;
     }
 
-    protected override async void OnAppearing()
-    {
-        base.OnAppearing();
-        
-        // Initialize offline map service
-        await _offlineMapService.InitializeAsync();
-        
-        // Load map
-        await LoadMapAsync();
-        
-        // Start tracking user location
-        await _geofenceService.InitAsync();
-        _locationService.StartTracking();
-        
-        // Check connectivity
-        UpdateConnectivityStatus();
-    }
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+
+            try
+            {
+                // Delay significantly so other tabs don't clash initializing Native UI
+                await Task.Delay(1000); 
+
+                // Initialize offline map service
+                await _offlineMapService.InitializeAsync();
+                
+                // Start tracking user location & Initialize POIs from DB
+                await _geofenceService.InitAsync();
+                _locationService.StartTracking();
+
+                var currentPois = _geofenceService.GetPOIs();
+                var lang = AppPreferences.GetNarrationLanguageCode();
+
+                // If language changed globally or cache is empty, we must sync
+                bool needsSync = (currentPois == null || !currentPois.Any());
+                if (!needsSync && currentPois != null && currentPois.Any())
+                {
+                    var firstPoi = currentPois.First();
+                    if (!string.Equals(firstPoi.LanguageCode, lang, StringComparison.OrdinalIgnoreCase))
+                    {
+                        needsSync = true;
+                    }
+                }
+
+                if (needsSync)
+                {
+                    lblStatus.Text = LocalizationResourceManager.Instance["Map_UpdatingLang"];
+                    await _apiService.SyncPOIsToLocalAsync(_databaseService, lang);
+                    await _geofenceService.InitAsync();
+                    currentPois = _geofenceService.GetPOIs();
+                }
+
+                // Load map (now that POIs are loaded)
+                await LoadMapAsync();
+                
+                // Check connectivity
+                UpdateConnectivityStatus();
+                
+                lblStatus.Text = currentPois != null && currentPois.Any() 
+                    ? string.Format(LocalizationResourceManager.Instance["Map_FoundCount"], currentPois.Count) 
+                    : LocalizationResourceManager.Instance["Map_NoData"];
+            }
+            catch (Exception ex)
+            {
+                 System.Diagnostics.Debug.WriteLine($"[FATAL in MapPage.OnAppearing]: {ex}");
+            }
+        }
 
     private string _searchFilter = string.Empty;
 
@@ -79,7 +119,10 @@ public partial class MapPage : ContentPage
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error loading map: {ex.Message}");
-            await DisplayAlertAsync("Lỗi", "Không thể load bản đồ", "OK");
+            await DisplayAlertAsync(
+                LocalizationResourceManager.Instance["Alert_Error"], 
+                LocalizationResourceManager.Instance["Map_LoadError"], 
+                LocalizationResourceManager.Instance["Alert_OK"]);
         }
     }
 
@@ -135,8 +178,9 @@ public partial class MapPage : ContentPage
         {
             MainThread.BeginInvokeOnMainThread(() => {
                 lblQuickName.Text = _selectedPoi.Name;
-                lblQuickCategory.Text = _selectedPoi.Category ?? "Địa điểm";
-                lblQuickAddress.Text = _selectedPoi.Address ?? "Thông tin địa chỉ đang cập nhật";
+                lblQuickRating.Text = _selectedPoi.AverageRating > 0 ? $"⭐ {_selectedPoi.AverageRating:F1}" : "⭐ --";
+                lblQuickCategory.Text = _selectedPoi.Category ?? LocalizationResourceManager.Instance["Map_DefaultCategory"];
+                lblQuickAddress.Text = _selectedPoi.Address ?? LocalizationResourceManager.Instance["Map_NoAddress"];
                 
                 if (!string.IsNullOrEmpty(_selectedPoi.ImageUrl))
                     imgQuickPOI.Source = _selectedPoi.ImageUrl;
@@ -160,7 +204,7 @@ public partial class MapPage : ContentPage
     {
         if (_selectedPoi != null)
         {
-            await Navigation.PushAsync(new POIDetailsPage(_geofenceService, _apiService, _databaseService) { POIItem = _selectedPoi });
+            await Navigation.PushAsync(new POIDetailsPage(_geofenceService, _apiService, _databaseService, _audioService, _authService) { POIItem = _selectedPoi });
         }
     }
 
@@ -183,7 +227,7 @@ public partial class MapPage : ContentPage
 
     private void OnLocationUpdated(object? sender, Location location)
     {
-        MainThread.BeginInvokeOnMainThread(() =>
+        MainThread.BeginInvokeOnMainThread(async () =>
         {
             if (_geofenceService.ActivePOI != null)
             {
@@ -191,9 +235,31 @@ public partial class MapPage : ContentPage
             }
             else
             {
-                lblStatus.Text = "Tìm kiếm nhà hàng gần bạn...";
+                lblStatus.Text = LocalizationResourceManager.Instance["Map_SearchNear"];
+            }
+
+            // Update real-time position on map
+            try 
+            {
+                await tourMapWebView.EvaluateJavaScriptAsync($"updateUserLocation({location.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {location.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)})");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error updating map dot: {ex.Message}");
             }
         });
+    }
+
+    private async void OnCenterOnUserClicked(object sender, EventArgs e)
+    {
+        try 
+        {
+            await tourMapWebView.EvaluateJavaScriptAsync("centerOnUser()");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error centering map: {ex.Message}");
+        }
     }
 
     private void UpdateConnectivityStatus()
@@ -201,12 +267,12 @@ public partial class MapPage : ContentPage
         var current = Connectivity.Current.NetworkAccess;
         if (current == NetworkAccess.Internet)
         {
-            lblMode.Text = "Chế độ: Online ☁️";
+            lblMode.Text = LocalizationResourceManager.Instance["Map_Online"];
             lblMode.TextColor = Colors.Green;
         }
         else
         {
-            lblMode.Text = "Chế độ: Offline 📦 (cached tiles)";
+            lblMode.Text = LocalizationResourceManager.Instance["Map_Offline"];
             lblMode.TextColor = Colors.Orange;
         }
     }
@@ -228,7 +294,7 @@ public partial class MapPage : ContentPage
         try
         {
             btnCacheMap.IsEnabled = false;
-            btnCacheMap.Text = "Đang cache...";
+            btnCacheMap.Text = LocalizationResourceManager.Instance["Map_Caching"];
 
             // Cache tiles for Quận 4 area at zoom 14
             await _offlineMapService.CacheTilesAsync(
@@ -239,17 +305,23 @@ public partial class MapPage : ContentPage
                 zoomLevel: 14
             );
 
-            btnCacheMap.Text = "Cache Bản đồ";
+            btnCacheMap.Text = LocalizationResourceManager.Instance["Map_CacheBtn"];
             btnCacheMap.IsEnabled = true;
             
-            await DisplayAlertAsync("Thành công", "Bản đồ đã được lưu offline", "OK");
+            await DisplayAlertAsync(
+                LocalizationResourceManager.Instance["Alert_ClearHistory_Title"], 
+                LocalizationResourceManager.Instance["Map_CacheSuccess"], 
+                LocalizationResourceManager.Instance["Alert_OK"]);
         }
         catch (Exception ex)
         {
-            btnCacheMap.Text = "Cache Bản đồ";
+            btnCacheMap.Text = LocalizationResourceManager.Instance["Map_CacheBtn"];
             btnCacheMap.IsEnabled = true;
             
-            await DisplayAlertAsync("Lỗi", $"Không thể cache bản đồ: {ex.Message}", "OK");
+            await DisplayAlertAsync(
+                LocalizationResourceManager.Instance["Alert_Error"], 
+                string.Format(LocalizationResourceManager.Instance["Map_CacheError"], ex.Message), 
+                LocalizationResourceManager.Instance["Alert_OK"]);
         }
     }
 

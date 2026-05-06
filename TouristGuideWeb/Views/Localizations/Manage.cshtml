@@ -166,7 +166,7 @@
                         if (audioHost) {
                             if (s === 'generated' || s === 'cached') {
                                 const url = item.audioStreamUrl;
-                                if (url) {
+                                if (url && !audioHost.querySelector('audio')) {
                                     audioHost.innerHTML = `<audio controls style="height: 30px; width: 220px;"><source src="${url}" type="audio/mpeg">Trình duyệt không hỗ trợ audio.</audio>`;
                                 }
                             } else {

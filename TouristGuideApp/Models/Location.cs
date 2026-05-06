@@ -14,4 +14,6 @@ public class Location
     public string? PhoneNumber { get; set; }
     public string? Address { get; set; }
     public string? ImageUrl { get; set; }
+    public double AverageRating { get; set; } = 0;
+    public int RatingCount { get; set; } = 0;
 }

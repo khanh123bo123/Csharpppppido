@@ -26,10 +26,12 @@ public class LocationsController : Controller
         ViewBag.Categories = await _locationApiService.GetCategoriesAsync(cancellationToken);
 
         var locations = await _locationApiService.GetAllAsync(cancellationToken, searchString, category);
+        
         if (User.IsInRole("Owner") && !User.IsInRole("Admin"))
         {
             locations = locations.Where(l => string.Equals(l.OwnerEmail, User.Identity?.Name, StringComparison.OrdinalIgnoreCase)).ToList();
         }
+        
         return View(locations);
     }
 
@@ -77,7 +79,8 @@ public class LocationsController : Controller
             PhoneNumber = model.PhoneNumber,
             Address = model.Address,
             ImageUrl = model.ImageUrl,
-            OwnerEmail = User.Identity?.Name
+            OwnerEmail = User.Identity?.Name,
+            CreatedAt = DateTime.Now
         };
 
         var (created, createErrorMessage) = await _locationApiService.CreateLocationAsync(request, cancellationToken);
@@ -200,6 +203,23 @@ public class LocationsController : Controller
         TempData[deleted ? "SuccessMessage" : "ErrorMessage"] = deleted
             ? "Xoa dia diem thanh cong."
             : "Xoa that bai. Vui long thu lai.";
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ReprocessAll(CancellationToken cancellationToken)
+    {
+        var success = await _locationApiService.ReprocessTranslationsAsync(cancellationToken);
+        if (success)
+        {
+            TempData["SuccessMessage"] = "Đã gửi yêu cầu dịch lại toàn bộ các địa điểm. Quá trình này sẽ chạy ngầm và mất vài phút để hoàn tất.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Không thể gửi yêu cầu dịch lại. Vui lòng kiểm tra API.";
+        }
 
         return RedirectToAction(nameof(Index));
     }

@@ -15,6 +15,10 @@ public class AppDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Tour> Tours { get; set; }
     public DbSet<TourLocation> TourLocations { get; set; }
+    public DbSet<TourLocalization> TourLocalizations { get; set; }
+    public DbSet<ScanLog> ScanLogs { get; set; }
+    public DbSet<Rating> Ratings { get; set; }
+    public DbSet<ListenLog> ListenLogs { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -33,6 +37,26 @@ public class AppDbContext : DbContext
             .HasIndex(l => new { l.LocationId, l.LanguageCode })
             .IsUnique()
             .HasDatabaseName("IX_Localization_LocationId_LanguageCode");
+
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Email)
+            .IsUnique()
+            .HasDatabaseName("IX_Users_Email");
+
+        // Configure TourLocalization
+        modelBuilder.Entity<TourLocalization>()
+            .HasOne(tl => tl.Tour)
+            .WithMany()
+            .HasForeignKey(tl => tl.TourId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<TourLocalization>()
+            .HasIndex(tl => new { tl.TourId, tl.LanguageCode })
+            .IsUnique()
+            .HasDatabaseName("IX_TourLocalization_TourId_LanguageCode");
+
+        modelBuilder.Entity<ScanLog>().ToTable("ScanLogs");
+        modelBuilder.Entity<Rating>().ToTable("Ratings");
 
         // Seed default admin user
         modelBuilder.Entity<User>().HasData(

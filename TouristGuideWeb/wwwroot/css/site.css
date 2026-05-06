@@ -359,45 +359,36 @@ h1, h2, h3, h4, h5, h6, .playfair {
 
 /* Chevron Statistics Cards (Image 1 Dashboard) */
 .chevron-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: stretch;
-    height: 140px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
     margin-bottom: 30px;
 }
 .chevron-wrapper {
-    flex: 1;
     position: relative;
-    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
+    filter: drop-shadow(0 8px 12px rgba(0,0,0,0.08));
+    margin-left: 0 !important; /* Remove the overlap */
+    z-index: 1 !important;
 }
-.chevron-wrapper:nth-child(1) { z-index: 4; }
-.chevron-wrapper:nth-child(2) { z-index: 3; margin-left: -25px; }
-.chevron-wrapper:nth-child(3) { z-index: 2; margin-left: -25px; }
-.chevron-wrapper:nth-child(4) { z-index: 1; margin-left: -25px; }
 
 .chevron-card {
     height: 100%;
     color: white;
-    padding: 20px 20px 20px 45px;
+    padding: 25px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    clip-path: polygon(0% 0%, 93% 0%, 100% 50%, 93% 100%, 0% 100%, 7% 50%);
-    transition: transform 0.3s;
+    border-radius: 20px; /* Modern rounded corners */
+    transition: transform 0.3s, box-shadow 0.3s;
 }
 .chevron-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 12px 20px rgba(0,0,0,0.15);
 }
-.chevron-wrapper:first-child .chevron-card {
-    padding-left: 20px;
-    clip-path: polygon(0% 0%, 93% 0%, 100% 50%, 93% 100%, 0% 100%);
-    border-top-left-radius: 16px;
-    border-bottom-left-radius: 16px;
-}
+.chevron-wrapper:first-child .chevron-card,
 .chevron-wrapper:last-child .chevron-card {
-    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 7% 50%);
-    border-top-right-radius: 16px;
-    border-bottom-right-radius: 16px;
+    padding-left: 25px;
+    border-radius: 20px;
 }
 
 .chev-title {
@@ -462,6 +453,7 @@ h1, h2, h3, h4, h5, h6, .playfair {
 .grad-blue { background: linear-gradient(135deg, #60A5FA, #3B82F6); }
 .grad-green { background: linear-gradient(135deg, #34D399, #10B981); }
 .grad-purple { background: linear-gradient(135deg, #C084FC, #9333EA); }
+.grad-cyan { background: linear-gradient(135deg, #22D3EE, #06B6D4); }
 
 .chevron-card.grad-orange::after { background: #FF5733; }
 .chevron-card.grad-blue::after { background: #3B82F6; }

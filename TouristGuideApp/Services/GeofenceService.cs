@@ -25,6 +25,7 @@ namespace TouristGuideApp.Services
     {
         private readonly IAudioService _audioService;
         private readonly IDatabaseService _databaseService;
+        private readonly IApiService _apiService;
         private List<POI> _pois = new();
         public POI? ActivePOI { get; private set; }
         public string CurrentLanguage { get; private set; } = "vi-VN";
@@ -32,10 +33,11 @@ namespace TouristGuideApp.Services
         // Cooldown period between audio plays (in seconds)
         private const double AudioCooldownSeconds = 300; // 5 minutes
 
-        public GeofenceService(IAudioService audioService, IDatabaseService databaseService)
+        public GeofenceService(IAudioService audioService, IDatabaseService databaseService, IApiService apiService)
         {
             _audioService = audioService;
             _databaseService = databaseService;
+            _apiService = apiService;
         }
 
         public async Task SetLanguageAsync(string languageCode)
@@ -65,12 +67,47 @@ namespace TouristGuideApp.Services
             {
                 poi.LastPlayedTime = DateTime.Now;
                 
-                // Use localized description if available, otherwise use default
+                // Tier 1: Check if POI description is already in the target language
                 var textToPlay = poi.Description;
+                
+                if (!string.Equals(poi.LanguageCode, CurrentLanguage, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Tier 2: Try to fetch localization from API if online
+                    try 
+                    {
+                        var loc = await _apiService.GetLocalizationAsync(poi.ServerLocationId, CurrentLanguage);
+                        if (loc != null && !string.IsNullOrWhiteSpace(loc.LocalizedDescription))
+                        {
+                            // If the localization is identical to the name (indicating a failed AI translate), ignore it
+                            bool isRealTranslation = !string.Equals(loc.LocalizedName?.Trim(), poi.Name?.Trim(), StringComparison.OrdinalIgnoreCase);
+                            
+                            if (isRealTranslation)
+                            {
+                                textToPlay = loc.LocalizedDescription;
+                                // Optionally update local cache so next time it's offline-ready
+                                poi.Description = textToPlay;
+                                poi.LanguageCode = CurrentLanguage;
+                                await _databaseService.SavePOIAsync(poi);
+                            }
+                            else 
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[GeofenceService] Localization for {poi.Name} in {CurrentLanguage} is same as original. Staying in vi-VN mode.");
+                                poi.LanguageCode = "vi-VN";
+                            }
+                        }
+                    }
+                    catch { /* Fallback to default if offline / API error */ }
+                }
+
+                // Final safety: if text is still empty, use POI name
+                if (string.IsNullOrWhiteSpace(textToPlay))
+                {
+                    textToPlay = poi.Name ?? "Bạn đang ở gần một địa điểm du lịch.";
+                }
 
                 await _audioService.EnqueueSpeechAsync(
                     textToPlay,
-                    serverLocationId: forceOfflineTts ? null : (poi.ServerLocationId > 0 ? poi.ServerLocationId : null),
+                    serverLocationId: poi.ServerLocationId > 0 ? poi.ServerLocationId : null,
                     forceOfflineTts: forceOfflineTts,
                     onStarted: () => { poi.IsCurrentlyPlaying = true; },
                     onEnded: () => {

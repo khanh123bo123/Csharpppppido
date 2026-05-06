@@ -8,7 +8,7 @@ using ZXing.Net.Maui.Controls;
 public static class MauiProgram
 {
 	private const int DefaultApiPort = 5214;
-	private const string ProductionApiBaseUrl = "https://YOUR_API_DOMAIN/";
+	private const string ProductionApiBaseUrl = "http://172.20.10.2:5214/";
 
 	public static MauiApp CreateMauiApp()
 	{
@@ -17,9 +17,8 @@ public static class MauiProgram
 			var builder = MauiApp.CreateBuilder();
 			builder
 				.UseMauiApp<App>()
-				.UseMauiMaps()
                 .UseBarcodeReader()
-				.ConfigureFonts(fonts =>
+                .ConfigureFonts(fonts =>
 				{
 					fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
 					fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
@@ -28,11 +27,13 @@ public static class MauiProgram
 			// Register Services
 			builder.Services.AddSingleton<IDatabaseService, DatabaseService>();
 			builder.Services.AddSingleton<IAudioService, AudioService>();
+			builder.Services.AddSingleton<IAuthService, AuthService>();
 			builder.Services.AddSingleton<ILocationService, LocationService>();
 			builder.Services.AddSingleton<IGeofenceService, GeofenceService>();
 			builder.Services.AddSingleton<ISyncService, SyncService>();
 			builder.Services.AddSingleton<IOfflineMapService, OfflineMapService>();
 			builder.Services.AddSingleton<IMapHtmlGenerator, MapHtmlGenerator>();
+			builder.Services.AddSingleton<IUpdateService, UpdateService>();
 
 			builder.Services.AddHttpClient<IApiService, ApiService>(client =>
 			{
@@ -45,6 +46,7 @@ public static class MauiProgram
 			});
 
 			// Register Pages
+			builder.Services.AddSingleton<AppShell>();
 			builder.Services.AddSingleton<MainPage>();
 			builder.Services.AddSingleton<MapPage>();
 			builder.Services.AddSingleton<SettingsPage>();
@@ -52,23 +54,74 @@ public static class MauiProgram
             builder.Services.AddTransient<ToursPage>();
             builder.Services.AddTransient<QRScanPage>();
             builder.Services.AddTransient<TourMapPage>();
+            builder.Services.AddTransient<LoginPage>();
+            builder.Services.AddTransient<RegisterPage>();
 
-			return builder.Build();
+            var app = builder.Build();
+
+            // PRE-FLIGHT CHECK: 
+            // Resolve App manually to ensure no DI crashes happen invisibly.
+            // If this fails, it's a DI misconfiguration.
+            try
+            {
+                var testApp = app.Services.GetService<App>();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[FATAL in DI Resolution]: {ex}");
+                throw new InvalidOperationException($"DI Registration failed: {ex.Message}", ex);
+            }
+
+			return app;
 		}
 		catch (Exception ex)
 		{
 			System.Diagnostics.Debug.WriteLine($"!!!FATAL ERROR during app initialization: {ex}");
-			throw;
+			
+			// Build a safe fallback app and print the actual Exception to the UI
+			var fallbackBuilder = MauiApp.CreateBuilder();
+			fallbackBuilder.UseMauiApp<FallbackFailApp>();
+			FallbackFailApp.ErrorMessage = ex.ToString();
+			return fallbackBuilder.Build();
+		}
+	}
+
+	class FallbackFailApp : Application
+	{
+		public static string ErrorMessage { get; set; } = "N/A";
+		
+		protected override Window CreateWindow(IActivationState? activationState)
+		{
+			return new Window(new ContentPage {
+				Content = new ScrollView {
+					Content = new Label {
+						Text = "APP INIT FAILED!\n\n" + ErrorMessage,
+						TextColor = Colors.Red,
+						Margin = 20,
+						FontAttributes = FontAttributes.Bold
+					}
+				}
+			});
 		}
 	}
 
 	private static Uri ResolveApiBaseAddress()
 	{
+		var customApiBaseUrl = AppPreferences.GetApiBaseUrl();
+		if (!string.IsNullOrWhiteSpace(customApiBaseUrl) &&
+			Uri.TryCreate(customApiBaseUrl, UriKind.Absolute, out var customUri))
+		{
+			return EnsureTrailingSlash(customUri);
+		}
+
 		#if DEBUG
 		#if ANDROID
 		var isEmulator = Microsoft.Maui.Devices.DeviceInfo.Current.DeviceType == Microsoft.Maui.Devices.DeviceType.Virtual;
-		var host = isEmulator ? "10.0.2.2" : "127.0.0.1";
+		var host = isEmulator ? "10.0.2.2" : "172.20.10.2";
 		return new Uri($"http://{host}:{DefaultApiPort}/");
+		#elif IOS
+		// Your Mac IP is: 172.20.10.2
+		return new Uri($"http://172.20.10.2:{DefaultApiPort}/");
 		#else
 		return new Uri($"http://localhost:{DefaultApiPort}/");
 		#endif
@@ -80,6 +133,31 @@ public static class MauiProgram
 
 		return EnsureTrailingSlash(productionUri);
 		#endif
+	}
+
+	private static bool IsPrivateHost(string host)
+	{
+		if (string.IsNullOrWhiteSpace(host))
+		{
+			return true;
+		}
+
+		var h = host.Trim().ToLowerInvariant();
+		if (h is "localhost" or "127.0.0.1" or "::1")
+		{
+			return true;
+		}
+
+		if (!System.Net.IPAddress.TryParse(h, out var ip))
+		{
+			return false;
+		}
+
+		var bytes = ip.GetAddressBytes();
+		if (bytes.Length != 4) return false;
+		return bytes[0] == 10
+			|| (bytes[0] == 172 && bytes[1] >= 16 && bytes[1] <= 31)
+			|| (bytes[0] == 192 && bytes[1] == 168);
 	}
 
 	private static Uri EnsureTrailingSlash(Uri uri)

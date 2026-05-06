@@ -29,6 +29,23 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Get quick counts for dashboard
+    /// GET: api/auth/stats
+    /// </summary>
+    [HttpGet("stats")]
+    public async Task<ActionResult<AuthStats>> GetStats()
+    {
+        var totalUsers = await _context.Users.CountAsync();
+        var activeUsers = await _context.Users.CountAsync(u => u.IsActive);
+        
+        return Ok(new AuthStats
+        {
+            TotalUsers = totalUsers,
+            ActiveUsers = activeUsers
+        });
+    }
+
+    /// <summary>
     /// Login endpoint for admin users
     /// POST: api/auth/login
     /// </summary>
@@ -40,20 +57,22 @@ public class AuthController : ControllerBase
             return BadRequest("Email and password are required");
         }
 
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+
         var user = await _context.Users
-            .Where(u => u.Email == request.Email && u.IsActive)
+            .Where(u => u.Email == normalizedEmail && u.IsActive)
             .FirstOrDefaultAsync();
 
         if (user == null)
         {
-            _logger.LogWarning($"Login attempt with unknown email: {request.Email}");
+            _logger.LogWarning($"Login attempt with unknown email: {normalizedEmail}");
             return Unauthorized("Invalid email or password");
         }
 
         // Verify password using BCrypt
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
-            _logger.LogWarning($"Failed login attempt for user: {request.Email}");
+            _logger.LogWarning($"Failed login attempt for user: {normalizedEmail}");
             return Unauthorized("Invalid email or password");
         }
 
@@ -85,26 +104,60 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<ActionResult<UserDto>> Register([FromBody] RegisterRequest request)
     {
-        // In production, verify the request is from an authenticated admin
-        // Add [Authorize(Roles = "Admin")] attribute or implement admin verification
-
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
         {
-            return BadRequest("Email and password are required");
+            return BadRequest(new { message = "Email và mật khẩu không được để trống." });
         }
 
-        // Check if user already exists
-        var existingUser = await _context.Users.Where(u => u.Email == request.Email).FirstOrDefaultAsync();
+        if (string.IsNullOrWhiteSpace(request.FullName))
+        {
+            return BadRequest(new { message = "Họ tên không được để trống." });
+        }
+
+        if (request.Password.Length < 6)
+        {
+            return BadRequest(new { message = "Mật khẩu phải có ít nhất 6 ký tự." });
+        }
+
+        // Normalize email: trim whitespace and convert to lowercase
+        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+
+        // Check if user already exists (case-insensitive via normalized email)
+        var existingUser = await _context.Users
+            .Where(u => u.Email == normalizedEmail)
+            .FirstOrDefaultAsync();
+
         if (existingUser != null)
         {
-            return BadRequest("Email already registered");
+            if (!existingUser.IsActive)
+            {
+                // Reactivate a previously deactivated account
+                existingUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+                existingUser.FullName = request.FullName.Trim();
+                existingUser.IsActive = true;
+                existingUser.UpdatedAt = DateTime.UtcNow;
+                _context.Users.Update(existingUser);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation($"Reactivated user: {existingUser.Email}");
+
+                return CreatedAtAction(nameof(GetUser), new { id = existingUser.Id }, new UserDto
+                {
+                    Id = existingUser.Id,
+                    Email = existingUser.Email,
+                    FullName = existingUser.FullName,
+                    Role = existingUser.Role
+                });
+            }
+
+            return BadRequest(new { message = "Email này đã được đăng ký. Vui lòng sử dụng email khác." });
         }
 
         var user = new User
         {
-            Email = request.Email,
+            Email = normalizedEmail,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            FullName = request.FullName,
+            FullName = request.FullName.Trim(),
             Role = request.Role ?? "Viewer",
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
@@ -283,4 +336,10 @@ public class TokenValidationResponse
     public bool IsValid { get; set; }
     public int UserId { get; set; }
     public string Role { get; set; } = string.Empty;
+}
+
+public class AuthStats
+{
+    public int TotalUsers { get; set; }
+    public int ActiveUsers { get; set; }
 }

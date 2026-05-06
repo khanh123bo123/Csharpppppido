@@ -13,9 +13,8 @@
             x:Name="barcodeReader"
             CameraLocation="Rear"
             BarcodesDetected="CameraBarcodeReaderView_BarcodesDetected"
-            IsDetecting="True"
-            HorizontalOptions="FillAndExpand"
-            VerticalOptions="FillAndExpand"/>
+            HorizontalOptions="Fill"
+            VerticalOptions="Fill"/>
 
         <!-- Top overlay: title -->
         <VerticalStackLayout VerticalOptions="Start" HorizontalOptions="Fill"
@@ -64,14 +63,22 @@
                      HorizontalOptions="End" VerticalOptions="End"/>
         </Grid>
 
-        <!-- Bottom hint -->
         <Border VerticalOptions="End" HorizontalOptions="Fill"
                 Margin="24,0,24,40" Padding="16,12"
                 StrokeThickness="0" StrokeShape="RoundRectangle 16"
                 BackgroundColor="#CC000000">
-            <Label Text="{Binding [QR_CameraHint], Source={x:Static services:LocalizationResourceManager.Instance}}"
-                   TextColor="White" FontSize="13"
-                   HorizontalOptions="Center"/>
+            <VerticalStackLayout Spacing="8">
+                <Label Text="{Binding [QR_CameraHint], Source={x:Static services:LocalizationResourceManager.Instance}}"
+                       TextColor="White" FontSize="13"
+                       HorizontalOptions="Center"/>
+                <Button Text="{Binding [QR_ManualInput], Source={x:Static services:LocalizationResourceManager.Instance}}"
+                        BackgroundColor="#B84A39"
+                        TextColor="White"
+                        FontSize="14"
+                        CornerRadius="10"
+                        HeightRequest="40"
+                        Clicked="OnManualInputClicked"/>
+            </VerticalStackLayout>
         </Border>
     </Grid>
 </ContentPage>

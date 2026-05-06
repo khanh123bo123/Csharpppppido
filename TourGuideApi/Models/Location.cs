@@ -34,4 +34,7 @@ public class Location
 
     // Field to isolate POIs per owner
     public string? OwnerEmail { get; set; }
+
+    public double AverageRating { get; set; } = 0;
+    public int RatingCount { get; set; } = 0;
 }

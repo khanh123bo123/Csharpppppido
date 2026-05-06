@@ -18,6 +18,7 @@ namespace TouristGuideApp.Services
     public interface IAudioService
     {
         Task EnqueueSpeechAsync(string text, int? serverLocationId = null, string? cachedAudioUrl = null, bool forceOfflineTts = false, Action? onStarted = null, Action? onEnded = null);
+        Task StopAsync();
         bool IsPlaying { get; }
         Task SetLanguageAsync(string languageCode);
         string CurrentLanguage { get; }
@@ -29,12 +30,32 @@ namespace TouristGuideApp.Services
         private readonly IApiService _apiService;
         private readonly Queue<(string Text, int? ServerLocationId, string? AudioUrl, bool ForceOfflineTts, Action? OnStarted, Action? OnEnded)> _speechQueue = new();
         private bool _isProcessing = false;
+        private CancellationTokenSource? _currentCts;
         public bool IsPlaying { get; private set; }
         public string CurrentLanguage { get; private set; } = "vi-VN";
 
         public AudioService(IApiService apiService)
         {
             _apiService = apiService;
+        }
+
+        public async Task StopAsync()
+        {
+            _speechQueue.Clear();
+            _currentCts?.Cancel();
+            _currentCts = new CancellationTokenSource(); // Reset CTS
+            
+            try 
+            {
+                // Note: MAUI TextToSpeech doesn't have a direct 'Stop', 
+                // but calling SpeakAsync with empty string is a common workaround.
+                // We run it without awaiting to avoid blocking.
+                _ = TextToSpeech.Default.SpeakAsync(""); 
+            } catch { }
+            
+            IsPlaying = false;
+            _isProcessing = false;
+            await Task.CompletedTask;
         }
 
         public async Task SetLanguageAsync(string languageCode)
@@ -50,6 +71,9 @@ namespace TouristGuideApp.Services
         {
             if (string.IsNullOrWhiteSpace(text)) return;
 
+            // Optional: If we want "Play immediately" behavior, uncomment below:
+            // await StopAsync();
+
             _speechQueue.Enqueue((text, serverLocationId, cachedAudioUrl, forceOfflineTts, onStarted, onEnded));
 
             if (!_isProcessing)
@@ -61,16 +85,25 @@ namespace TouristGuideApp.Services
         private async Task ProcessQueueAsync()
         {
             _isProcessing = true;
+            _currentCts = new CancellationTokenSource();
 
-            while (_speechQueue.Count > 0)
+            while (_speechQueue.Count > 0 && !_currentCts.IsCancellationRequested)
             {
                 var item = _speechQueue.Dequeue();
 
                 IsPlaying = true;
                 item.OnStarted?.Invoke();
 
+                // REPORT: Log the listen event to the server if online
+                if (item.ServerLocationId is > 0)
+                {
+                    _ = _apiService.LogListenAsync(item.ServerLocationId.Value, CurrentLanguage);
+                }
+
                 try
                 {
+                    if (_currentCts.IsCancellationRequested) break;
+                    
                     bool playedAudio = false;
 
                     if (!item.ForceOfflineTts)
@@ -82,9 +115,15 @@ namespace TouristGuideApp.Services
                         }
 
                         // Backward compatibility: if caller provided a local cache key/path
+                        // IMPORTANT: We only play the provided AudioUrl if it's either local OR matching Vietnamese
+                        // If we are in English mode, we don't want to play the default Vietnamese remote AudioUrl.
                         if (!playedAudio && !string.IsNullOrWhiteSpace(item.AudioUrl))
                         {
-                            playedAudio = await TryPlayLocalCachedAudioAsync(item.AudioUrl);
+                            bool isDefaultRemoteAudio = item.AudioUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase);
+                            if (!isDefaultRemoteAudio || string.Equals(CurrentLanguage, "vi-VN", StringComparison.OrdinalIgnoreCase))
+                            {
+                                playedAudio = await TryPlayLocalCachedAudioAsync(item.AudioUrl);
+                            }
                         }
                     }
                     
@@ -228,7 +267,27 @@ namespace TouristGuideApp.Services
             try
             {
                 var locales = await TextToSpeech.Default.GetLocalesAsync();
-                var target = FindBestLocale(locales, CurrentLanguage);
+                
+                // AUTO-DETECTION: If the text is clearly Vietnamese but the app is in another language, 
+                // we MUST use a Vietnamese voice to avoid 'foreigner accent' reading Vietnamese text.
+                string languageToUse = CurrentLanguage;
+                if (!string.Equals(CurrentLanguage, "vi-VN", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (IsVietnameseText(textToSpeak))
+                    {
+                        System.Diagnostics.Debug.WriteLine("[AudioService] Detected Vietnamese text in non-Vietnamese mode. Forcing vi-VN voice.");
+                        languageToUse = "vi-VN";
+                    }
+                }
+
+                var target = FindBestLocale(locales, languageToUse);
+
+                if (target == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[TTS] No perfect match for {languageToUse}. Trying generic language match.");
+                    var langOnly = languageToUse.Split('-')[0];
+                    target = locales?.FirstOrDefault(l => string.Equals(l.Language, langOnly, StringComparison.OrdinalIgnoreCase));
+                }
 
                 await TextToSpeech.Default.SpeakAsync(textToSpeak, new SpeechOptions
                 {
@@ -237,11 +296,19 @@ namespace TouristGuideApp.Services
                     Locale = target
                 });
             }
-            catch
+            catch (Exception ex)
             {
-                // last resort: speak without locale
+                System.Diagnostics.Debug.WriteLine($"[TTS ERROR]: {ex.Message}");
                 await TextToSpeech.Default.SpeakAsync(textToSpeak);
             }
+        }
+
+        private static bool IsVietnameseText(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return false;
+            // Common Vietnamese-only characters
+            char[] viChars = { 'đ', 'Đ', 'á', 'à', 'ả', 'ã', 'ạ', 'ă', 'ắ', 'ằ', 'ẳ', 'ẵ', 'ặ', 'â', 'ấ', 'ầ', 'ẩ', 'ẫ', 'ậ', 'é', 'è', 'ẻ', 'ẽ', 'ẹ', 'ê', 'ế', 'ề', 'ể', 'ễ', 'ệ', 'í', 'ì', 'ỉ', 'ĩ', 'ị', 'ó', 'ò', 'ỏ', 'õ', 'ọ', 'ô', 'ố', 'ồ', 'ổ', 'ỗ', 'ộ', 'ơ', 'ớ', 'ờ', 'ở', 'ỡ', 'ợ', 'ú', 'ù', 'ủ', 'ũ', 'ụ', 'ư', 'ứ', 'ừ', 'ử', 'ữ', 'ự', 'ý', 'ỳ', 'ỷ', 'ỹ', 'ỵ' };
+            return text.Any(c => viChars.Contains(c));
         }
 
         private static Locale? FindBestLocale(IEnumerable<Locale> locales, string languageCode)

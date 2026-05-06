@@ -17,9 +17,26 @@ public class ToursController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Tour>>> GetTours()
+    public async Task<ActionResult<IEnumerable<Tour>>> GetTours([FromQuery] string? languageCode = null)
     {
-        return await _context.Tours.OrderByDescending(t => t.CreatedAt).ToListAsync();
+        var tours = await _context.Tours.OrderByDescending(t => t.CreatedAt).ToListAsync();
+        
+        if (!string.IsNullOrWhiteSpace(languageCode) && languageCode != "vi-VN")
+        {
+            foreach (var tour in tours)
+            {
+                var localization = await _context.TourLocalizations
+                    .FirstOrDefaultAsync(tl => tl.TourId == tour.Id && tl.LanguageCode == languageCode);
+                
+                if (localization != null)
+                {
+                    tour.Name = localization.LocalizedName;
+                    tour.Description = localization.LocalizedDescription;
+                }
+            }
+        }
+        
+        return tours;
     }
 
     [HttpGet("{id}")]

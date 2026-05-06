@@ -33,6 +33,9 @@ namespace TouristGuideApp.Models
         // Âm thanh thuyết minh (4-Tier Hybrid)
         public string? AudioUrl { get; set; }
 
+        public double AverageRating { get; set; }
+        public int RatingCount { get; set; }
+
         [Ignore]
         public DateTime LastPlayedTime { get; set; } = DateTime.MinValue;
 

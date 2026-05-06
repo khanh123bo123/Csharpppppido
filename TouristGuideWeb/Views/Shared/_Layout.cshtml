@@ -60,26 +60,41 @@
                         <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Audio" ? "active" : "")">
                             <a asp-area="" asp-controller="Audio" asp-action="Index"><i class="fa-solid fa-microphone"></i> Giọng đọc</a>
                         </li>
-                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Statistics" ? "active" : "")">
-                            <a asp-area="" asp-controller="Statistics" asp-action="Index"><i class="fa-solid fa-chart-line"></i> Thống kê</a>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Analytics" ? "active" : "")">
+                            <a asp-area="" asp-controller="Home" asp-action="Analytics"><i class="fa-solid fa-chart-line"></i> Thống kê</a>
                         </li>
                         <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "History" ? "active" : "")">
                             <a asp-area="" asp-controller="History" asp-action="Index"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử</a>
                         </li>
                         <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Users" ? "active" : "")">
                             <a asp-area="" asp-controller="Users" asp-action="Index">
-                                <i class="fa-solid fa-user"></i> Tài khoản
+                                <i class="fa-solid fa-user-shield"></i> Tài khoản Admin
+                            </a>
+                        </li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "MobileUsers" ? "active" : "")">
+                            <a asp-area="" asp-controller="MobileUsers" asp-action="Index">
+                                <i class="fa-solid fa-users"></i> Hội viên (App)
+                            </a>
+                        </li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Download" ? "active" : "")">
+                            <a asp-area="" asp-controller="Home" asp-action="Download">
+                                <i class="fa-solid fa-qrcode"></i> Tải App
+                            </a>
+                        </li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Prd" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
+                            <a asp-area="" asp-controller="Prd" asp-action="Index">
+                                <i class="fa-solid fa-file-lines"></i> Tài liệu PRD
+                            </a>
+                        </li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Prd" && ViewContext.RouteData.Values["Action"]?.ToString() == "UseCase" ? "active" : "")">
+                            <a asp-area="" asp-controller="Prd" asp-action="UseCase">
+                                <i class="fa-solid fa-diagram-project"></i> Sơ đồ hệ thống
                             </a>
                         </li>
                         <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Auth" && ViewContext.RouteData.Values["Action"]?.ToString() == "ChangePassword" ? "active" : "")">
                             <a asp-controller="Auth" asp-action="ChangePassword"><i class="fa-solid fa-lock"></i> Mật khẩu</a>
                         </li>
-                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Prd" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")">
-                            <a asp-controller="Prd" asp-action="Index"><i class="fa-solid fa-file-lines"></i> PRD v1.0</a>
-                        </li>
-                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Prd" && ViewContext.RouteData.Values["Action"]?.ToString() == "UseCase" ? "active" : "")">
-                            <a asp-controller="Prd" asp-action="UseCase"><i class="fa-solid fa-diagram-project"></i> Use Case</a>
-                        </li>
+
                     }
                     else if (User.Identity?.IsAuthenticated == true)
                     {
@@ -134,6 +149,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     <script>

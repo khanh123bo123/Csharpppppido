@@ -27,13 +27,31 @@
                 <TapGestureRecognizer Tapped="OnSearchBarBorderTapped"/>
             </Border.GestureRecognizers>
             <SearchBar x:Name="searchBar"
-                       Placeholder="Tìm kiếm địa điểm..."
+                       Placeholder="{Binding [Map_SearchPlaceholder], Source={x:Static services:LocalizationResourceManager.Instance}}"
                        BackgroundColor="Transparent"
                        CancelButtonColor="Gray"
                        FontSize="14"
                        SearchButtonPressed="OnSearchButtonPressed"
                        TextChanged="OnSearchTextChanged"/>
         </Border>
+
+        <Button x:Name="btnCenterOnUser"
+                Grid.Row="0"
+                Text="🎯"
+                FontSize="24"
+                WidthRequest="50"
+                HeightRequest="50"
+                CornerRadius="25"
+                BackgroundColor="White"
+                TextColor="#2C4C3B"
+                VerticalOptions="End"
+                HorizontalOptions="End"
+                Margin="0,0,20,180"
+                Clicked="OnCenterOnUserClicked">
+            <Button.Shadow>
+                <Shadow Brush="Black" Offset="0,2" Radius="10" Opacity="0.2"/>
+            </Button.Shadow>
+        </Button>
 
         <!-- Quick View Panel (initially hidden) -->
         <Border x:Name="pnlQuickView"
@@ -55,6 +73,7 @@
                 
                 <!-- POI Image -->
                 <Border Grid.Column="0" Margin="0,0,10,0" 
+                        WidthRequest="100" HeightRequest="100"
                         StrokeShape="RoundRectangle 12" StrokeThickness="0">
                     <Image x:Name="imgQuickPOI" Aspect="AspectFill" BackgroundColor="#F5F5F5"/>
                 </Border>
@@ -62,7 +81,10 @@
                 <!-- POI Info -->
                 <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
                     <Label x:Name="lblQuickName" FontSize="18" FontAttributes="Bold" TextColor="#2C4C3B" MaxLines="2" LineBreakMode="TailTruncation"/>
-                    <Label x:Name="lblQuickCategory" FontSize="14" TextColor="#B84A39" FontAttributes="Bold"/>
+                    <HorizontalStackLayout Spacing="5" VerticalOptions="Center">
+                        <Label x:Name="lblQuickRating" FontSize="14" TextColor="#E65100" FontAttributes="Bold" VerticalOptions="Center"/>
+                        <Label x:Name="lblQuickCategory" FontSize="14" TextColor="#B84A39" FontAttributes="Bold" VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
                     <Label x:Name="lblQuickAddress" FontSize="12" TextColor="#666" MaxLines="2" LineBreakMode="TailTruncation"/>
                 </VerticalStackLayout>
 

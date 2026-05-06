@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?><root><resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader><resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader><resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+<?xml version="1.0" encoding="utf-8"?><root><resheader name="resmimetype"><value>text/microsoft-resx</value></resheader><resheader name="version"><value>2.0</value></resheader><resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader><resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="AppTitle_Main" xml:space="preserve"><value>🫕 Du Lịch Ẩm Thực</value></data>
   <data name="Tab_QR" xml:space="preserve"><value>Quét QR</value></data>
   <data name="POI_Details_Desc" xml:space="preserve"><value>Mô tả chi tiết</value></data>
@@ -50,4 +50,56 @@
   <data name="Tab_Settings" xml:space="preserve"><value>Cài đặt</value></data>
   <data name="TourMap_Loading" xml:space="preserve"><value>Đang tải...</value></data>
   <data name="QR_ScanTitle" xml:space="preserve"><value>Quét mã QR địa điểm</value></data>
+  <data name="POI_SearchPlaceholder" xml:space="preserve"><value>Tìm kiếm quán ăn, di tích...</value></data>
+  <data name="POI_Category_All" xml:space="preserve"><value>Tất cả</value></data>
+  <data name="POI_Category_Restaurant" xml:space="preserve"><value>Nhà hàng</value></data>
+  <data name="POI_Category_Cafe" xml:space="preserve"><value>Cà phê</value></data>
+  <data name="POI_Category_Historic" xml:space="preserve"><value>Di tích</value></data>
+  <data name="POI_Category_Shopping" xml:space="preserve"><value>Mua sắm</value></data>
+  <data name="POI_DetailTitle" xml:space="preserve"><value>Chi tiết địa điểm</value></data>
+  <data name="POI_Intro" xml:space="preserve"><value>Giới thiệu</value></data>
+  <data name="POI_Distance_Prefix" xml:space="preserve"><value>📍 Cách bạn</value></data>
+  <data name="POI_FoundCount" xml:space="preserve"><value>Đã tìm thấy {0} địa điểm</value></data>
+  <data name="POI_FilterCount" xml:space="preserve"><value>Kết quả lọc: {0} địa điểm</value></data>
+  <data name="POI_NoneFound" xml:space="preserve"><value>Không tìm thấy địa điểm phù hợp</value></data>
+  <data name="POI_EmptyList" xml:space="preserve"><value>Chưa có địa điểm để hiển thị</value></data>
+  <data name="POI_StopTracking" xml:space="preserve"><value>⏹ Ngừng theo dõi</value></data>
+  <data name="POI_StartTracking" xml:space="preserve"><value>📡 Bắt đầu theo dõi</value></data>
+  <data name="Alert_Error" xml:space="preserve"><value>Lỗi</value></data>
+  <data name="Alert_NoConnection" xml:space="preserve"><value>Không kết nối được máy chủ</value></data>
+  <data name="Alert_LanguageTitle" xml:space="preserve"><value>Chọn ngôn ngữ thuyết minh</value></data>
+  <data name="Tour_EmptyList" xml:space="preserve"><value>Chưa có lộ trình nào.</value></data>
+  <data name="Tour_Minutes" xml:space="preserve"><value>phút</value></data>
+  <data name="Tour_DetailTitle" xml:space="preserve"><value>Chi tiết Lộ Trình</value></data>
+  <data name="Tour_DetailFormat" xml:space="preserve"><value>{0}\nSố điểm đến: {1}\nKhoảng cách: {2} km\nBạn có muốn mở điểm đến đầu tiên không?</value></data>
+  <data name="Alert_Yes" xml:space="preserve"><value>Có</value></data>
+  <data name="Alert_No" xml:space="preserve"><value>Không</value></data>
+  <data name="Alert_Info" xml:space="preserve"><value>Thông báo</value></data>
+  <data name="Tour_NoLocations" xml:space="preserve"><value>Lộ trình này chưa có địa điểm nào.</value></data>
+  <data name="Tour_LoadError" xml:space="preserve"><value>Không thể tải danh sách lộ trình.</value></data>
+  <data name="Map_SearchPlaceholder" xml:space="preserve"><value>Tìm kiếm địa điểm...</value></data>
+  <data name="Map_UpdatingLang" xml:space="preserve"><value>Đang cập nhật ngôn ngữ...</value></data>
+  <data name="Map_FoundCount" xml:space="preserve"><value>Đã tải {0} địa điểm</value></data>
+  <data name="Map_NoData" xml:space="preserve"><value>Không có dữ liệu địa điểm. Kiểm tra kết nối API!</value></data>
+  <data name="Map_LoadError" xml:space="preserve"><value>Không thể load bản đồ</value></data>
+  <data name="Map_DefaultCategory" xml:space="preserve"><value>Địa điểm</value></data>
+  <data name="Map_NoAddress" xml:space="preserve"><value>Thông tin địa chỉ đang cập nhật</value></data>
+  <data name="Map_SearchNear" xml:space="preserve"><value>Tìm kiếm nhà hàng gần bạn...</value></data>
+  <data name="Map_Online" xml:space="preserve"><value>Chế độ: Online ☁️</value></data>
+  <data name="Map_Offline" xml:space="preserve"><value>Chế độ: Offline 📦</value></data>
+  <data name="Map_Caching" xml:space="preserve"><value>Đang cache...</value></data>
+  <data name="Map_CacheBtn" xml:space="preserve"><value>Cache Bản đồ</value></data>
+  <data name="Map_CacheSuccess" xml:space="preserve"><value>Bản đồ đã được lưu offline</value></data>
+  <data name="Map_CacheError" xml:space="preserve"><value>Không thể cache bản đồ: {0}</value></data>
+  <data name="Map_CacheError" xml:space="preserve"><value>Không thể cache bản đồ: {0}</value></data>
+  <data name="QR_ManualInput" xml:space="preserve"><value>Nhập mã QR thủ công</value></data>
+  <data name="QR_ManualInput" xml:space="preserve"><value>Nhập mã QR thủ công</value></data>
+  <data name="Alert_Update_Title" xml:space="preserve"><value>Cập nhật</value></data>
+  <data name="Alert_Update_Confirm" xml:space="preserve"><value>Bạn có muốn tải và cài đặt bản cập nhật mới nhất không?</value></data>
+  <data name="Alert_Update_Downloading" xml:space="preserve"><value>Hệ thống đang tải bản cập nhật, vui lòng đợi trong giây lát...</value></data>
+  <data name="Alert_Update_Error" xml:space="preserve"><value>Không thể tải bản cập nhật. Vui lòng kiểm tra kết nối mạng hoặc máy chủ API.</value></data>
+  <data name="Alert_Yes" xml:space="preserve"><value>Đồng ý</value></data>
+  <data name="Alert_No" xml:space="preserve"><value>Hủy</value></data>
+  <data name="Label_LoggedInAs" xml:space="preserve"><value>Bạn đang đăng nhập với: {0}</value></data>
+  <data name="Label_NotLoggedIn" xml:space="preserve"><value>Bạn chưa đăng nhập</value></data>
 </root>

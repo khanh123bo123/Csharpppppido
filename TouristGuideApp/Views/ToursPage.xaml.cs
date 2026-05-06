@@ -40,12 +40,17 @@ public partial class ToursPage : ContentPage
 
         try
         {
-            var tours = await _apiService.GetToursAsync();
+            var lang = AppPreferences.GetNarrationLanguageCode();
+            var tours = await _apiService.GetToursAsync(lang);
             ToursList.ItemsSource = tours.Where(t => t.IsActive).ToList();
         }
         catch (Exception ex)
         {
-            await DisplayAlertAsync("Lỗi", "Không thể tải danh sách lộ trình.", "OK");
+            System.Diagnostics.Debug.WriteLine($"LoadTours Error: {ex.Message}");
+            await DisplayAlertAsync(
+                LocalizationResourceManager.Instance["Alert_Error"], 
+                LocalizationResourceManager.Instance["Tour_LoadError"], 
+                LocalizationResourceManager.Instance["Alert_OK"]);
         }
         finally
         {
@@ -63,7 +68,10 @@ public partial class ToursPage : ContentPage
                 
                 if (locations == null || !locations.Any())
                 {
-                    await DisplayAlertAsync("Thông báo", "Lộ trình này chưa có địa điểm nào.", "OK");
+                    await DisplayAlertAsync(
+                        LocalizationResourceManager.Instance["Alert_Info"], 
+                        LocalizationResourceManager.Instance["Tour_NoLocations"], 
+                        LocalizationResourceManager.Instance["Alert_OK"]);
                     return;
                 }
 
@@ -71,9 +79,11 @@ public partial class ToursPage : ContentPage
                 // Here we just display a summary alert and optionally go to the first POI
                 var firstItem = locations.FirstOrDefault();
                 
-                bool openFirst = await DisplayAlertAsync("Chi tiết Lộ Trình", 
-                    $"{tour.Name}\nSố điểm đến: {locations.Count}\nKhoảng cách: {tour.EstimatedDistanceKm} km\nBạn có muốn mở điểm đến đầu tiên không?", 
-                    "Có", "Không");
+                bool openFirst = await DisplayAlertAsync(
+                    LocalizationResourceManager.Instance["Tour_DetailTitle"], 
+                    string.Format(LocalizationResourceManager.Instance["Tour_DetailFormat"], tour.Name, locations.Count, tour.EstimatedDistanceKm), 
+                    LocalizationResourceManager.Instance["Alert_Yes"], 
+                    LocalizationResourceManager.Instance["Alert_No"]);
 
                 if (openFirst && firstItem != null)
                 {
@@ -83,7 +93,7 @@ public partial class ToursPage : ContentPage
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Navigate Error: {ex}");
+                System.Diagnostics.Debug.WriteLine($"Navigate Error: {ex.Message}");
             }
         }
     }

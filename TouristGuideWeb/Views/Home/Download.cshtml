@@ -1,0 +1,64 @@
+@{
+    ViewData["Title"] = "Tải ứng dụng Vĩnh Khánh Guide";
+    Layout = "_Layout";
+}
+
+<div class="container py-5">
+    <div class="row align-items-center g-5">
+        <div class="col-lg-6 text-center text-lg-start">
+            <h1 class="display-3 fw-bold mb-4" style="color: #2C4C3B;">Khám phá Vĩnh Khánh <span style="color: #B84A39;">ngay trên điện thoại</span></h1>
+            <p class="lead text-muted mb-5">Tải ứng dụng di động để trải nghiệm thuyết minh tự động, quét mã QR tại các quán ăn và lên lộ trình khám phá ẩm thực tuyệt vời nhất.</p>
+            
+            <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
+                <a href="#" class="btn btn-dark btn-lg px-4 py-3 rounded-pill d-flex align-items-center opacity-50">
+                    <i class="fa-brands fa-apple fs-2 me-2"></i>
+                    <div class="text-start">
+                        <div style="font-size: 0.7rem; line-height: 1;">Coming soon on</div>
+                        <div class="fw-bold">App Store</div>
+                    </div>
+                </a>
+                <a href="http://172.20.10.2:5214/tai-app" class="btn btn-dark btn-lg px-4 py-3 rounded-pill d-flex align-items-center">
+                    <i class="fa-brands fa-android fs-2 me-2 text-success"></i>
+                    <div class="text-start">
+                        <div style="font-size: 0.7rem; line-height: 1;">Direct Download</div>
+                        <div class="fw-bold">Android APK</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card-premium p-5 text-center">
+                <div class="mb-4">
+                    <h3 class="fw-bold" style="color: #2C4C3B;">Quét mã QR để tải nhanh</h3>
+                    <p class="text-muted">Sử dụng camera điện thoại để quét mã bên dưới</p>
+                </div>
+                
+                <div class="p-4 bg-white d-inline-block rounded-4 shadow-sm mb-4" style="border: 1px solid #eee;">
+                    <!-- Real QR code pointing to the APK download -->
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=http%3A%2F%2F172.20.10.2%3A5214%2Ftai-app" 
+                         alt="Scan to download APK" class="img-fluid" style="width: 200px; height: 200px;" />
+                    <div class="mt-2 small text-muted">URL: http://172.20.10.2:5214/tai-app</div>
+                </div>
+                
+                <div class="alert alert-warning border-0 rounded-4 p-4 text-start" style="background-color: #FFF9F0;">
+                    <div class="d-flex">
+                        <div class="me-3 fs-3 text-warning">
+                            <i class="fa-solid fa-circle-info"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Hướng dẫn cài đặt</h6>
+                            <p class="small mb-0 text-muted">Nếu bạn đang cài đặt file APK (Android), vui lòng cho phép "Cài đặt từ nguồn không xác định" trong phần Cài đặt của điện thoại.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #FDFBF7;
+    }
+</style>

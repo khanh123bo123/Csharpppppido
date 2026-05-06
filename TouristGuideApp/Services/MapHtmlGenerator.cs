@@ -37,6 +37,19 @@ namespace TouristGuideApp.Services
             sb.AppendLine("    <style>");
             sb.AppendLine("        body { margin:0; padding:0; }");
             sb.AppendLine("        #map { position:absolute; top:0; bottom:0; width:100%; }");
+            sb.AppendLine("        .custom-tooltip {");
+            sb.AppendLine("            background: white;");
+            sb.AppendLine("            border: 2px solid #B84A39;");
+            sb.AppendLine("            border-radius: 8px;");
+            sb.AppendLine("            color: #2C4C3B;");
+            sb.AppendLine("            font-weight: bold;");
+            sb.AppendLine("            padding: 4px 8px;");
+            sb.AppendLine("            box-shadow: 0 2px 6px rgba(0,0,0,0.15);");
+            sb.AppendLine("            font-size: 11px;");
+            sb.AppendLine("        }");
+            sb.AppendLine("        .leaflet-tooltip-top:before {");
+            sb.AppendLine("            border-top-color: #B84A39;");
+            sb.AppendLine("        }");
             sb.AppendLine("    </style>");
             sb.AppendLine("</head><body>");
             sb.AppendLine("    <div id='map'></div>");
@@ -47,19 +60,40 @@ namespace TouristGuideApp.Services
             sb.AppendLine("        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {");
             sb.AppendLine("            maxZoom: 19, attribution: '&copy; OpenStreetMap'");
             sb.AppendLine("        }).addTo(map);");
-            sb.AppendLine($"        L.circleMarker([{userLat}, {userLon}], {{");
+            sb.AppendLine($"        var userMarker = L.circleMarker([{userLat.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {userLon.ToString(System.Globalization.CultureInfo.InvariantCulture)}], {{");
             sb.AppendLine("            color:'#0088FF', fillColor:'#0088FF', fillOpacity:0.8, radius:8, weight:2");
             sb.AppendLine("        }).addTo(map).bindPopup('V\u1ecb tr\u00ed c\u1ee7a b\u1ea1n');");
+            sb.AppendLine("");
+            sb.AppendLine("        var bounds = [];");
+            sb.AppendLine("        bounds.push(userMarker.getLatLng());");
+            sb.AppendLine("");
+            sb.AppendLine("        function updateUserLocation(lat, lng) {");
+            sb.AppendLine("            var newLatLng = new L.LatLng(lat, lng);");
+            sb.AppendLine("            userMarker.setLatLng(newLatLng);");
+            sb.AppendLine("        }");
+            sb.AppendLine("");
+            sb.AppendLine("        function centerOnUser() {");
+            sb.AppendLine("            map.setView(userMarker.getLatLng(), 16);");
+            sb.AppendLine("        }");
             if (pois != null)
             {
                 foreach (var poi in pois)
                 {
-                    sb.AppendLine($"        var m{poi.Id} = L.marker([{poi.Latitude}, {poi.Longitude}]).addTo(map);");
+                    var lat = poi.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    var lon = poi.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    var n = (poi.Name ?? "").Replace("'", "\\'").Replace("\n", " ").Replace("\"", "&quot;");
+                    var a = (poi.Address ?? "").Replace("'", "\\'").Replace("\n", " ");
+                    sb.AppendLine($"        var m{poi.Id} = L.marker([{lat}, {lon}]).addTo(map);");
+                    sb.AppendLine($"        m{poi.Id}.bindTooltip('{n}', {{ permanent: true, direction: 'top', className: 'custom-tooltip', offset: [0, -10] }});");
+                    sb.AppendLine($"        m{poi.Id}.bindPopup('<b>{n}</b><br/><small style=\"color:#666\">{a}</small>');");
+                    sb.AppendLine($"        bounds.push(m{poi.Id}.getLatLng());");
                     sb.AppendLine($"        m{poi.Id}.on('click', function() {{");
-                    sb.AppendLine($"            window.location.href = 'poi-app:{poi.Id}';");
+                    sb.AppendLine($"            // Double click or long press could lead to details, but let's keep it simple for now");
+                    sb.AppendLine($"            // window.location.href = 'poi-app:{poi.Id}';");
                     sb.AppendLine("        });");
                 }
             }
+            sb.AppendLine("        if (bounds.length > 0) { map.fitBounds(bounds, { padding: [50, 50] }); }");
             sb.AppendLine("    </script>");
             sb.AppendLine("</body></html>");
             return sb.ToString();
@@ -276,12 +310,20 @@ namespace TouristGuideApp.Services
                 sb.AppendLine("        }");
 
                 sb.AppendLine("        function _fetch(){");
+                sb.AppendLine("            console.log('Fetching route for waypoints:', WP);");
                 sb.AppendLine("            _fetchWithTimeout(_url(WP), 8000)");
                 sb.AppendLine("                .then(function(data){");
+                sb.AppendLine("                    console.log('OSRM Response:', data);");
                 sb.AppendLine("                    if(data.code==='Ok'&&data.routes&&data.routes.length>0){");
                 sb.AppendLine("                        _draw(data.routes[0].geometry,data.routes[0].legs);");
-                sb.AppendLine("                    } else { _fallback('no route'); }");
-                sb.AppendLine("                }).catch(function(e){_fallback(e?e.message:'err');});");
+                sb.AppendLine("                    } else { ");
+                sb.AppendLine("                        console.warn('OSRM Route not found:', data.code);");
+                sb.AppendLine("                        _fallback('no route'); ");
+                sb.AppendLine("                    }");
+                sb.AppendLine("                }).catch(function(e){");
+                sb.AppendLine("                    console.error('OSRM Fetch error:', e);");
+                sb.AppendLine("                    _fallback(e?e.message:'err');");
+                sb.AppendLine("                });");
                 sb.AppendLine("        }");
                 sb.AppendLine("        _fetch();");
             }

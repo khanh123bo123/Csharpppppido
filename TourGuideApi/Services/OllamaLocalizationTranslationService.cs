@@ -198,9 +198,11 @@ public sealed class OllamaLocalizationTranslationService : ILocalizationTranslat
         var assistantText = ExtractOllamaAssistantText(body);
         if (string.IsNullOrWhiteSpace(assistantText))
         {
+            _logger.LogWarning("Ollama assistant response was empty. Body: {Body}", body);
             throw new InvalidOperationException("Ollama translation response was empty.");
         }
 
+        _logger.LogDebug("Ollama assistant response for {Lang}: {Text}", languageCode, assistantText);
         var json = TryExtractJsonObject(assistantText);
 
         LocalizedText? localized;

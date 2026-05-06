@@ -263,7 +263,8 @@ public class LocalizationsController : ControllerBase
         }
 
         var audioBytes = Convert.FromBase64String(localization.CachedAudioBase64);
-        return File(audioBytes, "audio/mpeg", enableRangeProcessing: true);
+        _logger.LogInformation("Serving audio for localization {Id}: {Size} bytes", localizationId, audioBytes.Length);
+        return File(audioBytes, "audio/mpeg", enableRangeProcessing: false);
     }
 
     /// <summary>

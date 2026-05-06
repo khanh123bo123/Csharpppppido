@@ -12,6 +12,7 @@ public partial class MainPage : ContentPage
     private readonly IApiService _apiService;
     private readonly IDatabaseService _databaseService;
     private bool _isTrackingActive = false;
+    private System.Collections.ObjectModel.ObservableCollection<POI> _poiCollection = new();
 
     public MainPage(ILocationService locationService, IGeofenceService geofenceService, IApiService apiService, IDatabaseService databaseService)
     {
@@ -20,8 +21,9 @@ public partial class MainPage : ContentPage
         _geofenceService = geofenceService;
         _apiService = apiService;
         _databaseService = databaseService;
-
         _locationService.LocationUpdated += OnLocationUpdated;
+
+        listPOIs.ItemsSource = _poiCollection;
     }
 
     private async void OnPOITapped(object sender, TappedEventArgs e)
@@ -38,20 +40,16 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private void OnPOISelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (e.CurrentSelection.FirstOrDefault() is TouristGuideApp.Models.POI selectedPOI)
-        {
-            ((CollectionView)sender).SelectedItem = null;
-        }
-    }
-
     protected override async void OnAppearing()
     {
         base.OnAppearing();
 
         try
         {
+            // Delay significantly to allow iOS native UI transitions to fully stabilize.
+            // If popups fire during 'window.Page' swap, iOS crashes completely.
+            await Task.Delay(2000);
+
             // First launch: choose narration language pack
             var languageCode = await EnsureNarrationLanguageSelectedAsync();
             await _geofenceService.SetLanguageAsync(languageCode);
@@ -60,28 +58,27 @@ public partial class MainPage : ContentPage
             await _geofenceService.InitAsync();
             UpdateUIList();
 
-            // If there are no cached POIs yet, ensure the API is reachable.
-            // On physical Android devices, this commonly requires:
-            //   adb reverse tcp:5214 tcp:5214
-            // and TourGuideApi running on: http://localhost:5214
+            // Check for API reachability (delays another alert if needed)
             if (!_geofenceService.GetPOIs().Any())
             {
                 using var pingCts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
                 var canReachApi = await _apiService.PingAsync(pingCts.Token);
                 if (!canReachApi)
                 {
-                    await DisplayAlert(
-                        "Không kết nối được máy chủ",
+                    await Task.Delay(1000); // Avoid overlapping alerts
+                    await DisplayAlertAsync(
+                        LocalizationResourceManager.Instance["Alert_NoConnection"],
                         "App chưa tải được dữ liệu địa điểm (POIs).\n\n" +
                         "Nếu chạy trên điện thoại thật qua USB:\n" +
                         "1) Chạy TourGuideApi (HTTP) trên PC: http://localhost:5214\n" +
                         "2) Terminal chạy: adb reverse tcp:5214 tcp:5214\n\n" +
                         "Nếu chạy Emulator thì API phải chạy port 5214 và app sẽ tự dùng 10.0.2.2.",
-                        "OK");
+                        LocalizationResourceManager.Instance["Alert_OK"]);
                 }
             }
 
-            // 2. Kiểm tra quyền GPS
+            // 2. Kiểm tra quyền GPS (Delay to ensure no two native popovers overlap)
+            await Task.Delay(1000);
             var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
             if (status != PermissionStatus.Granted)
             {
@@ -124,13 +121,14 @@ public partial class MainPage : ContentPage
             .Select(code => SupportedLanguages.LanguageNames[code])
             .ToArray();
 
-#if ANDROID
-        await Task.Delay(500); // Fix Android.Runtime.JavaProxyThrowable when calling DisplayActionSheet in OnAppearing
-#endif
+        // DELAY GLOBALLY to fix iOS native CoreFoundation / UIKit crashes.
+        // Calling DisplayActionSheet or Alert too early inside OnAppearing when the root View 
+        // Controller is newly spawned crashes iOS inside xamarin_UIApplicationMain
+        await Task.Delay(800); 
 
-        var choice = await DisplayActionSheet(
-            "Chọn ngôn ngữ thuyết minh",
-            "Huỷ",
+        var choice = await DisplayActionSheetAsync(
+            LocalizationResourceManager.Instance["Alert_LanguageTitle"],
+            LocalizationResourceManager.Instance["Alert_Cancel"], 
             null,
             options);
 
@@ -148,17 +146,109 @@ public partial class MainPage : ContentPage
         return selectedCode;
     }
 
-    private void UpdateUIList()
+    private string _currentCategory = "All";
+
+    private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
+    {
+        UpdateUIList(e.NewTextValue, _currentCategory);
+    }
+
+    private void OnCategoryTapped(object sender, TappedEventArgs e)
+    {
+        _currentCategory = e.Parameter as string ?? "All";
+        UpdateUIList(searchBar.Text ?? "", _currentCategory);
+        
+        // Highlight selected category visually
+        if (sender is Border border && border.Parent is HorizontalStackLayout stack)
+        {
+            foreach (var child in stack.Children)
+            {
+                if (child is Border otherBorder)
+                {
+                    bool isSelected = otherBorder == border;
+                    otherBorder.BackgroundColor = isSelected ? Color.FromArgb("#B84A39") : Colors.White;
+                    otherBorder.Stroke = isSelected ? Colors.Transparent : Color.FromArgb("#EAE3D9");
+                    if (otherBorder.Content is Label label)
+                    {
+                        label.TextColor = isSelected ? Colors.White : Color.FromArgb("#555");
+                        label.FontAttributes = isSelected ? FontAttributes.Bold : FontAttributes.None;
+                    }
+                }
+            }
+        }
+    }
+
+    private void UpdateUIList(string searchText = "", string category = "All")
     {
         var pois = _geofenceService.GetPOIs();
-        listPOIs.ItemsSource = null;
-        listPOIs.ItemsSource = pois;
 
-        if (pois.Any())
+        // 1. Search text filter (Name, Category, Description)
+        if (!string.IsNullOrWhiteSpace(searchText))
         {
-            lblActivePOI.Text = $"Đã tìm thấy {pois.Count} địa điểm";
+            pois = pois.Where(p =>
+                    (p.Name?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (p.Category?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (p.Description?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false))
+                .ToList();
+        }
+
+        // 2. Category selection filter (with mapping for local data)
+        if (category != "All")
+        {
+            var matchTerms = GetCategoryTerms(category);
+            pois = pois.Where(p => 
+                matchTerms.Any(term => p.Category?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)
+            ).ToList();
+        }
+
+        var normalizedPois = pois
+            .Where(p => p != null)
+            .Select(p =>
+            {
+                p.ImageUrl = NormalizeImageUrl(p.ImageUrl);
+                return p;
+            })
+            .ToList();
+
+        // Recreate the ObservableCollection to avoid stale UI state on iOS CollectionView.
+        _poiCollection = new System.Collections.ObjectModel.ObservableCollection<POI>(normalizedPois);
+        listPOIs.ItemsSource = _poiCollection;
+
+        if (normalizedPois.Any())
+        {
+            lblActivePOI.Text = string.IsNullOrWhiteSpace(searchText) && category == "All" 
+                ? string.Format(LocalizationResourceManager.Instance["POI_FoundCount"], normalizedPois.Count)
+                : string.Format(LocalizationResourceManager.Instance["POI_FilterCount"], normalizedPois.Count);
             frameActivePOI.BackgroundColor = Color.FromArgb("#2C4C3B");
         }
+        else
+        {
+            lblActivePOI.Text = LocalizationResourceManager.Instance["POI_NoneFound"];
+            frameActivePOI.BackgroundColor = Colors.Gray;
+        }
+    }
+
+    private List<string> GetCategoryTerms(string categoryKey)
+    {
+        return categoryKey switch
+        {
+            "Restaurant" => new List<string> { "Nhà hàng", "Hải sản", "Quán ăn", "Ốc", "Lẩu", "Cơm", "Phở", "Hủ tiếu" },
+            "Cafe" => new List<string> { "Cà phê", "Cafe", "Giải khát", "Chè", "Nước ép", "Trà" },
+            "Historic" => new List<string> { "Di tích", "Lịch sử", "Chùa", "Nhà thờ", "Bảo tàng", "Công trình" },
+            "Shopping" => new List<string> { "Mua sắm", "Chợ", "Cửa hàng", "Siêu thị", "Quà lưu niệm" },
+            _ => new List<string> { categoryKey }
+        };
+    }
+
+    private string NormalizeImageUrl(string? rawUrl)
+    {
+        var absolute = HtmlUtils.EnsureAbsoluteUrl(rawUrl, _apiService.BaseAddress);
+        if (string.IsNullOrWhiteSpace(absolute))
+        {
+            return string.Empty;
+        }
+
+        return Uri.TryCreate(absolute, UriKind.Absolute, out _) ? absolute : string.Empty;
     }
 
     private void OnToggleTrackingClicked(object sender, EventArgs e)
@@ -166,17 +256,16 @@ public partial class MainPage : ContentPage
         if (!_isTrackingActive)
         {
             _locationService.StartTracking();
-            btnToggleTracking.Text = "⏹  Ngừng theo dõi";
+            btnToggleTracking.Text = LocalizationResourceManager.Instance["POI_StopTracking"];
             btnToggleTracking.BackgroundColor = Color.FromArgb("#8B3E36");
             _isTrackingActive = true;
         }
         else
         {
             _locationService.StopTracking();
-            btnToggleTracking.Text = "📡  Bắt đầu theo dõi";
+            btnToggleTracking.Text = LocalizationResourceManager.Instance["POI_StartTracking"];
             btnToggleTracking.BackgroundColor = Color.FromArgb("#B84A39");
             _isTrackingActive = false;
-            lblUserLocation.Text = "Đã ngừng tìm vị trí.";
         }
     }
 
@@ -184,13 +273,11 @@ public partial class MainPage : ContentPage
     {
         MainThread.BeginInvokeOnMainThread(async () =>
         {
-            lblUserLocation.Text = $"Vĩ độ: {location.Latitude:F6}, Kinh độ: {location.Longitude:F6}";
-
             await _geofenceService.CheckProximity(location);
 
             var pois = _geofenceService.GetPOIs();
-            listPOIs.ItemsSource = null;
-            listPOIs.ItemsSource = pois;
+            // Re-apply filter if active
+            UpdateUIList(searchBar.Text);
 
             if (_geofenceService.ActivePOI != null)
             {

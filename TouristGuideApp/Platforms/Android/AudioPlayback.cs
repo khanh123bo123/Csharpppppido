@@ -12,18 +12,32 @@ internal static class AudioPlayback
         MainThread.BeginInvokeOnMainThread(() =>
         {
             MediaPlayer? player = null;
+            bool isCleanedUp = false;
+
             try
             {
                 player = new MediaPlayer();
+                
+                if (global::Android.OS.Build.VERSION.SdkInt >= global::Android.OS.BuildVersionCodes.Lollipop)
+                {
+                    player.SetAudioAttributes(new AudioAttributes.Builder()
+                        .SetUsage(AudioUsageKind.Media)
+                        .SetContentType(AudioContentType.Music)
+                        .Build());
+                }
 
                 player.Completion += (_, __) =>
                 {
+                    if (isCleanedUp) return;
+                    isCleanedUp = true;
                     Cleanup(player);
                     tcs.TrySetResult(true);
                 };
 
                 player.Error += (_, __) =>
                 {
+                    if (isCleanedUp) return;
+                    isCleanedUp = true;
                     Cleanup(player);
                     tcs.TrySetResult(false);
                 };
@@ -32,12 +46,16 @@ internal static class AudioPlayback
                 {
                     try
                     {
-                        player.Start();
+                        if (!isCleanedUp) player.Start();
                     }
                     catch
                     {
-                        Cleanup(player);
-                        tcs.TrySetResult(false);
+                        if (!isCleanedUp)
+                        {
+                            isCleanedUp = true;
+                            Cleanup(player);
+                            tcs.TrySetResult(false);
+                        }
                     }
                 };
 
@@ -46,8 +64,12 @@ internal static class AudioPlayback
             }
             catch
             {
-                Cleanup(player);
-                tcs.TrySetResult(false);
+                if (!isCleanedUp)
+                {
+                    isCleanedUp = true;
+                    Cleanup(player);
+                    tcs.TrySetResult(false);
+                }
             }
         });
 

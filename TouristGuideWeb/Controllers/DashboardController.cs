@@ -13,12 +13,14 @@ public class DashboardController : Controller
     private readonly LocationApiService _locationApiService;
     private readonly TourApiService _tourApiService;
     private readonly LocalizationApiService _localizationApiService;
+    private readonly AuthApiService _authApiService;
 
-    public DashboardController(LocationApiService locationApiService, TourApiService tourApiService, LocalizationApiService localizationApiService)
+    public DashboardController(LocationApiService locationApiService, TourApiService tourApiService, LocalizationApiService localizationApiService, AuthApiService authApiService)
     {
         _locationApiService = locationApiService;
         _tourApiService = tourApiService;
         _localizationApiService = localizationApiService;
+        _authApiService = authApiService;
     }
 
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
@@ -34,14 +36,10 @@ public class DashboardController : Controller
             ? toursRaw.Where(t => string.Equals(t.OwnerEmail, User.Identity?.Name, StringComparison.OrdinalIgnoreCase)).ToList()
             : toursRaw.ToList();
 
-        var localTasks = locations.Select(async loc =>
-        {
-            var locals = await _localizationApiService.GetLocalizationsByLocationAsync(loc.Id, cancellationToken);
-            return locals.Count(l => l.AudioGenerationStatus == "generated" || l.AudioGenerationStatus == "cached");
-        });
+        var totalListens = await _locationApiService.GetListenStatsAsync(cancellationToken);
 
-        var audioCounts = await Task.WhenAll(localTasks);
-        var totalAudios = audioCounts.Sum();
+        var authStats = await _authApiService.GetStatsAsync(cancellationToken);
+        var totalUsers = authStats?.TotalUsers ?? 0;
 
         var provinceStats = locations
             .GroupBy(InferProvince)
@@ -69,13 +67,23 @@ public class DashboardController : Controller
             .Take(5)
             .ToList();
 
+        var recentRatingsRaw = await _locationApiService.GetRecentRatingsAsync(cancellationToken);
+        var recentRatings = User.IsInRole("Owner") && !User.IsInRole("Admin")
+            ? recentRatingsRaw.Where(r => locations.Any(l => l.Id == r.LocationId)).ToList()
+            : recentRatingsRaw.ToList();
+
+        var onlineCount = await _locationApiService.GetOnlineCountAsync(cancellationToken);
+        
         var model = new DashboardViewModel
         {
             TotalLocations = locations.Count,
             TotalTours = tours.Count,
-            TotalAudios = totalAudios,
+            TotalAudios = totalListens,
+            TotalUsers = totalUsers,
             ProvinceStats = provinceStats,
-            NearestToHanoi = nearestToHanoi
+            NearestToHanoi = nearestToHanoi,
+            RecentRatings = recentRatings,
+            OnlineDevicesCount = onlineCount
         };
 
         return View(model);
@@ -83,45 +91,51 @@ public class DashboardController : Controller
 
     private static string InferProvince(Location location)
     {
-        if (!string.IsNullOrWhiteSpace(location.Name))
+        // 1. Prioritize Address for actual province
+        if (!string.IsNullOrWhiteSpace(location.Address))
         {
-            var name = location.Name.Trim();
-
-            if (name.Contains(','))
+            var addr = location.Address.Trim();
+            if (addr.Contains(','))
             {
-                var tokens = name.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (tokens.Length > 1)
-                {
-                    return tokens[^1];
-                }
-            }
+                var tokens = addr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                var province = tokens[^1];
 
-            if (name.Contains('-'))
-            {
-                var tokens = name.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (tokens.Length > 1)
-                {
-                    return tokens[0];
-                }
+                // Standardize common names
+                if (province.Contains("Hồ Chí Minh", StringComparison.OrdinalIgnoreCase) || province.Contains("HCM", StringComparison.OrdinalIgnoreCase))
+                    return "TP.HCM";
+                if (province.Contains("Hà Nội", StringComparison.OrdinalIgnoreCase))
+                    return "Hà Nội";
+
+                return province.Replace("Tỉnh", "").Replace("TP.", "").Trim();
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(location.Description))
+        // 2. Latitude/Longitude check (Approximate)
+        // Hanoi area
+        if (Math.Abs(location.Latitude - HanoiLatitude) <= 0.5 && Math.Abs(location.Longitude - HanoiLongitude) <= 0.5)
         {
-            var description = location.Description.Trim();
-            if (description.Contains(','))
-            {
-                var tokens = description.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                return tokens[^1];
-            }
+            return "Hà Nội";
+        }
+        // HCM area (Approx)
+        if (Math.Abs(location.Latitude - 10.76) <= 0.3 && Math.Abs(location.Longitude - 106.66) <= 0.3)
+        {
+            return "TP.HCM";
         }
 
-        if (Math.Abs(location.Latitude - HanoiLatitude) <= 0.8 && Math.Abs(location.Longitude - HanoiLongitude) <= 0.8)
+        // 3. Fallback to Category if available (more descriptive than "Khac")
+        if (!string.IsNullOrWhiteSpace(location.Category))
         {
-            return "Ha Noi";
+            return location.Category;
         }
 
-        return "Khac";
+        // 4. Fallback to Name token if it looks like a city (e.g. "Quan 4 - HCM")
+        if (!string.IsNullOrWhiteSpace(location.Name) && location.Name.Contains('-'))
+        {
+            var tokens = location.Name.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (tokens.Length > 1) return tokens[^1];
+        }
+
+        return "Khác";
     }
 
     private static double CalculateHaversineDistanceKm(double lat1, double lon1, double lat2, double lon2)
@@ -142,5 +156,19 @@ public class DashboardController : Controller
     private static double DegreesToRadians(double degrees)
     {
         return degrees * Math.PI / 180;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetOnlineCount(CancellationToken cancellationToken)
+    {
+        var count = await _locationApiService.GetOnlineCountAsync(cancellationToken);
+        return Json(new { onlineCount = count });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetListenStats(CancellationToken cancellationToken)
+    {
+        var count = await _locationApiService.GetListenStatsAsync(cancellationToken);
+        return Json(new { totalListens = count });
     }
 }

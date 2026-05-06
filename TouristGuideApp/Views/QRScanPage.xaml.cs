@@ -34,7 +34,7 @@ public partial class QRScanPage : ContentPage
         if (status != PermissionStatus.Granted)
         {
             barcodeReader.IsDetecting = false;
-            await DisplayAlert("Quyền Camera", "Ứng dụng cần quyền camera để quét mã QR.", "OK");
+            await DisplayAlertAsync("Quyền Camera", "Ứng dụng cần quyền camera để quét mã QR.", "OK");
             return;
         }
 
@@ -58,33 +58,47 @@ public partial class QRScanPage : ContentPage
 
         MainThread.BeginInvokeOnMainThread(async () =>
         {
-            _isProcessing = true;
-            barcodeReader.IsDetecting = false;
-            
-            var trimmed = (value ?? string.Empty).Trim();
-
-            // Prefer real backend QR payload (e.g., LOC_...)
-            var qrCodeData = TryExtractQrCodeData(trimmed);
-            if (!string.IsNullOrWhiteSpace(qrCodeData))
-            {
-                var encoded = Uri.EscapeDataString(qrCodeData);
-                await Shell.Current.GoToAsync($"{nameof(POIDetailsPage)}?qr={encoded}");
-                return;
-            }
-
-            // Backward compatibility: allow numeric id (server location id)
-            var serverId = TryExtractServerLocationId(trimmed);
-            if (serverId is > 0)
-            {
-                var encoded = Uri.EscapeDataString(serverId.Value.ToString());
-                await Shell.Current.GoToAsync($"{nameof(POIDetailsPage)}?qr={encoded}");
-                return;
-            }
-
-            await DisplayAlert("Lỗi QR", $"Mã QR không hợp lệ: {trimmed}", "OK");
-            _isProcessing = false;
-            barcodeReader.IsDetecting = true;
+            await ProcessQrCodeAsync(value);
         });
+    }
+
+    private async void OnManualInputClicked(object sender, EventArgs e)
+    {
+        string result = await DisplayPromptAsync("Nhập mã QR", "Nhập chuỗi ID địa điểm (ví dụ: LOC_ocdao001 hoặc 1):");
+        if (!string.IsNullOrWhiteSpace(result))
+        {
+            await ProcessQrCodeAsync(result);
+        }
+    }
+
+    private async Task ProcessQrCodeAsync(string value)
+    {
+        _isProcessing = true;
+        barcodeReader.IsDetecting = false;
+        
+        var trimmed = (value ?? string.Empty).Trim();
+
+        // Prefer real backend QR payload (e.g., LOC_...)
+        var qrCodeData = TryExtractQrCodeData(trimmed);
+        if (!string.IsNullOrWhiteSpace(qrCodeData))
+        {
+            var encoded = Uri.EscapeDataString(qrCodeData);
+            await Shell.Current.GoToAsync($"{nameof(POIDetailsPage)}?qr={encoded}");
+            return;
+        }
+
+        // Backward compatibility: allow numeric id (server location id)
+        var serverId = TryExtractServerLocationId(trimmed);
+        if (serverId is > 0)
+        {
+            var encoded = Uri.EscapeDataString(serverId.Value.ToString());
+            await Shell.Current.GoToAsync($"{nameof(POIDetailsPage)}?qr={encoded}");
+            return;
+        }
+
+        await DisplayAlertAsync("Lỗi QR", $"Mã QR không hợp lệ: {trimmed}", "OK");
+        _isProcessing = false;
+        barcodeReader.IsDetecting = true;
     }
 
     private static int? TryExtractServerLocationId(string value)
