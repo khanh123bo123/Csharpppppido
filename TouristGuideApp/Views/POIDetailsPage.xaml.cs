@@ -15,8 +15,8 @@ namespace TouristGuideApp.Views
         private readonly IGeofenceService _geofenceService;
         private readonly IApiService _apiService;
         private readonly IDatabaseService _databaseService;
+        private readonly IAudioService _audioService;
         private bool _autoPlayAfterLoad;
-        private bool _openedFromQr;
 
         public POI POIItem
         {
@@ -55,19 +55,19 @@ namespace TouristGuideApp.Views
                 OnPropertyChanged();
                 if (!string.IsNullOrWhiteSpace(_qr))
                 {
-                    _openedFromQr = true;
                     _autoPlayAfterLoad = true;
                     _ = LoadPoiFromQrAsync(Uri.UnescapeDataString(_qr));
                 }
             }
         }
 
-        public POIDetailsPage(IGeofenceService geofenceService, IApiService apiService, IDatabaseService databaseService)
+        public POIDetailsPage(IGeofenceService geofenceService, IApiService apiService, IDatabaseService databaseService, IAudioService audioService)
         {
             InitializeComponent();
             _geofenceService = geofenceService;
             _apiService = apiService;
             _databaseService = databaseService;
+            _audioService = audioService;
         }
 
         private async Task LoadPoiFromServerLocationIdAsync(string idString)
@@ -201,7 +201,7 @@ namespace TouristGuideApp.Views
                 QrCodeData = string.IsNullOrWhiteSpace(location.QrCodeData) ? null : location.QrCodeData.Trim(),
                 Name = location.Name ?? "Chưa đặt tên",
                 Description = location.Description ?? "Không có mô tả",
-                Category = string.IsNullOrWhiteSpace(location.Category) ? "Chưa phân loại" : location.Category,
+                Category = location.Category ?? string.Empty,
                 Latitude = location.Latitude,
                 Longitude = location.Longitude,
                 Address = location.Address,
@@ -222,20 +222,20 @@ namespace TouristGuideApp.Views
             if (_autoPlayAfterLoad)
             {
                 _autoPlayAfterLoad = false;
-                await _geofenceService.PlaySpeechAsync(poi, ignoreCooldown: true, forceOfflineTts: _openedFromQr);
+                await _geofenceService.PlaySpeechAsync(poi, ignoreCooldown: true);
             }
         }
+
+        public override string? ToString() => _poi?.Name ?? base.ToString();
 
         private void LoadPOIDetails()
         {
             if (_poi == null) return;
 
             lblName.Text = _poi.Name;
-            lblCategory.Text = _poi.Category;
             lblDistance.Text = $"Cách bạn {_poi.DistanceText}";
             lblDescription.Text = _poi.Description;
 
-            lblAddress.Text = string.IsNullOrWhiteSpace(_poi.Address) ? "Chưa cập nhật địa chỉ" : _poi.Address;
             lblPhone.Text = string.IsNullOrWhiteSpace(_poi.PhoneNumber) ? "Chưa cập nhật SĐT" : _poi.PhoneNumber;
 
             if (!string.IsNullOrWhiteSpace(_poi.ImageUrl))
@@ -254,6 +254,36 @@ namespace TouristGuideApp.Views
             if (_poi != null)
             {
                 await _geofenceService.PlaySpeechAsync(_poi, ignoreCooldown: true);
+            }
+        }
+
+        private async void OnDownloadAudioClicked(object sender, EventArgs e)
+        {
+            if (_poi == null || _poi.ServerLocationId <= 0)
+            {
+                await DisplayAlert("Không thể lưu", "Địa điểm này chưa có dữ liệu audio từ server.", "OK");
+                return;
+            }
+
+            btnDownloadAudio.IsEnabled = false;
+            btnDownloadAudio.Text = "Đang tải...";
+
+            try
+            {
+                var saved = await _audioService.SaveLocationAudioAsync(_poi.ServerLocationId, _poi.AudioUrl);
+                if (saved)
+                {
+                    await DisplayAlert("Đã lưu", "Đã tải và lưu file MP3 offline vào máy.", "OK");
+                }
+                else
+                {
+                    await DisplayAlert("Thất bại", "Chưa tải được MP3. Hãy thử lại khi có mạng.", "OK");
+                }
+            }
+            finally
+            {
+                btnDownloadAudio.Text = "Lưu MP3 offline";
+                btnDownloadAudio.IsEnabled = true;
             }
         }
     }

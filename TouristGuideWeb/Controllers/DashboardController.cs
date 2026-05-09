@@ -37,7 +37,7 @@ public class DashboardController : Controller
         var localTasks = locations.Select(async loc =>
         {
             var locals = await _localizationApiService.GetLocalizationsByLocationAsync(loc.Id, cancellationToken);
-            return locals.Count(l => l.AudioGenerationStatus == "generated" || l.AudioGenerationStatus == "cached");
+            return locals.Sum(l => l.PlayCount);
         });
 
         var audioCounts = await Task.WhenAll(localTasks);

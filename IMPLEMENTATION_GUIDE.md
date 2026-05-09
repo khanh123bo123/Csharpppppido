@@ -131,9 +131,9 @@ dotnet add package Microsoft.IdentityModel.Tokens
     "TimeoutSeconds": 90,
     "SpeechRate": 0.25
   },
-  "Ollama": {
-    "BaseUrl": "http://localhost:11434",
-    "Model": "qwen2.5:14b"
+  "Gemini": {
+    "ApiKey": "",
+    "Model": "gemini-1.5-flash"
   }
 }
 ```
@@ -283,13 +283,13 @@ This project uses **Edge-TTS** (free, no API key). It requires Python + `edge-tt
 
 ### Auto-translation (Vietnamese → other languages)
 
-Uses a local/self-hosted **Ollama** server:
+Uses **Gemini** (API key required):
 
 ```json
 {
-  "Ollama": {
-    "BaseUrl": "http://localhost:11434",
-    "Model": "qwen2.5:14b"
+  "Gemini": {
+    "ApiKey": "",
+    "Model": "gemini-1.5-flash"
   }
 }
 ```
@@ -393,7 +393,7 @@ TourGuideApi/
 ├── Services/
 │   ├── ITextToSpeechService.cs
 │   ├── EdgeTtsTextToSpeechService.cs
-│   └── OllamaLocalizationTranslationService.cs
+│   └── GeminiLocalizationTranslationService.cs
 └── Data/
     └── AppDbContext.cs
 ```
@@ -435,7 +435,7 @@ TouristGuideApp/
 ## ⚠️ Next Steps (Not Yet Implemented)
 
 ### 1. **Local AI Advisor (Optional)** 🚧
-- Optional AI advisor using a local/self-hosted model (e.g., Ollama)
+- Optional AI advisor (not implemented)
 - Service to suggest dishes based on user preferences or mood
 - Endpoint: `POST /api/advisor/recommend`
 
@@ -556,7 +556,7 @@ CREATE TABLE Users (
 - **Entity Framework Core**: https://docs.microsoft.com/ef/core/
 - **JWT Authentication**: https://jwt.io/
 - **Edge-TTS**: https://github.com/rany2/edge-tts
-- **Ollama**: https://ollama.com/
+- **Gemini API**: https://ai.google.dev/
 - **MAUI Geolocation**: https://learn.microsoft.com/maui/platform-integration/device/geolocation/
 - **AsyncIO Best Practices**: https://docs.microsoft.com/dotnet/csharp/async
 

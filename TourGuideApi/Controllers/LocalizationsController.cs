@@ -60,7 +60,8 @@ public class LocalizationsController : ControllerBase
                 TextToSpeechEndpoint = l.TextToSpeechEndpoint,
                 AudioGenerationStatus = l.AudioGenerationStatus,
                 TtsVoiceCode = l.TtsVoiceCode,
-                IsWarmupProcessed = l.IsWarmupProcessed
+                IsWarmupProcessed = l.IsWarmupProcessed,
+                PlayCount = l.PlayCount
             })
             .ToListAsync();
 
@@ -99,7 +100,8 @@ public class LocalizationsController : ControllerBase
             TextToSpeechEndpoint = localization.TextToSpeechEndpoint,
             AudioGenerationStatus = localization.AudioGenerationStatus,
             TtsVoiceCode = localization.TtsVoiceCode,
-            IsWarmupProcessed = localization.IsWarmupProcessed
+            IsWarmupProcessed = localization.IsWarmupProcessed,
+            PlayCount = localization.PlayCount
         });
     }
 
@@ -308,6 +310,32 @@ public class LocalizationsController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Increment the play count for a localization
+    /// POST: api/localizations/{localizationId}/play
+    /// </summary>
+    [HttpPost("{localizationId}/play")]
+    public async Task<IActionResult> RecordPlay(int localizationId)
+    {
+        var localization = await _context.Localizations.FindAsync(localizationId);
+        if (localization == null)
+        {
+            return NotFound("Localization not found");
+        }
+
+        localization.PlayCount++;
+
+        _context.AudioPlayLogs.Add(new AudioPlayLog
+        {
+            LocalizationId = localization.Id,
+            PlayedAt = DateTime.UtcNow
+        });
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new { PlayCount = localization.PlayCount });
+    }
+
     private LocalizationDto MapToDto(Localization localization)
     {
         return new LocalizationDto
@@ -321,7 +349,8 @@ public class LocalizationsController : ControllerBase
             TextToSpeechEndpoint = localization.TextToSpeechEndpoint,
             AudioGenerationStatus = localization.AudioGenerationStatus,
             TtsVoiceCode = localization.TtsVoiceCode,
-            IsWarmupProcessed = localization.IsWarmupProcessed
+            IsWarmupProcessed = localization.IsWarmupProcessed,
+            PlayCount = localization.PlayCount
         };
     }
 
@@ -363,6 +392,7 @@ public class LocalizationDto
     public string AudioGenerationStatus { get; set; } = string.Empty;
     public string? TtsVoiceCode { get; set; }
     public bool IsWarmupProcessed { get; set; }
+    public int PlayCount { get; set; }
 }
 
 public class CreateLocalizationRequest

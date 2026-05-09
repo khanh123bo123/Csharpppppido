@@ -29,13 +29,8 @@
                            FontSize="22" FontAttributes="Bold"
                            TextColor="#2C4C3B"/>
 
-                    <!-- Category + Distance badges -->
+                    <!-- Distance badge -->
                     <HorizontalStackLayout Spacing="8">
-                        <Border BackgroundColor="#FBE9E7" StrokeThickness="0"
-                                StrokeShape="RoundRectangle 20" Padding="12,5">
-                            <Label x:Name="lblCategory" TextColor="#B84A39"
-                                   FontAttributes="Bold" FontSize="13"/>
-                        </Border>
                         <Border BackgroundColor="#E8F5E9" StrokeThickness="0"
                                 StrokeShape="RoundRectangle 20" Padding="12,5">
                             <Label x:Name="lblDistance" TextColor="#2C4C3B" FontSize="13"/>
@@ -46,22 +41,13 @@
                     <BoxView HeightRequest="1" Color="#EAE3D9"/>
 
                     <!-- Contact Info -->
-                    <Grid ColumnDefinitions="28,*" RowDefinitions="Auto,Auto" RowSpacing="12" ColumnSpacing="10">
-
+                    <Grid ColumnDefinitions="28,*" RowDefinitions="Auto" RowSpacing="12" ColumnSpacing="10">
                         <Border Grid.Row="0" Grid.Column="0"
-                                BackgroundColor="#FBE9E7" StrokeThickness="0"
-                                StrokeShape="RoundRectangle 8" Padding="4">
-                            <Label Text="📍" FontSize="15" HorizontalOptions="Center"/>
-                        </Border>
-                        <Label x:Name="lblAddress" Grid.Row="0" Grid.Column="1"
-                               TextColor="#444" VerticalOptions="Center" FontSize="14"/>
-
-                        <Border Grid.Row="1" Grid.Column="0"
                                 BackgroundColor="#E8F5E9" StrokeThickness="0"
                                 StrokeShape="RoundRectangle 8" Padding="4">
                             <Label Text="📞" FontSize="15" HorizontalOptions="Center"/>
                         </Border>
-                        <Label x:Name="lblPhone" Grid.Row="1" Grid.Column="1"
+                        <Label x:Name="lblPhone" Grid.Row="0" Grid.Column="1"
                                TextColor="#444" VerticalOptions="Center" FontSize="14"/>
                     </Grid>
 
@@ -74,21 +60,37 @@
                     <Label x:Name="lblDescription" LineBreakMode="WordWrap"
                            TextColor="#555" FontSize="14" LineHeight="1.5"/>
 
-                    <!-- Listen Button -->
-                    <Button x:Name="btnListen"
-                            Text="{Binding [POI_Listen], Source={x:Static services:LocalizationResourceManager.Instance}}"
-                            BackgroundColor="#B84A39"
-                            TextColor="White"
-                            CornerRadius="25"
-                            HeightRequest="52"
-                            FontSize="15"
-                            FontAttributes="Bold"
-                            Margin="0,10,0,0"
-                            Clicked="OnListenClicked">
-                        <Button.Shadow>
-                            <Shadow Brush="#B84A39" Offset="0,4" Radius="12" Opacity="0.35"/>
-                        </Button.Shadow>
-                    </Button>
+                    <!-- Action Buttons -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,10,0,0">
+                        <Button x:Name="btnListen"
+                                Grid.Column="0"
+                                Text="{Binding [POI_Listen], Source={x:Static services:LocalizationResourceManager.Instance}}"
+                                BackgroundColor="#B84A39"
+                                TextColor="White"
+                                CornerRadius="22"
+                                HeightRequest="52"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                Clicked="OnListenClicked">
+                            <Button.Shadow>
+                                <Shadow Brush="#B84A39" Offset="0,4" Radius="12" Opacity="0.25"/>
+                            </Button.Shadow>
+                        </Button>
+                        <Button x:Name="btnDownloadAudio"
+                                Grid.Column="1"
+                                Text="Lưu MP3 offline"
+                                BackgroundColor="#2C4C3B"
+                                TextColor="White"
+                                CornerRadius="22"
+                                HeightRequest="52"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                Clicked="OnDownloadAudioClicked">
+                            <Button.Shadow>
+                                <Shadow Brush="#2C4C3B" Offset="0,4" Radius="12" Opacity="0.25"/>
+                            </Button.Shadow>
+                        </Button>
+                    </Grid>
 
                 </VerticalStackLayout>
             </Border>

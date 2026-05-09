@@ -6,7 +6,7 @@ namespace TourGuideApi.Controllers;
 
 /// <summary>
 /// Runtime settings for Text-to-Speech (Edge-TTS) to avoid editing JSON manually.
-/// Writes overrides into appsettings.Local.json (gitignored) so settings persist.
+/// Writes overrides into appsettings.json for runtime persistence.
 /// </summary>
 [ApiController]
 [Route("api/settings")]
@@ -88,7 +88,7 @@ public sealed class TtsSettingsController : ControllerBase
             }
         }
 
-        var settingsFilePath = Path.Combine(_hostEnvironment.ContentRootPath, "appsettings.Local.json");
+        var settingsFilePath = Path.Combine(_hostEnvironment.ContentRootPath, "appsettings.json");
 
         await SettingsFileGate.WaitAsync(cancellationToken);
         try

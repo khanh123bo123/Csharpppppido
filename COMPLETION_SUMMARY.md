@@ -212,7 +212,6 @@ GET    /api/auth/users/{id}
 ### Backend
 - `Models/Localization.cs` (190 lines)
 - `Models/User.cs` (60 lines)
-- `Services/IAiAdvisorService.cs` (template for optional local AI advisor)
 - `Controllers/LocalizationsController.cs` (320 lines)
 - `Controllers/AuthController.cs` (280 lines)
 - `DATABASE_SEED.sql` (SQL initialization script)
@@ -250,9 +249,9 @@ GET    /api/auth/users/{id}
     "TimeoutSeconds": 90,
     "SpeechRate": 0.25
   },
-  "Ollama": {
-    "BaseUrl": "http://localhost:11434",
-    "Model": "qwen2.5:14b"
+  "Gemini": {
+    "ApiKey": "",
+    "Model": "gemini-1.5-flash"
   }
 }
 ```
@@ -268,30 +267,24 @@ dotnet add package Microsoft.IdentityModel.Tokens
 
 ## 🚀 Next Steps (Not Yet Implemented)
 
-### 1. **Local AI Advisor (Optional)** [TEMPLATE PROVIDED]
-   - Location: `Services/IAiAdvisorService.cs`
-  - Status: Scaffold only
-   - Task: Implement food recommendation engine
-   - Endpoint: `POST /api/advisor/recommend`
-
-### 2. **Audio Prefetching & Caching**
+### 1. **Audio Prefetching & Caching**
    - Batch download all language audio files
    - Store MP3 in device storage for TIER 1
    - Progress UI for download
    - ~50-200KB per POI per language
 
-### 3. **Admin Web Dashboard**
+### 2. **Admin Web Dashboard**
    - React/Next.js interface
    - Content management UI
    - Audio generation monitoring
    - Analytics dashboard
 
-### 4. **PMTiles Offline Maps**
+### 3. **PMTiles Offline Maps**
    - Generate MBTiles for District 4
    - Implement offline map display
    - Reduce API cost to zero
 
-### 5. **Enhanced Security**
+### 4. **Enhanced Security**
    - SQL Cipher encryption for SQLite
    - Field-level encryption for PII
    - API rate limiting

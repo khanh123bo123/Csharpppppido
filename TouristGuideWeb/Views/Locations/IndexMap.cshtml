@@ -45,52 +45,33 @@
                     .replace(/'/g, '&#39;');
             }
 
-            // Custom icons for Major vs Minor POIs
-            const majorIcon = L.icon({
+            const markerIcon = L.icon({
                 iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
                 shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
                 iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
             });
-            const minorIcon = L.icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-                iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
-            });
-
-            const minorLabels = {
-                'minor:wc': '🚻 WC',
-                'minor:ticket': '🎫 Bán vé',
-                'minor:parking': '🅿️ Gửi xe',
-                'minor:dock': '⛵ Bến thuyền'
-            };
 
             locations.forEach(function (location) {
-                if (typeof location.latitude !== 'number' || typeof location.longitude !== 'number') {
+                const lat = location.Latitude !== undefined ? location.Latitude : location.latitude;
+                const lng = location.Longitude !== undefined ? location.Longitude : location.longitude;
+                
+                if (typeof lat !== 'number' || typeof lng !== 'number') {
                     return;
                 }
 
-                const cat = location.category || '';
-                const isMinor = cat.startsWith('minor:');
-                const icon = isMinor ? minorIcon : majorIcon;
-                const marker = L.marker([location.latitude, location.longitude], { icon: icon }).addTo(map);
-                const detailsUrl = detailsUrlTemplate.replace('__id__', String(location.id));
-                
-                let categoryBadge = '';
-                if (isMinor) {
-                    categoryBadge = `<span class="badge bg-warning text-dark">${escapeHtml(minorLabels[cat] || 'Tiện ích')}</span>`;
-                } else if (cat) {
-                    categoryBadge = `<span class="badge bg-primary">${escapeHtml(cat)}</span>`;
-                }
+                const marker = L.marker([lat, lng], { icon: markerIcon }).addTo(map);
+                const id = location.Id !== undefined ? location.Id : location.id;
+                const name = location.Name || location.name || '';
+                const detailsUrl = detailsUrlTemplate.replace('__id__', String(id));
 
                 const popupHtml = `
                     <div style="min-width: 180px;">
-                        <div class="fw-semibold mb-1">${escapeHtml(location.name ?? '')}</div>
-                        ${categoryBadge ? `<div class="mb-2">${categoryBadge}</div>` : ''}
+                        <div class="fw-semibold mb-1">${escapeHtml(name)}</div>
                         <a class="btn btn-sm btn-primary" href="${detailsUrl}">Xem chi tiet</a>
                     </div>`;
 
                 marker.bindPopup(popupHtml);
-                bounds.push([location.latitude, location.longitude]);
+                bounds.push([lat, lng]);
             });
 
             if (bounds.length > 0) {

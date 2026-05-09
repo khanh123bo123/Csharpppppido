@@ -52,9 +52,9 @@ Edit the Jwt:Key to something unique (minimum 32 characters):
     "TimeoutSeconds": 90,
     "SpeechRate": 0.25
   },
-  "Ollama": {
-    "BaseUrl": "http://localhost:11434",
-    "Model": "qwen2.5:14b"
+  "Gemini": {
+    "ApiKey": "",
+    "Model": "gemini-1.5-flash"
   }
 }
 ```
@@ -109,7 +109,7 @@ curl http://localhost:5214/api/locations
 - ✅ `TourGuideApi/Program.cs` - Fixed JWT configuration
 - ✅ `TourGuideApi/Services/ITextToSpeechService.cs` - Removed duplicate class
 - ✅ `TourGuideApi/Services/EdgeTtsTextToSpeechService.cs` - Free TTS provider (edge-tts)
-- ✅ `TourGuideApi/Services/OllamaLocalizationTranslationService.cs` - Local auto-translation (Ollama)
+- ✅ `TourGuideApi/Services/GeminiLocalizationTranslationService.cs` - Online auto-translation (Gemini)
 
 ### Mobile (MAUI)
 - ✅ `TouristGuideApp/Services/AudioService.cs` - Fixed Locale constructor + added using

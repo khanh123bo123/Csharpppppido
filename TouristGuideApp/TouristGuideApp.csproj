@@ -43,6 +43,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Mapsui" Version="4.1.1" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.7" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="10.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
 		<PackageReference Include="Microsoft.Maui.Controls.Maps" Version="10.0.0" />
@@ -59,8 +60,7 @@
 		We try to run it automatically for Debug Android builds.
 		Failures are ignored (e.g., no device connected / multiple devices).
 	-->
-	<Target Name="AdbReverseTourGuideApi" AfterTargets="Build"
-			Condition="'$(Configuration)' == 'Debug' and '$(TargetFramework)' == 'net10.0-android' and '$(OS)' == 'Windows_NT'">
+	<Target Name="AdbReverseTourGuideApi" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug' and '$(TargetFramework)' == 'net10.0-android' and '$(OS)' == 'Windows_NT'">
 		<Message Text="[TouristGuideApp] Attempting adb reverse tcp:5214 tcp:5214 (ignored on failure)" Importance="low" />
 		<Exec Condition="'$(ANDROID_SERIAL)' != ''" Command="adb -s $(ANDROID_SERIAL) reverse tcp:5214 tcp:5214" ContinueOnError="true" />
 		<Exec Condition="'$(ANDROID_SERIAL)' == ''" Command="adb reverse tcp:5214 tcp:5214" ContinueOnError="true" />

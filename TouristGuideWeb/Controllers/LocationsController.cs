@@ -35,7 +35,6 @@ public class LocationsController : Controller
 
     public async Task<IActionResult> IndexMap(string? searchString, string? category, CancellationToken cancellationToken)
     {
-        ViewData["CurrentCategory"] = category;
         var locations = await _locationApiService.GetAllAsync(cancellationToken, searchString, category);
         if (User.IsInRole("Owner") && !User.IsInRole("Admin"))
         {
@@ -45,8 +44,12 @@ public class LocationsController : Controller
     }
 
     [HttpGet]
-    public IActionResult Create()
+    public async Task<IActionResult> Create(CancellationToken cancellationToken)
     {
+        ViewBag.Categories = await _locationApiService.GetCategoriesAsync(cancellationToken);
+        var allLocations = await _locationApiService.GetAllAsync(cancellationToken);
+        ViewBag.ExistingLocationsJson = System.Text.Json.JsonSerializer.Serialize(
+            allLocations.Select(l => new { l.Id, l.Name, l.Latitude, l.Longitude, l.Category }));
         return View(new LocationCreateViewModel());
     }
 
@@ -56,6 +59,7 @@ public class LocationsController : Controller
     {
         if (!ModelState.IsValid)
         {
+            ViewBag.Categories = await _locationApiService.GetCategoriesAsync(cancellationToken);
             return View(model);
         }
 
@@ -71,13 +75,15 @@ public class LocationsController : Controller
         {
             Name = model.Name,
             Description = model.Description,
+            AudioDescription = model.AudioDescription,
             Latitude = lat,
             Longitude = lng,
             Category = model.Category,
             PhoneNumber = model.PhoneNumber,
-            Address = model.Address,
             ImageUrl = model.ImageUrl,
-            OwnerEmail = User.Identity?.Name
+            OwnerEmail = User.Identity?.Name,
+            Priority = model.Priority,
+            QrCodeData = string.IsNullOrWhiteSpace(model.QrCodeData) ? string.Empty : model.QrCodeData.Trim()
         };
 
         var (created, createErrorMessage) = await _locationApiService.CreateLocationAsync(request, cancellationToken);
@@ -89,6 +95,7 @@ public class LocationsController : Controller
                 string.IsNullOrWhiteSpace(createErrorMessage)
                     ? "Could not create location. Please try again."
                     : createErrorMessage);
+            ViewBag.Categories = await _locationApiService.GetCategoriesAsync(cancellationToken);
             return View(model);
         }
 
@@ -106,6 +113,11 @@ public class LocationsController : Controller
             return NotFound();
         }
 
+        var allLocations = await _locationApiService.GetAllAsync(cancellationToken);
+        ViewBag.ExistingLocationsJson = System.Text.Json.JsonSerializer.Serialize(
+            allLocations.Where(l => l.Id != id).Select(l => new { l.Id, l.Name, l.Latitude, l.Longitude, l.Category }));
+        ViewBag.Categories = await _locationApiService.GetCategoriesAsync(cancellationToken);
+
         if (User.IsInRole("Owner") && !User.IsInRole("Admin") && !string.Equals(location.OwnerEmail, User.Identity?.Name, StringComparison.OrdinalIgnoreCase))
         {
             return Forbid();
@@ -116,12 +128,14 @@ public class LocationsController : Controller
             Id = location.Id,
             Name = location.Name,
             Description = location.Description,
+            AudioDescription = location.AudioDescription ?? location.Description,
             Latitude = location.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture),
             Longitude = location.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            Category = location.Category,
+            Category = location.Category ?? string.Empty,
             PhoneNumber = location.PhoneNumber,
-            Address = location.Address,
-            ImageUrl = location.ImageUrl
+            ImageUrl = location.ImageUrl,
+            Priority = location.Priority,
+            QrCodeData = location.QrCodeData
         });
     }
 
@@ -136,6 +150,7 @@ public class LocationsController : Controller
 
         if (!ModelState.IsValid)
         {
+            ViewBag.Categories = await _locationApiService.GetCategoriesAsync(cancellationToken);
             return View(model);
         }
 
@@ -159,12 +174,14 @@ public class LocationsController : Controller
 
         existing.Name = model.Name;
         existing.Description = model.Description;
+        existing.AudioDescription = model.AudioDescription;
         existing.Latitude = lat;
         existing.Longitude = lng;
         existing.Category = model.Category;
         existing.PhoneNumber = model.PhoneNumber;
-        existing.Address = model.Address;
         existing.ImageUrl = model.ImageUrl;
+        existing.Priority = model.Priority;
+        existing.QrCodeData = model.QrCodeData ?? string.Empty;
         // Do not update OwnerEmail arbitrarily
 
 
@@ -177,6 +194,7 @@ public class LocationsController : Controller
                 string.IsNullOrWhiteSpace(updateErrorMessage)
                     ? "Could not update location. Please try again."
                     : updateErrorMessage);
+            ViewBag.Categories = await _locationApiService.GetCategoriesAsync(cancellationToken);
             return View(model);
         }
 

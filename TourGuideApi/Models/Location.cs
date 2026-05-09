@@ -14,6 +14,10 @@ public class Location
     [Required]
     public string Description { get; set; } = string.Empty;
 
+    // Long-form script used for translation and TTS generation.
+    [Required]
+    public string AudioDescription { get; set; } = string.Empty;
+
     // Cho phép để trống lúc tạo, sẽ cập nhật sau
     public string? AudioUrl { get; set; } = string.Empty;
 
@@ -34,4 +38,7 @@ public class Location
 
     // Field to isolate POIs per owner
     public string? OwnerEmail { get; set; }
+
+    // Priority for tie-breaking equidistant POIs (Higher is better)
+    public int Priority { get; set; } = 0;
 }

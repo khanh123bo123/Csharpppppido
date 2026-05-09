@@ -22,37 +22,11 @@
                     <dt class="col-sm-4">Id</dt>
                     <dd class="col-sm-8">@Model.Id</dd>
 
-                    <dt class="col-sm-4">Loại địa điểm</dt>
-                    <dd class="col-sm-8">
-                        @if (Model.Category?.StartsWith("minor:") == true)
-                        {
-                            var minorLabel = Model.Category switch
-                            {
-                                "minor:wc" => "🚻 Nhà vệ sinh (WC)",
-                                "minor:ticket" => "🎫 Quầy bán vé",
-                                "minor:parking" => "🅿️ Bãi giữ xe",
-                                "minor:dock" => "⛵ Bến thuyền",
-                                _ => "Tiện ích"
-                            };
-                            <span class="badge bg-warning text-dark fs-6">@minorLabel</span>
-                            <span class="text-muted ms-1 small">Minor POI</span>
-                        }
-                        else if (!string.IsNullOrEmpty(Model.Category))
-                        {
-                            <span class="badge bg-primary fs-6"><i class="fa-solid fa-utensils me-1"></i>@Model.Category</span>
-                            <span class="text-muted ms-1 small">Major POI</span>
-                        }
-                        else
-                        {
-                            <span class="text-muted">Chưa phân loại</span>
-                        }
-                    </dd>
-
                     <dt class="col-sm-4">Phone</dt>
                     <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.PhoneNumber) ? "-" : Model.PhoneNumber)</dd>
 
-                    <dt class="col-sm-4">Address</dt>
-                    <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.Address) ? "-" : Model.Address)</dd>
+                    <dt class="col-sm-4">Mô tả audio</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.AudioDescription) ? "-" : Model.AudioDescription)</dd>
 
                     <dt class="col-sm-4">Image URL</dt>
                     <dd class="col-sm-8">

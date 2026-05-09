@@ -90,4 +90,9 @@ public class Localization
     /// Can be used for multilingual QR code scanning
     /// </summary>
     public string? QrCodeData { get; set; }
+
+    /// <summary>
+    /// Total number of times this audio has been played
+    /// </summary>
+    public int PlayCount { get; set; } = 0;
 }

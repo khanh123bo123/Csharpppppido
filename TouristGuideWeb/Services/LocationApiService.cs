@@ -30,7 +30,7 @@ public class LocationApiService
 
     public async Task<List<Location>> GetLocationsAsync(CancellationToken cancellationToken = default, string? query = null, string? category = null)
     {
-        // Don't use cache if searching or filtering
+        // Don't use cache if searching/filtering
         if (string.IsNullOrWhiteSpace(query) && string.IsNullOrWhiteSpace(category))
         {
             if (_memoryCache.TryGetValue(LocationsListCacheKey, out List<Location>? cachedLocations) && cachedLocations is not null)

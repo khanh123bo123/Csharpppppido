@@ -88,11 +88,15 @@ public class LocalizationPackGenerator
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Auto-translation failed. Keeping Vietnamese text.");
+            _logger.LogWarning(ex, "Auto-translation failed. Outputting error to description.");
             translated = new Dictionary<string, LocalizedText>();
             foreach (var lang in targetLanguages)
             {
-                translated[lang] = new LocalizedText { LocalizedName = vietnameseName, LocalizedDescription = vietnameseDescription };
+                translated[lang] = new LocalizedText 
+                { 
+                    LocalizedName = "Lỗi Dịch Thuật", 
+                    LocalizedDescription = $"Lỗi: {ex.Message}" 
+                };
             }
         }
 

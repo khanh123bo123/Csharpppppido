@@ -1,5 +1,4 @@
 using Microsoft.Maui.Controls;
-using TouristGuideApp.Models;
 using TouristGuideApp.Services;
 using Location = Microsoft.Maui.Devices.Sensors.Location;
 
@@ -26,15 +25,28 @@ public partial class MainPage : ContentPage
 
     private async void OnPOITapped(object sender, TappedEventArgs e)
     {
-        if (e.Parameter is TouristGuideApp.Models.POI selectedPOI)
+        try
         {
-            // Navigate to the unified POIDetailsPage, passing the selected POI
+            var selectedPOI = e.Parameter as TouristGuideApp.Models.POI
+                              ?? (sender as BindableObject)?.BindingContext as TouristGuideApp.Models.POI;
+
+            if (selectedPOI == null)
+            {
+                await DisplayAlert("Lỗi", "Không xác định được địa điểm vừa chọn.", "OK");
+                return;
+            }
+
             var navigationParameter = new Dictionary<string, object>
             {
                 { "POI", selectedPOI }
             };
 
             await Shell.Current.GoToAsync(nameof(Views.POIDetailsPage), navigationParameter);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"POI navigation error: {ex}");
+            await DisplayAlert("Lỗi", "Không mở được chi tiết địa điểm.", "OK");
         }
     }
 
@@ -73,10 +85,7 @@ public partial class MainPage : ContentPage
                     await DisplayAlert(
                         "Không kết nối được máy chủ",
                         "App chưa tải được dữ liệu địa điểm (POIs).\n\n" +
-                        "Nếu chạy trên điện thoại thật qua USB:\n" +
-                        "1) Chạy TourGuideApi (HTTP) trên PC: http://localhost:5214\n" +
-                        "2) Terminal chạy: adb reverse tcp:5214 tcp:5214\n\n" +
-                        "Nếu chạy Emulator thì API phải chạy port 5214 và app sẽ tự dùng 10.0.2.2.",
+                        "Vui lòng đảm bảo thiết bị có kết nối Internet để tải dữ liệu từ máy chủ trực tuyến.",
                         "OK");
                 }
             }
@@ -119,9 +128,9 @@ public partial class MainPage : ContentPage
             return AppPreferences.GetNarrationLanguageCode();
         }
 
-        var options = SupportedLanguages.AllLanguages
-            .Where(code => SupportedLanguages.LanguageNames.ContainsKey(code))
-            .Select(code => SupportedLanguages.LanguageNames[code])
+        var options = TouristGuideApp.Services.SupportedLanguages.AllLanguages
+            .Where(code => TouristGuideApp.Services.SupportedLanguages.LanguageNames.ContainsKey(code))
+            .Select(code => TouristGuideApp.Services.SupportedLanguages.LanguageNames[code])
             .ToArray();
 
 #if ANDROID
@@ -134,10 +143,10 @@ public partial class MainPage : ContentPage
             null,
             options);
 
-        var selectedCode = SupportedLanguages.Vietnamese;
+        var selectedCode = TouristGuideApp.Services.SupportedLanguages.Vietnamese;
         if (!string.IsNullOrWhiteSpace(choice))
         {
-            var match = SupportedLanguages.LanguageNames.FirstOrDefault(kvp => string.Equals(kvp.Value, choice, StringComparison.Ordinal));
+            var match = TouristGuideApp.Services.SupportedLanguages.LanguageNames.FirstOrDefault(kvp => string.Equals(kvp.Value, choice, StringComparison.Ordinal));
             if (!string.IsNullOrWhiteSpace(match.Key))
             {
                 selectedCode = match.Key;

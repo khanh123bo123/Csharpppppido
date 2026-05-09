@@ -21,6 +21,7 @@ namespace TouristGuideApp.Models
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
         public string? ImageUrl { get; set; }
+        public int Priority { get; set; } = 0;
 
         // Tọa độ và bán kính (Tài liệu yêu cầu 30m cho khu vực đô thị dày đặc)
         public double Latitude { get; set; }

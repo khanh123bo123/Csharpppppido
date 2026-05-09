@@ -7,8 +7,7 @@ using ZXing.Net.Maui.Controls;
 
 public static class MauiProgram
 {
-	private const int DefaultApiPort = 5214;
-	private const string ProductionApiBaseUrl = "https://YOUR_API_DOMAIN/";
+	private const string ProductionApiBaseUrl = "https://sharpppio-api.azurewebsites.net/";
 
 	public static MauiApp CreateMauiApp()
 	{
@@ -36,12 +35,14 @@ public static class MauiProgram
 
 			builder.Services.AddHttpClient<IApiService, ApiService>(client =>
 			{
-				// TourGuideApi runs HTTP on port 5214 (HTTPS uses 7098)
-				// Android:
-				// - Emulator: use 10.0.2.2 to reach host machine localhost
-				// - Physical device over USB (adb reverse): use 127.0.0.1
+				// Default endpoint for Azure deployment. User can override in Settings.
 				client.BaseAddress = ResolveApiBaseAddress();
 				client.Timeout = TimeSpan.FromSeconds(30);
+			});
+
+			builder.Services.AddHttpClient<IAppHubService, AppHubService>(client =>
+			{
+				client.BaseAddress = ResolveApiBaseAddress();
 			});
 
 			// Register Pages
@@ -64,22 +65,16 @@ public static class MauiProgram
 
 	private static Uri ResolveApiBaseAddress()
 	{
-		#if DEBUG
-		#if ANDROID
-		var isEmulator = Microsoft.Maui.Devices.DeviceInfo.Current.DeviceType == Microsoft.Maui.Devices.DeviceType.Virtual;
-		var host = isEmulator ? "10.0.2.2" : "127.0.0.1";
-		return new Uri($"http://{host}:{DefaultApiPort}/");
-		#else
-		return new Uri($"http://localhost:{DefaultApiPort}/");
-		#endif
-		#else
+		if (AppPreferences.TryGetApiBaseUrl(out var preferredApiBaseUrl) && preferredApiBaseUrl is not null)
+		{
+			return preferredApiBaseUrl;
+		}
 		if (!Uri.TryCreate(ProductionApiBaseUrl, UriKind.Absolute, out var productionUri))
 		{
 			throw new InvalidOperationException("Production API base URL is not configured. Set ProductionApiBaseUrl in MauiProgram.cs.");
 		}
 
 		return EnsureTrailingSlash(productionUri);
-		#endif
 	}
 
 	private static Uri EnsureTrailingSlash(Uri uri)

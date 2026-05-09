@@ -25,46 +25,36 @@
                         </div>
 
                         <div class="col-12">
-                            <label asp-for="Description" class="form-label fw-semibold"></label>
-                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Describe this location"></textarea>
+                            <label asp-for="Description" class="form-label fw-semibold">Mô tả ngắn</label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Hiển thị trên app cho khách xem nhanh."></textarea>
                             <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label fw-semibold">Loại địa điểm <span class="text-danger">*</span></label>
-                            <div class="d-flex gap-4 mb-2">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="poiTypeRadio" id="poiTypeMajor" value="Major" checked onchange="togglePoiType()">
-                                    <label class="form-check-label fw-semibold" for="poiTypeMajor">
-                                        <i class="fa-solid fa-utensils text-primary me-1"></i> Quán ăn (Major)
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="poiTypeRadio" id="poiTypeMinor" value="Minor" onchange="togglePoiType()">
-                                    <label class="form-check-label fw-semibold" for="poiTypeMinor">
-                                        <i class="fa-solid fa-signs-post text-warning me-1"></i> Tiện ích (Minor)
-                                    </label>
-                                </div>
-                            </div>
+                            <label asp-for="AudioDescription" class="form-label fw-semibold">Mô tả audio (nguồn dịch thuật)</label>
+                            <textarea asp-for="AudioDescription" class="form-control" rows="6" placeholder="Không hiển thị trên app. Chỉ dùng để dịch và tạo audio."></textarea>
+                            <span asp-validation-for="AudioDescription" class="text-danger"></span>
                         </div>
 
-                        <div class="col-md-6" id="majorCategoryGroup">
-                            <label class="form-label fw-semibold">Danh mục ẩm thực</label>
-                            <input type="text" id="majorCategoryInput" class="form-control" placeholder="VD: Phở, Bánh Mì, Hải Sản..." />
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Danh mục</label>
+                            <div class="d-flex gap-2 mb-2">
+                                <select id="categorySelect" class="form-select">
+                                    <option value="">-- Chọn danh mục có sẵn --</option>
+                                    @if (ViewBag.Categories != null)
+                                    {
+                                        foreach (var cat in (IEnumerable<string>)ViewBag.Categories)
+                                        {
+                                            <option value="@cat">@cat</option>
+                                        }
+                                    }
+                                </select>
+                                <button type="button" id="btnAddCategory" class="btn btn-outline-primary text-nowrap">Thêm mới</button>
+                            </div>
+                            <input type="text" id="newCategoryInput" class="form-control" style="display: none;" placeholder="Nhập danh mục mới..." />
+                            <input asp-for="Category" type="hidden" id="categoryHiddenInput" />
                             <span asp-validation-for="Category" class="text-danger"></span>
                         </div>
-
-                        <div class="col-md-6" id="minorCategoryGroup" style="display: none;">
-                            <label class="form-label fw-semibold">Loại tiện ích <span class="text-danger">*</span></label>
-                            <select id="minorCategorySelect" class="form-select">
-                                <option value="minor:wc">🚻 Nhà vệ sinh (WC)</option>
-                                <option value="minor:ticket">🎫 Quầy bán vé</option>
-                                <option value="minor:parking">🅿️ Bãi giữ xe</option>
-                                <option value="minor:dock">⛵ Bến thuyền</option>
-                            </select>
-                        </div>
-
-                        <input asp-for="Category" type="hidden" id="categoryHiddenInput" />
 
                         <div class="col-md-6">
                             <label asp-for="PhoneNumber" class="form-label fw-semibold">Số điện thoại</label>
@@ -72,11 +62,6 @@
                             <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                         </div>
 
-                        <div class="col-12">
-                            <label asp-for="Address" class="form-label fw-semibold">Địa chỉ cụ thể</label>
-                            <input asp-for="Address" class="form-control" placeholder="VD: 123 Đường Nam Kỳ Khởi Nghĩa, Quận 1..." />
-                            <span asp-validation-for="Address" class="text-danger"></span>
-                        </div>
 
                         <div class="col-12">
                             <label asp-for="ImageUrl" class="form-label fw-semibold">Link Hình ảnh (URL)</label>
@@ -140,8 +125,8 @@
             }
         }
 
-        const defaultLat = 21.0278;
-        const defaultLng = 105.8342;
+        const defaultLat = 10.762622;
+        const defaultLng = 106.660172;
 
         const latInput = document.getElementById('latitudeInput');
         const lngInput = document.getElementById('longitudeInput');
@@ -159,10 +144,17 @@
 
         const marker = L.marker([startLat, startLng], { draggable: true }).addTo(map);
 
-        // Add Geocoder
+        // Add Geocoder focused on HCMC
         L.Control.geocoder({
             defaultMarkGeocode: false,
-            placeholder: "Tìm kiếm địa điểm..."
+            placeholder: "Tìm kiếm địa chỉ tại TP.HCM...",
+            geocoder: L.Control.Geocoder.nominatim({
+                geocodingQueryParams: {
+                    countrycodes: 'vn',
+                    viewbox: '106.56,10.95,106.82,10.62',
+                    bounded: 1 // strongly prefer results in HCMC
+                }
+            })
         })
         .on('markgeocode', function(e) {
             const bbox = e.geocode.bbox;
@@ -200,33 +192,41 @@
             setInputs(e.latlng.lat, e.latlng.lng);
         });
 
-        // POI Type toggle logic
-        function togglePoiType() {
-            const isMajor = document.getElementById('poiTypeMajor').checked;
-            document.getElementById('majorCategoryGroup').style.display = isMajor ? '' : 'none';
-            document.getElementById('minorCategoryGroup').style.display = isMajor ? 'none' : '';
-            syncCategory();
+        /* ========== CATEGORY PICKER ========== */
+        const categorySelect = document.getElementById('categorySelect');
+        const newCategoryInput = document.getElementById('newCategoryInput');
+        const btnAddCategory = document.getElementById('btnAddCategory');
+        const categoryHiddenInput = document.getElementById('categoryHiddenInput');
+
+        function syncCategoryValue() {
+            const selected = (categorySelect.value || '').trim();
+            const custom = (newCategoryInput.value || '').trim();
+            categoryHiddenInput.value = custom || selected;
         }
 
-        function syncCategory() {
-            const isMajor = document.getElementById('poiTypeMajor').checked;
-            const hidden = document.getElementById('categoryHiddenInput');
-            if (isMajor) {
-                hidden.value = document.getElementById('majorCategoryInput').value || '';
-            } else {
-                hidden.value = document.getElementById('minorCategorySelect').value;
+        categorySelect.addEventListener('change', function () {
+            if ((categorySelect.value || '').trim()) {
+                newCategoryInput.style.display = 'none';
+                newCategoryInput.value = '';
             }
-        }
+            syncCategoryValue();
+        });
 
-        document.getElementById('majorCategoryInput').addEventListener('input', syncCategory);
-        document.getElementById('minorCategorySelect').addEventListener('change', syncCategory);
+        btnAddCategory.addEventListener('click', function () {
+            newCategoryInput.style.display = '';
+            newCategoryInput.focus();
+            categorySelect.value = '';
+            syncCategoryValue();
+        });
+
+        newCategoryInput.addEventListener('input', syncCategoryValue);
         
         // Sync before submit
         document.querySelector('form').addEventListener('submit', function() {
-            syncCategory();
+            syncCategoryValue();
         });
 
         // Initial sync
-        syncCategory();
+        syncCategoryValue();
     </script>
 }

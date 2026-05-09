@@ -35,9 +35,9 @@ Replace the JWT and TTS sections:
     "TimeoutSeconds": 90,
     "SpeechRate": 0.25
   },
-  "Ollama": {
-    "BaseUrl": "http://localhost:11434",
-    "Model": "qwen2.5:14b"
+  "Gemini": {
+    "ApiKey": "",
+    "Model": "gemini-1.5-flash"
   },
   "Cors": {
     "AllowedOrigins": ["http://localhost:3000", "http://10.0.2.2:5214"]
@@ -213,9 +213,9 @@ curl -X POST http://localhost:5214/api/localizations/1/generate-audio \
     "TimeoutSeconds": 90,
     "SpeechRate": 0.25
   },
-  "Ollama": {
-    "BaseUrl": "http://localhost:11434",
-    "Model": "qwen2.5:14b"
+  "Gemini": {
+    "ApiKey": "",
+    "Model": "gemini-1.5-flash"
   },
   "Cors": {
     "AllowedOrigins": ["https://yourdomain.com"]
@@ -252,7 +252,7 @@ docker run -p 5214:5214 tourguide-api:1.0
 - [ ] Database backup created
 - [ ] JWT key updated to production value
 - [ ] Edge-TTS installed (pip install edge-tts)
-- [ ] Ollama running locally (optional: for auto-translate)
+- [ ] Gemini API key configured (required for auto-translate)
 - [ ] CORS origins updated
 - [ ] SSL certificate configured
 - [ ] Load balancer configured
@@ -266,9 +266,8 @@ docker run -p 5214:5214 tourguide-api:1.0
 
 ### Remaining Features (Not Yet Implemented)
 1. **Local AI Advisor (Optional)**
-   - Template: `IAiAdvisorService.cs`
    - Endpoint: `POST /api/advisor/recommend`
-   - Status: Ready for integration
+  - Status: Not implemented
 
 2. **Full Text Search**
    - For finding POIs by keyword/cuisine type
@@ -387,7 +386,7 @@ Your project is ready when:
 - [MAUI Docs](https://learn.microsoft.com/en-us/dotnet/maui/)
 - [Entity Framework Core](https://learn.microsoft.com/en-us/ef/core/)
 - [Edge-TTS (GitHub)](https://github.com/rany2/edge-tts)
-- [Ollama (Docs)](https://ollama.com/)
+- [Gemini API](https://ai.google.dev/)
 
 ---
 

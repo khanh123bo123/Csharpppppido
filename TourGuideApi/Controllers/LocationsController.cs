@@ -29,15 +29,15 @@ public class LocationsController : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(category))
         {
-            locations = locations.Where(l => l.Category == category);
+            var normalizedCategory = category.Trim().ToLower();
+            locations = locations.Where(l => l.Category != null && l.Category.ToLower() == normalizedCategory);
         }
 
         if (!string.IsNullOrWhiteSpace(query))
         {
             query = query.ToLower();
             locations = locations.Where(l => 
-                (l.Name != null && l.Name.ToLower().Contains(query)) || 
-                (l.Address != null && l.Address.ToLower().Contains(query)) ||
+                (l.Name != null && l.Name.ToLower().Contains(query)) ||
                 (l.Category != null && l.Category.ToLower().Contains(query)));
         }
 
@@ -48,8 +48,8 @@ public class LocationsController : ControllerBase
     public async Task<ActionResult<IEnumerable<string>>> GetCategories()
     {
         var categories = await _context.Locations
-            .Where(l => !string.IsNullOrEmpty(l.Category))
-            .Select(l => l.Category!)
+            .Where(l => !string.IsNullOrWhiteSpace(l.Category))
+            .Select(l => l.Category!.Trim())
             .Distinct()
             .OrderBy(c => c)
             .ToListAsync();
@@ -122,13 +122,7 @@ public class LocationsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Location>> CreateLocation(Location location)
     {
-        location.Id = 0;
-        location.QrCodeData = $"LOC_{Guid.NewGuid():N}";
-
-        if (location.CreatedAt == default)
-        {
-            location.CreatedAt = DateTime.UtcNow;
-        }
+        NormalizeLocation(location);
 
         _context.Locations.Add(location);
         await _context.SaveChangesAsync();
@@ -138,7 +132,7 @@ public class LocationsController : ControllerBase
             try
             {
                 location.AudioUrl = await _textToSpeechService.SynthesizeAsync(
-                    location.Description,
+                    location.AudioDescription,
                     $"location_{location.Id}.mp3");
 
                 await _context.SaveChangesAsync();
@@ -151,7 +145,7 @@ public class LocationsController : ControllerBase
             // AUTO-GENERATE 5 LANGUAGES
             var locationId = location.Id;
             var locName = location.Name;
-            var locDesc = location.Description;
+            var locDesc = location.AudioDescription;
             _ = Task.Run(async () =>
             {
                 try
@@ -184,8 +178,11 @@ public class LocationsController : ControllerBase
             return NotFound();
         }
 
+        NormalizeLocation(location, existingLocation);
+
         existingLocation.Name = location.Name;
         existingLocation.Description = location.Description;
+        existingLocation.AudioDescription = location.AudioDescription;
         existingLocation.AudioUrl = location.AudioUrl;
         existingLocation.Latitude = location.Latitude;
         existingLocation.Longitude = location.Longitude;
@@ -193,7 +190,6 @@ public class LocationsController : ControllerBase
         existingLocation.CreatedAt = location.CreatedAt;
         existingLocation.Category = location.Category;
         existingLocation.PhoneNumber = location.PhoneNumber;
-        existingLocation.Address = location.Address;
         existingLocation.ImageUrl = location.ImageUrl;
         existingLocation.OwnerEmail = location.OwnerEmail;
 
@@ -229,6 +225,35 @@ public class LocationsController : ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    private static void NormalizeLocation(Location location, Location? existingLocation = null)
+    {
+        location.Id = existingLocation?.Id ?? location.Id;
+        location.Name = (location.Name ?? string.Empty).Trim();
+        location.Description = (location.Description ?? string.Empty).Trim();
+        location.AudioDescription = string.IsNullOrWhiteSpace(location.AudioDescription)
+            ? location.Description
+            : location.AudioDescription.Trim();
+        location.AudioUrl = string.IsNullOrWhiteSpace(location.AudioUrl) ? null : location.AudioUrl.Trim();
+        location.Category = string.IsNullOrWhiteSpace(location.Category) ? null : location.Category.Trim();
+        location.PhoneNumber = string.IsNullOrWhiteSpace(location.PhoneNumber) ? null : location.PhoneNumber.Trim();
+        location.Address = string.IsNullOrWhiteSpace(location.Address) ? null : location.Address.Trim();
+        location.ImageUrl = string.IsNullOrWhiteSpace(location.ImageUrl) ? null : location.ImageUrl.Trim();
+        location.OwnerEmail = string.IsNullOrWhiteSpace(location.OwnerEmail) ? null : location.OwnerEmail.Trim();
+        location.QrCodeData = string.IsNullOrWhiteSpace(location.QrCodeData)
+            ? $"LOC_{Guid.NewGuid():N}"
+            : location.QrCodeData.Trim();
+
+        if (location.QrCodeData.Equals("", StringComparison.Ordinal))
+        {
+            location.QrCodeData = $"LOC_{Guid.NewGuid():N}";
+        }
+
+        if (location.CreatedAt == default)
+        {
+            location.CreatedAt = existingLocation?.CreatedAt ?? DateTime.UtcNow;
+        }
     }
 
     private static double CalculateHaversineDistanceMeters(double lat1, double lng1, double lat2, double lng2)

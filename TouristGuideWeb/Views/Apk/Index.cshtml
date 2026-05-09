@@ -1,0 +1,91 @@
+@model TouristGuideWeb.Models.ApkDownloadViewModel
+
+@{
+    ViewData["Title"] = "Tải APK";
+    var fileSizeMb = Model.SizeBytes > 0
+        ? (Model.SizeBytes / (1024d * 1024d)).ToString("0.00")
+        : "0.00";
+}
+
+<div class="card-premium mb-4">
+    <div class="card-body p-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <h4 class="fw-bold mb-1" style="color: #2C4C3B;">Tải APK bằng QR động</h4>
+                <div class="text-muted">Mỗi lần publish APK hoặc cấu hình GitHub, QR sẽ được tự động cập nhật đến link tải trực tiếp.</div>
+            </div>
+            <a class="btn btn-success" href="@Model.DirectApkUrl">
+                <i class="fa-solid fa-download me-2"></i>Tải APK mới nhất
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card-premium h-100">
+            <div class="card-body p-4 text-center">
+                <h5 class="fw-bold mb-3">QR Tải APK</h5>
+                <img src="@Model.QrImageUrl" alt="QR tải APK" class="img-fluid rounded border" style="max-width: 260px;" />
+                <div class="text-muted mt-3" style="font-size: 0.9rem;">
+                    QR hiện tại trỏ tới link tải trực tiếp:
+                </div>
+                <div class="small mt-1">
+                    <a href="@Model.DirectApkUrl">@Model.DirectApkUrl</a>
+                </div>
+                @if (!string.IsNullOrWhiteSpace(Model.CurrentFileName))
+                {
+                    <div class="text-muted mt-2" style="font-size: 0.85rem;">
+                        Trạng thái: <strong>@Model.CurrentFileName</strong>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card-premium h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Trang thai ban APK hien tai</h5>
+
+                @if (Model.HasApk)
+                {
+                    <div class="alert alert-success" role="alert">
+                        @if (Model.CurrentFileName == "Tải từ GitHub")
+                        {
+                            <div><strong>Sẵn sàng tải:</strong> Ứng dụng đã được publish trên GitHub. Quét QR để tải ngay!</div>
+                        }
+                        else
+                        {
+                            <div><strong>Sẵn sàng tải:</strong> Có bản APK publish mới nhất trên server.</div>
+                            <div><strong>Dung lượng:</strong> @fileSizeMb MB</div>
+                            <div><strong>Cập nhật lúc:</strong> @Model.LastUpdatedUtc</div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning" role="alert">
+                        Chưa có APK được publish. Hãy publish APK hoặc cấu hình link GitHub.
+                    </div>
+                }
+
+                <h6 class="fw-bold mt-4">Quy trinh publish QR dong</h6>
+                <ol class="mb-3">
+                    <li>Build APK moi tu project MAUI.</li>
+                    <li>Chay script publish, he thong tao ban phat hanh moi va cap nhat QR theo ban do.</li>
+                    <li>Nguoi dung quet QR hien tai se tai truc tiep APK cua ban publish gan nhat.</li>
+                </ol>
+
+                <div class="bg-light border rounded p-3">
+                    <div class="fw-semibold mb-2">Lenh publish:</div>
+                    <code>powershell -ExecutionPolicy Bypass -File .\publish-apk.ps1 -ApkPath "C:\duong-dan-that\TouristGuideApp.apk"</code>
+                </div>
+
+                <div class="mt-3 text-muted" style="font-size: 0.9rem;">
+                    Neu ban host online, co the dat <strong>DownloadSettings:PublicBaseUrl</strong> trong config de QR hien dung domain public.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

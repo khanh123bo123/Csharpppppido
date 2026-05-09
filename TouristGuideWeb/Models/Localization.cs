@@ -12,6 +12,7 @@ public class LocalizationDto
     public string AudioGenerationStatus { get; set; } = string.Empty;
     public string? TtsVoiceCode { get; set; }
     public bool IsWarmupProcessed { get; set; }
+    public int PlayCount { get; set; }
 
     // Navigation property usage
     public Location? Location { get; set; }

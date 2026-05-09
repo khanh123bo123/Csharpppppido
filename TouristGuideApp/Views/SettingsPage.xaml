@@ -87,6 +87,8 @@
                     </Grid>
                 </Border>
 
+
+
                 <!-- Section: Dữ liệu -->
                 <Label Text="{Binding [Settings_DataTitle], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="11" FontAttributes="Bold"
                        TextColor="#B84A39" Margin="4,8,0,4"
@@ -100,14 +102,14 @@
                     </Border.Shadow>
                     <Grid ColumnDefinitions="*,Auto">
                         <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
-                            <Label Text="{Binding [Settings_ClearHist], Source={x:Static services:LocalizationResourceManager.Instance}}"
+                            <Label Text="Xóa MP3 đã lưu"
                                    FontSize="15" FontAttributes="Bold" TextColor="#2C4C3B"/>
-                            <Label Text="{Binding [Settings_ClearHistDesc], Source={x:Static services:LocalizationResourceManager.Instance}}"
+                            <Label Text="Chọn từng file MP3 offline để xoá khỏi máy, không xoá dữ liệu khác."
                                    FontSize="12" TextColor="#888"/>
                         </VerticalStackLayout>
                         <Border Grid.Column="1" BackgroundColor="#FBE9E7" StrokeThickness="0"
                                 StrokeShape="RoundRectangle 20" Padding="14,8">
-                            <Label Text="{Binding [Settings_ClearBtn], Source={x:Static services:LocalizationResourceManager.Instance}}" FontSize="13"
+                            <Label Text="Chọn file" FontSize="13"
                                    TextColor="#B84A39" FontAttributes="Bold">
                                 <Label.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnClearHistoryClicked"/>

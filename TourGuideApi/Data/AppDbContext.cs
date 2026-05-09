@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Tour> Tours { get; set; }
     public DbSet<TourLocation> TourLocations { get; set; }
+    public DbSet<AudioPlayLog> AudioPlayLogs { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

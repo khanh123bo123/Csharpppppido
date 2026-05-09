@@ -6,8 +6,11 @@
 # dotenv files
 .env
 
-# Local secrets overrides (do not commit)
-**/appsettings.Local.json
+# Published APK artifacts (keep stable path unmanaged in git)
+TouristGuideWeb/wwwroot/apk/*.apk
+TouristGuideWeb/wwwroot/apk/**/*.apk
+TouristGuideWeb/wwwroot/apk/*.json
+!TouristGuideWeb/wwwroot/apk/.gitkeep
 
 # SQLite transient files (never commit)
 *.db

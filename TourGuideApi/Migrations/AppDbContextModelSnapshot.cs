@@ -22,6 +22,27 @@ namespace TourGuideApi.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("TourGuideApi.Models.AudioPlayLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("LocalizationId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("PlayedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocalizationId");
+
+                    b.ToTable("AudioPlayLogs");
+                });
+
             modelBuilder.Entity("TourGuideApi.Models.Localization", b =>
                 {
                     b.Property<int>("Id")
@@ -61,6 +82,9 @@ namespace TourGuideApi.Migrations
                     b.Property<int>("LocationId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("PlayCount")
+                        .HasColumnType("integer");
+
                     b.Property<string>("QrCodeData")
                         .HasColumnType("text");
 
@@ -91,6 +115,10 @@ namespace TourGuideApi.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AudioDescription")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("AudioUrl")
@@ -124,6 +152,9 @@ namespace TourGuideApi.Migrations
 
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("text");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer");
 
                     b.Property<string>("QrCodeData")
                         .HasColumnType("text");
@@ -251,6 +282,17 @@ namespace TourGuideApi.Migrations
                             Role = "Admin",
                             UpdatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         });
+                });
+
+            modelBuilder.Entity("TourGuideApi.Models.AudioPlayLog", b =>
+                {
+                    b.HasOne("TourGuideApi.Models.Localization", "Localization")
+                        .WithMany()
+                        .HasForeignKey("LocalizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Localization");
                 });
 
             modelBuilder.Entity("TourGuideApi.Models.Localization", b =>

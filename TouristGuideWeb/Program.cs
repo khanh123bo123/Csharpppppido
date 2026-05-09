@@ -7,26 +7,23 @@ using TouristGuideWeb.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Railway provides PORT. Bind to it when present.
+// PaaS/container platforms may provide PORT. Bind to it when present.
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port) && int.TryParse(port, out var portNumber))
 {
     builder.WebHost.UseUrls($"http://0.0.0.0:{portNumber}");
 }
 
-// When running behind a reverse proxy (Railway), respect forwarded headers.
+// When running behind a reverse proxy (Azure App Service or similar), respect forwarded headers.
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.Configure<ForwardedHeadersOptions>(options =>
     {
         options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-        options.KnownNetworks.Clear();
+        options.KnownIPNetworks.Clear();
         options.KnownProxies.Clear();
     });
 }
-
-// Local (gitignored) overrides for machine-specific settings.
-builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 // Add services to the container.
 builder.Services.AddDbContext<AppIdentityDbContext>(options =>
@@ -70,7 +67,7 @@ var app = builder.Build();
 
 app.UseForwardedHeaders();
 
-if (!app.Environment.IsEnvironment("Testing"))
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 {
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<AppIdentityDbContext>();
@@ -88,71 +85,46 @@ if (!app.Environment.IsEnvironment("Testing"))
         }
     }
 
-    var adminEmail = app.Configuration["ApiSettings:AdminEmail"];
-    var adminPassword = app.Configuration["ApiSettings:AdminPassword"];
+    var adminEmail = app.Configuration["ApiSettings:AdminEmail"] ?? "admin@gmail.com";
+    var adminPassword = app.Configuration["ApiSettings:AdminPassword"] ?? "Admin@123";
 
-    if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+    if (adminUser is null)
     {
-        if (app.Environment.IsDevelopment())
+        adminUser = new IdentityUser
         {
-            adminEmail = "admin@gmail.com";
-            adminPassword = "Admin@123";
+            UserName = adminEmail,
+            Email = adminEmail,
+            EmailConfirmed = true
+        };
+
+        var createResult = await userManager.CreateAsync(adminUser, adminPassword);
+        if (!createResult.Succeeded)
+        {
+            var errors = string.Join("; ", createResult.Errors.Select(e => e.Description));
+            throw new InvalidOperationException($"Failed to create seeded admin user: {errors}");
         }
-        else
+    }
+    else if (!await userManager.CheckPasswordAsync(adminUser, adminPassword))
+    {
+        var resetToken = await userManager.GeneratePasswordResetTokenAsync(adminUser);
+        var resetResult = await userManager.ResetPasswordAsync(adminUser, resetToken, adminPassword);
+        if (!resetResult.Succeeded)
         {
-            app.Logger.LogWarning("Admin user seeding skipped: missing ApiSettings:AdminEmail / ApiSettings:AdminPassword.");
-            adminEmail = null;
-            adminPassword = null;
+            var errors = string.Join("; ", resetResult.Errors.Select(e => e.Description));
+            throw new InvalidOperationException($"Failed to reset seeded admin password: {errors}");
         }
     }
 
-    if (!string.IsNullOrWhiteSpace(adminEmail) && !string.IsNullOrWhiteSpace(adminPassword))
+    if (!adminUser.EmailConfirmed)
     {
-        var adminUser = await userManager.FindByEmailAsync(adminEmail);
-        if (adminUser is null)
-        {
-            adminUser = new IdentityUser
-            {
-                UserName = adminEmail,
-                Email = adminEmail,
-                EmailConfirmed = true
-            };
+        adminUser.EmailConfirmed = true;
+        await userManager.UpdateAsync(adminUser);
+    }
 
-            var createResult = await userManager.CreateAsync(adminUser, adminPassword);
-            if (!createResult.Succeeded)
-            {
-                var errors = string.Join("; ", createResult.Errors.Select(e => e.Description));
-                throw new InvalidOperationException($"Failed to create seeded admin user: {errors}");
-            }
-        }
-        else
-        {
-            if (app.Environment.IsDevelopment())
-            {
-                var hasExpectedPassword = await userManager.CheckPasswordAsync(adminUser, adminPassword);
-                if (!hasExpectedPassword)
-                {
-                    var resetToken = await userManager.GeneratePasswordResetTokenAsync(adminUser);
-                    var resetResult = await userManager.ResetPasswordAsync(adminUser, resetToken, adminPassword);
-                    if (!resetResult.Succeeded)
-                    {
-                        var errors = string.Join("; ", resetResult.Errors.Select(e => e.Description));
-                        throw new InvalidOperationException($"Failed to reset seeded admin password: {errors}");
-                    }
-                }
-            }
-
-            if (!adminUser.EmailConfirmed)
-            {
-                adminUser.EmailConfirmed = true;
-                await userManager.UpdateAsync(adminUser);
-            }
-        }
-
-        if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
-        {
-            await userManager.AddToRoleAsync(adminUser, "Admin");
-        }
+    if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
+    {
+        await userManager.AddToRoleAsync(adminUser, "Admin");
     }
 }
 
@@ -171,6 +143,31 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "apk-root",
+    pattern: "apk",
+    defaults: new { controller = "Apk", action = "Index" });
+
+app.MapControllerRoute(
+    name: "apk-latest",
+    pattern: "apk/latest",
+    defaults: new { controller = "Apk", action = "DownloadLatest" });
+
+app.MapControllerRoute(
+    name: "apk-latest-apk",
+    pattern: "apk/latest.apk",
+    defaults: new { controller = "Apk", action = "DownloadLatest" });
+
+app.MapControllerRoute(
+    name: "apk-direct",
+    pattern: "apk/direct/{fileName}",
+    defaults: new { controller = "Apk", action = "DownloadByFileName" });
+
+app.MapControllerRoute(
+    name: "apk-qr",
+    pattern: "apk/qr.png",
+    defaults: new { controller = "Apk", action = "QrPng" });
 
 app.MapControllerRoute(
     name: "default",

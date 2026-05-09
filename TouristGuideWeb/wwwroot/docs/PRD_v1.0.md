@@ -1414,7 +1414,7 @@ flowchart TB
         OSM["🗺️ OpenStreetMap\nTile Server"]
         CDN["📦 CDN\n(Bootstrap, jQuery,\nLeaflet, etc.)"]
         EdgeTTS["🔊 Edge-TTS\n(Text-to-Speech)"]
-        Ollama["🤖 Ollama\n(AI Translation)"]
+        Gemini["🤖 Gemini\n(AI Translation)"]
     end
 
     Browser -->|"HTTP Cookie Auth"| MVC
@@ -1428,10 +1428,10 @@ flowchart TB
     Services -->|"HTTP REST\n(JSON)"| API
     API --> Controllers
     Controllers --> EFCore
-    EFCore -->|"SQLite"| TourGuideDB
+    EFCore -->|"PostgreSQL"| TourGuideDB
     API --> Background
     Background -->|"Generate audio"| EdgeTTS
-    Background -->|"Translate text"| Ollama
+    Background -->|"Translate text"| Gemini
 ```
 
 ---

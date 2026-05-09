@@ -12,6 +12,7 @@ public class Location
 
     [StringLength(1000, ErrorMessage = "Description must be at most 1000 characters.")]
     public string Description { get; set; } = string.Empty;
+    public string AudioDescription { get; set; } = string.Empty;
 
     public string AudioUrl { get; set; } = string.Empty;
 
@@ -31,4 +32,6 @@ public class Location
     
     // Multi-tenant owner tracking
     public string? OwnerEmail { get; set; }
+
+    public int Priority { get; set; } = 0;
 }

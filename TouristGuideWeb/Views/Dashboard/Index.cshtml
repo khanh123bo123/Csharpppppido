@@ -1,5 +1,6 @@
 @model TouristGuideWeb.Models.DashboardViewModel
 @using System.Text.Json
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 
 @{
     ViewData["Title"] = "Dashboard";
@@ -46,9 +47,9 @@
     </div>
     <div class="chevron-wrapper">
         <div class="chevron-card grad-green">
-            <div class="chev-title">KHÁCH THAM QUAN</div>
-            <div class="chev-value">—</div>
-            <div class="chev-desc">Chưa có dữ liệu<br/>theo dõi.</div>
+            <div class="chev-title">KHÁCH ĐANG ONLINE</div>
+            <div class="chev-value" id="onlineUsersCount">0</div>
+            <div class="chev-desc"><span id="onlineDevicesCount">0</span> thiết bị<br/>đang hoạt động.</div>
         </div>
     </div>
     <div class="chevron-wrapper">
@@ -146,11 +147,43 @@
                     <div class="action-desc">Lượt lý thuyết minh tự động.</div>
                 </a>
             </div>
+            <div class="col-md-6">
+                <a asp-controller="Apk" asp-action="Index" class="action-card" style="background: linear-gradient(135deg, #1D4ED8, #0EA5E9); height: 140px;">
+                    <i class="fa-solid fa-qrcode icon-top-right"></i>
+                    <div class="action-title">QR tải ứng dụng</div>
+                    <div class="action-desc">Quét QR để tải APK mới nhất.</div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card-premium" style="height: 320px;">
+            <div class="card-body h-100 d-flex flex-column">
+                <h6 class="fw-bold mb-3 text-dark-blue">Audio Nghe Nhiều Nhất</h6>
+                <div style="flex-grow: 1; position: relative;">
+                    <canvas id="topAudiosChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card-premium" style="height: 320px;">
+            <div class="card-body h-100 d-flex flex-column">
+                <h6 class="fw-bold mb-3 text-dark-blue">Thời Gian Khách Dùng Nhiều Nhất (Theo giờ)</h6>
+                <div style="flex-grow: 1; position: relative;">
+                    <canvas id="playsByHourChart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
         <script>
             const labels = @Html.Raw(labelsJson);
             const data = @Html.Raw(valuesJson);
@@ -200,5 +233,92 @@
                     });
                 }
             }
+            
+            // SignalR Setup for Online Users
+            const apiBaseUrl = "@Configuration["ApiSettings:BaseUrl"]".replace(/\/$/, "");
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl(apiBaseUrl + "/apphub?source=web")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on("UpdateOnlineUsers", function (stats) {
+                document.getElementById("onlineUsersCount").innerText = stats.totalUniqueUsers;
+                document.getElementById("onlineDevicesCount").innerText = stats.totalConnections;
+            });
+
+            connection.start().then(function () {
+                // Ask for initial stats
+                connection.invoke("GetOnlineUsers").catch(function (err) {
+                    return console.error(err.toString());
+                });
+            }).catch(function (err) {
+                return console.error(err.toString());
+            });
+
+            // Fetch Dashboard Statistics
+            fetch(apiBaseUrl + "/api/Statistics/dashboard")
+                .then(res => res.json())
+                .then(stats => {
+                    // Top Audios Chart
+                    const topAudiosCtx = document.getElementById('topAudiosChart');
+                    if (topAudiosCtx && stats.topAudios.length > 0) {
+                        const audioLabels = stats.topAudios.map(a => {
+                            let name = a.locationName.length > 20 ? a.locationName.substring(0, 20) + '...' : a.locationName;
+                            return name + ' (' + a.languageCode + ')';
+                        });
+                        const audioData = stats.topAudios.map(a => a.playCount);
+
+                        new Chart(topAudiosCtx, {
+                            type: 'bar',
+                            data: {
+                                labels: audioLabels,
+                                datasets: [{
+                                    label: 'Lượt nghe',
+                                    data: audioData,
+                                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                                    borderRadius: 6
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { display: false } },
+                                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                            }
+                        });
+                    } else if (topAudiosCtx) {
+                         topAudiosCtx.parentElement.innerHTML = `<div style="height:100%; display:flex; align-items:center; justify-content:center; color:#adb5bd; flex-direction:column; gap:8px;"><i class="fa-solid fa-chart-bar" style="font-size:2rem; opacity:0.4;"></i><span style="font-size:0.9rem;">Chưa có dữ liệu thống kê</span></div>`;
+                    }
+
+                    // Plays By Hour Chart
+                    const hoursCtx = document.getElementById('playsByHourChart');
+                    if (hoursCtx && stats.playsByHour.some(v => v > 0)) {
+                        const hourLabels = Array.from({length: 24}, (_, i) => i + ':00');
+                        
+                        new Chart(hoursCtx, {
+                            type: 'line',
+                            data: {
+                                labels: hourLabels,
+                                datasets: [{
+                                    label: 'Lượt nghe',
+                                    data: stats.playsByHour,
+                                    borderColor: 'rgba(16, 185, 129, 1)',
+                                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                                    fill: true,
+                                    tension: 0.4
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: { legend: { display: false } },
+                                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                            }
+                        });
+                    } else if (hoursCtx) {
+                         hoursCtx.parentElement.innerHTML = `<div style="height:100%; display:flex; align-items:center; justify-content:center; color:#adb5bd; flex-direction:column; gap:8px;"><i class="fa-solid fa-chart-line" style="font-size:2rem; opacity:0.4;"></i><span style="font-size:0.9rem;">Chưa có dữ liệu thống kê</span></div>`;
+                    }
+                })
+                .catch(err => console.error("Error fetching statistics:", err));
         </script>
 }

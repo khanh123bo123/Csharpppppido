@@ -10,6 +10,65 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/TouristGuideWeb.styles.css" asp-append-version="true" />
+    <style>
+        html, body { height: 100%; margin: 0; font-family: 'Inter', sans-serif; background-color: #FDFBF7; color: #333; }
+        h1, h2, h3, h4, h5, h6, .playfair { font-family: 'Playfair Display', serif; }
+        .wrapper { display: flex; width: 100%; min-height: 100vh; }
+        .sidebar { width: 250px; background: #fff; color: #333; border-right: 1px solid #EAE3D9; transition: all .3s; display: flex; flex-direction: column; }
+        .sidebar .sidebar-header { padding: 24px 20px; text-align: center; font-size: 1.6rem; font-weight: 700; font-family: 'Playfair Display', serif; letter-spacing: .5px; border-bottom: 1px solid #EAE3D9; }
+        .sidebar .sidebar-header a { color: #2C4C3B; text-decoration: none; display: flex; flex-direction: column; align-items: center; }
+        .sidebar .sidebar-header .icon-logo { background: #B84A39; color: #fff; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 16px; margin-bottom: 10px; font-size: 1.2rem; }
+        .sidebar ul.components { padding: 15px 0; flex-grow: 1; overflow-y: auto; }
+        .sidebar ul li a { padding: 14px 20px; margin: 6px 16px; border-radius: 8px; font-size: 1.05rem; display: block; color: #555; font-weight: 500; text-decoration: none; transition: all .3s ease; }
+        .sidebar ul li a i { margin-right: 14px; width: 24px; font-size: 1.15rem; text-align: center; }
+        .sidebar ul li a:hover, .sidebar ul li.active > a { color: #fff; background: #B84A39; box-shadow: 0 4px 10px rgba(184,74,57,.25); }
+        .sidebar-footer { padding: 20px; padding-bottom: 30px; border-top: 1px solid #EAE3D9; background: #fff; margin-top: auto; }
+        .sidebar-footer .user-info { display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-footer .user-details { display: flex; flex-direction: column; }
+        .sidebar-footer .user-role { font-size: 1.1rem; font-weight: 700; color: #2C4C3B; }
+        .sidebar-footer .user-label { font-size: .8rem; text-transform: uppercase; letter-spacing: 1px; color: #888; }
+        .btn-logout { color: #B84A39; background: rgba(184,74,57,.1); border: none; border-radius: 10px; width: 44px; height: 44px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: all .3s ease; }
+        .btn-logout:hover { background: #B84A39; color: #fff; }
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+        .content-body { padding: 25px; animation: fadeInSlideUp .6s ease-out forwards; }
+        .card-premium { border: 1px solid #EAE3D9; border-radius: 16px; box-shadow: 0 4px 12px rgba(44,76,59,.03); transition: transform .3s cubic-bezier(.25,.8,.25,1), box-shadow .3s cubic-bezier(.25,.8,.25,1); background: #fff; margin-bottom: 25px; }
+        .card-premium:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(44,76,59,.06); }
+        .card-premium .card-header { background: transparent; border-bottom: 1px solid #EAE3D9; padding: 20px; font-weight: 600; }
+        .card-premium .card-body { padding: 24px; }
+        .stat-card { border-radius: 16px; padding: 24px; color: #fff; height: 100%; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,.05); }
+        .bg-orange { background: linear-gradient(135deg, #DD7A6B, #B84A39); }
+        .bg-blue { background: linear-gradient(135deg, #7FA78E, #4A7C59); }
+        .bg-green { background: linear-gradient(135deg, #E6CDAE, #C69A64); }
+        .bg-pink { background: linear-gradient(135deg, #B16B61, #8B3E36); }
+        .glass-card { background: rgba(255,255,255,.08); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,.15); border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,.2); color: #fff; transition: transform .4s ease, border-color .4s ease, box-shadow .4s ease; }
+        .glass-card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,.3); box-shadow: 0 25px 50px rgba(0,0,0,.3); }
+        .glass-badge { padding: 6px 12px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); border-radius: 20px; font-size: .85rem; color: rgba(255,255,255,.9); display: flex; align-items: center; gap: 6px; }
+        .chevron-container { display: flex; justify-content: space-between; align-items: stretch; height: 140px; margin-bottom: 30px; }
+        .chevron-wrapper { flex: 1; position: relative; filter: drop-shadow(0 10px 10px rgba(0,0,0,.1)); }
+        .chevron-wrapper:nth-child(2), .chevron-wrapper:nth-child(3), .chevron-wrapper:nth-child(4) { margin-left: -25px; }
+        .chevron-card { height: 100%; color: #fff; padding: 20px 20px 20px 45px; display: flex; flex-direction: column; justify-content: center; clip-path: polygon(0% 0%, 93% 0%, 100% 50%, 93% 100%, 0% 100%, 7% 50%); transition: transform .3s; }
+        .chevron-card:hover { transform: translateY(-5px); }
+        .chevron-wrapper:first-child .chevron-card { padding-left: 20px; clip-path: polygon(0% 0%, 93% 0%, 100% 50%, 93% 100%, 0% 100%); border-top-left-radius: 16px; border-bottom-left-radius: 16px; }
+        .chevron-wrapper:last-child .chevron-card { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 7% 50%); border-top-right-radius: 16px; border-bottom-right-radius: 16px; }
+        .grad-orange { background: linear-gradient(135deg, #DD7A6B, #B84A39); }
+        .grad-blue { background: linear-gradient(135deg, #7FA78E, #4A7C59); }
+        .grad-green { background: linear-gradient(135deg, #E6CDAE, #C69A64); }
+        .grad-purple { background: linear-gradient(135deg, #7C3AED, #4F46E5); }
+        .action-card { position: relative; display: block; border-radius: 18px; padding: 20px; color: #fff; text-decoration: none; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,.12); min-height: 140px; }
+        .action-card:hover { color: #fff; transform: translateY(-2px); }
+        .action-title { font-size: 1.05rem; font-weight: 700; margin-top: 34px; }
+        .action-desc { font-size: .9rem; opacity: .92; }
+        .icon-top-right { position: absolute; right: 16px; top: 16px; font-size: 1.8rem; opacity: .25; }
+        .text-dark-blue { color: #2C4C3B; }
+        @@keyframes fadeInSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @@media (max-width: 768px) {
+            .sidebar { margin-left: -250px; }
+            .sidebar.active { margin-left: 0; position: absolute; z-index: 1000; height: 100%; }
+            .content-body { padding: 16px; }
+            .chevron-container { height: auto; flex-direction: column; gap: 12px; }
+            .chevron-wrapper { margin-left: 0 !important; }
+        }
+    </style>
 </head>
 <body>
     @if (ViewData["IsLandingPage"] as bool? == true)
@@ -69,6 +128,11 @@
                         <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Users" ? "active" : "")">
                             <a asp-area="" asp-controller="Users" asp-action="Index">
                                 <i class="fa-solid fa-user"></i> Tài khoản
+                            </a>
+                        </li>
+                        <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Apk" ? "active" : "")">
+                            <a asp-area="" asp-controller="Apk" asp-action="Index">
+                                <i class="fa-solid fa-qrcode"></i> Tải APK
                             </a>
                         </li>
                         <li class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "Auth" && ViewContext.RouteData.Values["Action"]?.ToString() == "ChangePassword" ? "active" : "")">

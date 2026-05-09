@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tourguide-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tourguide}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-tourguide}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  tourguide-api:
+    build:
+      context: .
+      dockerfile: TourGuideApi/Dockerfile
+    container_name: tourguide-api
+    ports:
+      - "${API_PORT:-8080}:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      PORT: 8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-tourguide};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      Jwt__Key: ${JWT_KEY:-replace-this-with-a-long-secret-key-min-32-chars}
+      Jwt__Issuer: ${JWT_ISSUER:-TourGuideApi}
+      Jwt__Audience: ${JWT_AUDIENCE:-TourGuideApp}
+      Gemini__ApiKey: ${GEMINI_API_KEY:-}
+      AllowedOriginsCsv: ${ALLOWED_ORIGINS_CSV:-http://localhost:3000,http://localhost:3001}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

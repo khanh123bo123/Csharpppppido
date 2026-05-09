@@ -1,6 +1,6 @@
 using System.Globalization;
-using TouristGuideApp.Models;
 using TouristGuideApp.Services;
+using SupportedLanguages = TouristGuideApp.Services.SupportedLanguages;
 
 namespace TouristGuideApp.Views;
 
@@ -9,14 +9,16 @@ public partial class SettingsPage : ContentPage
     private readonly IGeofenceService _geofenceService;
     private readonly IApiService _apiService;
     private readonly IDatabaseService _databaseService;
+    private readonly IAudioService _audioService;
     private bool _isInitializing;
 
-    public SettingsPage(IGeofenceService geofenceService, IApiService apiService, IDatabaseService databaseService)
+    public SettingsPage(IGeofenceService geofenceService, IApiService apiService, IDatabaseService databaseService, IAudioService audioService)
     {
         InitializeComponent();
         _geofenceService = geofenceService;
         _apiService = apiService;
         _databaseService = databaseService;
+        _audioService = audioService;
 
         var items = SupportedLanguages.AllLanguages
             .Where(code => SupportedLanguages.LanguageNames.ContainsKey(code))
@@ -63,11 +65,8 @@ public partial class SettingsPage : ContentPage
 
         AppPreferences.SetNarrationLanguageCode(match.Key);
         await _geofenceService.SetLanguageAsync(match.Key);
-        
-        // Cập nhật Culture của UI
         LocalizationResourceManager.Instance.SetCulture(new CultureInfo(match.Key));
 
-        // Re-sync POIs using selected language pack (store localized text offline for QR/TTS)
         _ = Task.Run(async () =>
         {
             await _apiService.SyncPOIsToLocalAsync(_databaseService, match.Key);
@@ -82,10 +81,38 @@ public partial class SettingsPage : ContentPage
 
     private async void OnClearHistoryClicked(object sender, EventArgs e)
     {
-        // Placeholder cho chức năng xóa lịch sử (reset HasBeenPlayed)
+        var files = _audioService.GetCachedAudioFiles();
+        if (files.Count == 0)
+        {
+            await DisplayAlert("Ch?a c? file", "Hi?n ch?a c? file MP3 offline n?o ?? xo?.", "OK");
+            return;
+        }
+
+        var selected = await DisplayActionSheet(
+            "Ch?n MP3 ?? xo?",
+            "Hu?",
+            null,
+            files.Select(Path.GetFileName).ToArray());
+
+        if (string.IsNullOrWhiteSpace(selected) || selected == "Hu?")
+        {
+            return;
+        }
+
+        var confirm = await DisplayAlert(
+            "X?c nh?n xo?",
+            $"B?n c? ch?c mu?n xo? file '{selected}' kh?i m?y kh?ng?",
+            "Xo?", "Hu?");
+
+        if (!confirm)
+        {
+            return;
+        }
+
+        var deleted = await _audioService.DeleteCachedAudioFilesAsync(new[] { selected });
         await DisplayAlert(
-            LocalizationResourceManager.Instance["Alert_ClearHistory_Title"],
-            LocalizationResourceManager.Instance["Alert_ClearHistory_Desc"],
+            "Th?nh c?ng",
+            deleted > 0 ? $"?? xo? {deleted} file MP3 offline." : "Kh?ng xo? ???c file ?? ch?n.",
             LocalizationResourceManager.Instance["Alert_OK"]);
     }
 }

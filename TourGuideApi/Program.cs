@@ -5,29 +5,27 @@ using System.Text;
 using TourGuideApi.Data;
 using TourGuideApi.Services;
 using Microsoft.OpenApi.Models;
+using TourGuideApi.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Railway provides PORT. Bind to it when present.
+// PaaS/container platforms may provide PORT. Bind to it when present.
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port) && int.TryParse(port, out var portNumber))
 {
     builder.WebHost.UseUrls($"http://0.0.0.0:{portNumber}");
 }
 
-// When running behind a reverse proxy (Railway), respect forwarded headers.
+// When running behind a reverse proxy (Azure App Service or similar), respect forwarded headers.
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.Configure<ForwardedHeadersOptions>(options =>
     {
         options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-        options.KnownNetworks.Clear();
+        options.KnownIPNetworks.Clear();
         options.KnownProxies.Clear();
     });
 }
-
-// Local (gitignored) overrides for machine-specific settings.
-builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -72,7 +70,11 @@ else
 }
 
 // Register Text-to-Speech Service (free, no paid cloud providers)
-builder.Services.AddScoped<ITextToSpeechService, EdgeTtsTextToSpeechService>();
+builder.Services.AddHttpClient("GoogleFreeTts", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+builder.Services.AddScoped<ITextToSpeechService, GoogleFreeTextToSpeechService>();
 
 // Sequential audio generation queue (avoids running edge-tts concurrently)
 builder.Services.AddSingleton<IAudioGenerationQueue, InMemoryAudioGenerationQueue>();
@@ -80,47 +82,32 @@ builder.Services.AddScoped<LocalizationAudioGenerator>();
 builder.Services.AddHostedService<AudioGenerationWorker>();
 
 // Translation service (Vietnamese -> 4 languages) for localization pack generation
-builder.Services.AddHttpClient("OllamaTranslation", client =>
+builder.Services.AddHttpClient("GoogleFreeTranslation", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(120);
 });
 
-builder.Services.AddHttpClient("GeminiTranslation", client =>
-{
-    client.Timeout = TimeSpan.FromSeconds(120);
-});
-
-// Translation provider selection:
-// - Preferred: set Translation:Provider = Gemini and provide Gemini:ApiKey
-// - Offline/dev: Translation:Provider = Ollama and provide Ollama:BaseUrl + Ollama:Model
-// - Disabled: Translation:Provider = Disabled
-var translationProvider = (builder.Configuration["Translation:Provider"] ?? string.Empty).Trim();
-var hasGeminiKey = !string.IsNullOrWhiteSpace(builder.Configuration["Gemini:ApiKey"]);
-var hasOllamaBaseUrl = !string.IsNullOrWhiteSpace(builder.Configuration["Ollama:BaseUrl"]);
-
-if (translationProvider.Equals("Gemini", StringComparison.OrdinalIgnoreCase) || (string.IsNullOrWhiteSpace(translationProvider) && hasGeminiKey))
-{
-    builder.Services.AddScoped<ILocalizationTranslationService, GeminiLocalizationTranslationService>();
-}
-else if (translationProvider.Equals("Ollama", StringComparison.OrdinalIgnoreCase) || (string.IsNullOrWhiteSpace(translationProvider) && hasOllamaBaseUrl))
-{
-    builder.Services.AddScoped<ILocalizationTranslationService, OllamaLocalizationTranslationService>();
-}
-else
-{
-    builder.Services.AddScoped<ILocalizationTranslationService, DisabledLocalizationTranslationService>();
-}
+builder.Services.AddScoped<ILocalizationTranslationService, GoogleFreeLocalizationTranslationService>();
 builder.Services.AddScoped<LocalizationPackGenerator>();
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 // Configure CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAdminWeb", policy =>
     {
-        var origins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() 
-            ?? new[] { "https://localhost:7001", "http://localhost:3000" };
+        var csvOrigins = (builder.Configuration["AllowedOriginsCsv"] ?? string.Empty).Trim();
+        var origins = !string.IsNullOrWhiteSpace(csvOrigins)
+            ? csvOrigins
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(origin => !string.IsNullOrWhiteSpace(origin))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray()
+            : (builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
+                ?? new[] { "https://YOUR-WEB-APP-NAME.azurewebsites.net" });
+
         policy.WithOrigins(origins)
               .AllowAnyMethod()
               .AllowAnyHeader()
@@ -138,20 +125,12 @@ var app = builder.Build();
 
 app.UseForwardedHeaders();
 
-var ollamaBaseUrl = app.Configuration["Ollama:BaseUrl"];
-var ollamaModel = app.Configuration["Ollama:Model"];
-app.Logger.LogInformation(
-    "Ollama translation configured: {Configured}. BaseUrl: {BaseUrl}. Model: {Model}",
-    !string.IsNullOrWhiteSpace(ollamaBaseUrl) && !string.IsNullOrWhiteSpace(ollamaModel),
-    ollamaBaseUrl,
-    ollamaModel);
-
-// Initialize database
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    dbContext.Database.Migrate();
-}
+// Avoid long startup times on Azure App Service in general, but since we are deploying
+// updates frequently, we'll force migrations to run on startup for convenience.
+// NOTE: Commented out for production - migrations should be run separately or handled gracefully
+// using var scope = app.Services.CreateScope();
+// var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+// dbContext.Database.Migrate();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -163,7 +142,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// app.UseHttpsRedirection(); // Commented out to allow Android emulator to use HTTP on port 5214
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors("AllowAdminWeb");
 
@@ -171,5 +150,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<AppHub>("/apphub");
+
+// Root endpoint is handled by HealthController
 
 app.Run();

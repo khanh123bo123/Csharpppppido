@@ -17,7 +17,6 @@ namespace TourGuideApi.Services;
 /// Translates from Vietnamese (vi-VN) into multiple target languages.
 ///
 /// Config:
-/// - Translation:Provider = Gemini
 /// - Gemini:ApiKey
 /// - Gemini:Model (e.g., gemini-1.5-flash)
 /// - Gemini:BaseUrl (optional, default https://generativelanguage.googleapis.com)
@@ -72,7 +71,7 @@ public sealed class GeminiLocalizationTranslationService : ILocalizationTranslat
         if (string.IsNullOrWhiteSpace(apiKey))
         {
             throw new LocalizationTranslationNotConfiguredException(
-                "Chưa cấu hình Gemini API key. Hãy đặt Gemini:ApiKey (khuyến nghị trong TourGuideApi/appsettings.Local.json hoặc env var Gemini__ApiKey) để bật auto-translate.");
+                "Chưa cấu hình Gemini API key. Hãy đặt Gemini:ApiKey (khuyến nghị trong TourGuideApi/appsettings.json hoặc env var Gemini__ApiKey) để bật auto-translate.");
         }
 
         var baseUrl = (_configuration["Gemini:BaseUrl"] ?? "https://generativelanguage.googleapis.com").Trim();
@@ -84,9 +83,18 @@ public sealed class GeminiLocalizationTranslationService : ILocalizationTranslat
         var model = (_configuration["Gemini:Model"] ?? string.Empty).Trim();
         if (string.IsNullOrWhiteSpace(model))
         {
-            // Keep a sane default; users can override in appsettings.Local.json.
+            // Keep a sane default; users can override in appsettings.json or environment variables.
             model = "gemini-1.5-flash";
         }
+
+        var protectedTerms = _configuration
+            .GetSection("Gemini:ProtectedTerms")
+            .Get<string[]>()
+            ?.Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray()
+            ?? Array.Empty<string>();
 
         using var client = _httpClientFactory.CreateClient("GeminiTranslation");
 
@@ -102,6 +110,7 @@ public sealed class GeminiLocalizationTranslationService : ILocalizationTranslat
                 vietnameseName,
                 vietnameseDescription,
                 lang,
+                protectedTerms,
                 cancellationToken);
         }
 
@@ -116,6 +125,7 @@ public sealed class GeminiLocalizationTranslationService : ILocalizationTranslat
         string vietnameseName,
         string vietnameseDescription,
         string languageCode,
+        IReadOnlyCollection<string> protectedTerms,
         CancellationToken cancellationToken)
     {
         try
@@ -128,6 +138,7 @@ public sealed class GeminiLocalizationTranslationService : ILocalizationTranslat
                 vietnameseName,
                 vietnameseDescription,
                 languageCode,
+                protectedTerms,
                 isRetry: false,
                 cancellationToken);
         }
@@ -145,6 +156,7 @@ public sealed class GeminiLocalizationTranslationService : ILocalizationTranslat
                 vietnameseName,
                 vietnameseDescription,
                 languageCode,
+                protectedTerms,
                 isRetry: true,
                 cancellationToken);
         }
@@ -158,6 +170,7 @@ public sealed class GeminiLocalizationTranslationService : ILocalizationTranslat
         string vietnameseName,
         string vietnameseDescription,
         string languageCode,
+        IReadOnlyCollection<string> protectedTerms,
         bool isRetry,
         CancellationToken cancellationToken)
     {
@@ -165,8 +178,8 @@ public sealed class GeminiLocalizationTranslationService : ILocalizationTranslat
         // We keep this configurable via Gemini:BaseUrl + Gemini:Model.
         var endpoint = BuildEndpoint(baseUrl, model, apiKey);
 
-        var systemPrompt = BuildSystemPrompt(languageCode);
-        var userPrompt = BuildUserPromptSingle(vietnameseName, vietnameseDescription, languageCode, isRetry);
+        var systemPrompt = BuildSystemPrompt(languageCode, protectedTerms);
+        var userPrompt = BuildUserPromptSingle(vietnameseName, vietnameseDescription, languageCode, protectedTerms, isRetry);
 
         // Avoid relying on newer optional fields; provide one combined prompt.
         // Gemini can still follow JSON-only instructions, but we keep strict parsing + retry.
@@ -280,16 +293,25 @@ public sealed class GeminiLocalizationTranslationService : ILocalizationTranslat
         return builder.Uri;
     }
 
-    private static string BuildSystemPrompt(string languageCode)
+    private static string BuildSystemPrompt(string languageCode, IReadOnlyCollection<string> protectedTerms)
     {
         var sb = new StringBuilder();
         sb.AppendLine("Bạn là dịch giả chuyên nghiệp cho nội dung thuyết minh du lịch Việt Nam.");
-        sb.AppendLine("Ưu tiên dịch SÁT NGHĨA, trung thành với tiếng Việt: không rút gọn, không phóng đại, không thêm thông tin mới.");
-        sb.AppendLine("Giữ sắc thái/ngữ nghĩa gốc, càng gần ý tiếng Việt càng tốt.");
+        sb.AppendLine("Mục tiêu: dịch sát nghĩa, đúng ngữ cảnh, tự nhiên khi đọc TTS, tuyệt đối không dịch tầm bậy.");
+        sb.AppendLine("Không thêm thông tin mới, không rút gọn, không phóng đại, không đổi giọng văn.");
         sb.AppendLine("Giữ nguyên mọi con số/đơn vị/ký hiệu (ví dụ: 10m, 2km, 50.000đ).");
-        sb.AppendLine("Giữ tên riêng/địa danh/thương hiệu/món ăn theo tiếng Việt nếu phù hợp; nếu có bản dịch phổ biến (ví dụ Ho Chi Minh City) thì có thể dùng.");
-        sb.AppendLine("Ưu tiên từ vựng CHUẨN MỰC, giàu sắc thái (hơi trang trọng) thay vì từ đơn giản; tránh tiếng lóng/văn nói.");
-        sb.AppendLine("Văn phong tự nhiên, lịch sự, dễ nghe khi đọc TTS.");
+        sb.AppendLine("Không dịch tên quán/nhãn hiệu/tên riêng/tên người/tên món ăn/tên địa danh nếu đó là tên gọi thực tế hoặc viết hoa như một danh xưng riêng.");
+        sb.AppendLine("Nếu một địa danh có bản dịch phổ biến và chuẩn mực (ví dụ Ho Chi Minh City) thì chỉ dùng khi thực sự cần, còn lại giữ nguyên.");
+        sb.AppendLine("Ưu tiên dịch sát nghĩa, giữ cấu trúc câu gốc khi có thể, tránh diễn giải quá đà.");
+        sb.AppendLine("Văn phong tự nhiên, lịch sự, rõ ràng, dễ nghe khi đọc TTS.");
+        if (protectedTerms.Count > 0)
+        {
+            sb.AppendLine("Các cụm từ khóa bắt buộc GIỮ NGUYÊN (không dịch):");
+            foreach (var term in protectedTerms)
+            {
+                sb.AppendLine($"- {term}");
+            }
+        }
         sb.AppendLine("Luôn trả về DUY NHẤT JSON hợp lệ (không markdown, không giải thích, không ký tự thừa).");
         sb.AppendLine($"Ngôn ngữ đầu ra: {DescribeTargetLanguage(languageCode)}.");
         return sb.ToString();
@@ -299,6 +321,7 @@ public sealed class GeminiLocalizationTranslationService : ILocalizationTranslat
         string vietnameseName,
         string vietnameseDescription,
         string targetLanguageCode,
+        IReadOnlyCollection<string> protectedTerms,
         bool isRetry)
     {
         var sb = new StringBuilder();
@@ -307,9 +330,18 @@ public sealed class GeminiLocalizationTranslationService : ILocalizationTranslat
         sb.AppendLine("- TRẢ VỀ DUY NHẤT JSON (không markdown, không giải thích, không dấu ```).");
         sb.AppendLine("- JSON schema đúng y hệt: {\"localizedName\":\"...\",\"localizedDescription\":\"...\"}.");
         sb.AppendLine("- localizedName/localizedDescription KHÔNG được rỗng.");
-        sb.AppendLine("- Không thêm thông tin mới, không bịa địa chỉ/giá/khuyến mãi.");
-        sb.AppendLine("- Không đổi nghĩa, không tóm tắt.");
-        sb.AppendLine("- Nếu không chắc cách dịch tên riêng/món ăn, giữ nguyên tiếng Việt để tránh dịch sai.");
+        sb.AppendLine("- Dịch sát nghĩa từng ý, không sáng tác nội dung mới.");
+        sb.AppendLine("- Không thêm địa chỉ/giá/khuyến mãi nếu không có trong tiếng Việt gốc.");
+        sb.AppendLine("- Giữ nguyên tên quán, tên người, tên món ăn, tên địa danh nếu đó là tên riêng hoặc viết hoa như danh xưng riêng.");
+        sb.AppendLine("- Nếu một từ/cụm từ là tên riêng mà có nguy cơ dịch sai, hãy giữ nguyên tiếng Việt.");
+        if (protectedTerms.Count > 0)
+        {
+            sb.AppendLine("- Bắt buộc giữ nguyên các từ khóa sau (không dịch):");
+            foreach (var term in protectedTerms)
+            {
+                sb.AppendLine($"  - {term}");
+            }
+        }
 
         if (isRetry)
         {
@@ -359,6 +391,16 @@ public sealed class GeminiLocalizationTranslationService : ILocalizationTranslat
             && candidates.GetArrayLength() > 0)
         {
             var first = candidates[0];
+            
+            if (first.TryGetProperty("finishReason", out var finishReason) && finishReason.ValueKind == JsonValueKind.String)
+            {
+                var reason = finishReason.GetString();
+                if (reason == "SAFETY" || reason == "RECITATION" || reason == "OTHER")
+                {
+                    throw new InvalidOperationException($"Bị Gemini từ chối với lý do: {reason}. Có thể do nội dung vi phạm chính sách hoặc từ khóa nhạy cảm.");
+                }
+            }
+
             if (first.TryGetProperty("content", out var content)
                 && content.ValueKind == JsonValueKind.Object
                 && content.TryGetProperty("parts", out var parts)
@@ -375,7 +417,14 @@ public sealed class GeminiLocalizationTranslationService : ILocalizationTranslat
             }
         }
 
-        // Some errors still return JSON, but without candidates.
+        // Check for top-level promptFeedback block
+        if (doc.RootElement.TryGetProperty("promptFeedback", out var promptFeedback)
+            && promptFeedback.ValueKind == JsonValueKind.Object
+            && promptFeedback.TryGetProperty("blockReason", out var blockReason))
+        {
+            throw new InvalidOperationException($"Bị Gemini từ chối ở cấp độ Prompt. Lý do: {blockReason.GetString()}");
+        }
+
         return string.Empty;
     }
 

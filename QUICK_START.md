@@ -46,14 +46,14 @@ Edit `appsettings.json`:
     "TimeoutSeconds": 90,
     "SpeechRate": 0.25
   },
-  "Ollama": {
-    "BaseUrl": "http://localhost:11434",
-    "Model": "qwen2.5:14b"
+  "Gemini": {
+    "ApiKey": "",
+    "Model": "gemini-1.5-flash"
   }
 }
 ```
 
-**Note**: Leave API keys empty for testing (will use TIER 4 fallback)
+**Note**: `Gemini:ApiKey` is required for auto-translation features. If it is empty, translation endpoints will fail.
 
 ### Step 3: Create Database Migration
 
@@ -264,7 +264,7 @@ Csharpppppido/
 │   ├── Services/
 │   │   ├── ITextToSpeechService.cs ✅ UPDATED
 │   │   ├── EdgeTtsTextToSpeechService.cs ✅ NEW
-│   │   └── OllamaLocalizationTranslationService.cs ✅ NEW
+│   │   └── GeminiLocalizationTranslationService.cs ✅ NEW
 │   ├── Data/
 │   │   └── AppDbContext.cs ✅ UPDATED
 │   ├── tourguide.db ⚙️ (Created by EF Core)

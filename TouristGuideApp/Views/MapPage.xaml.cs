@@ -160,7 +160,7 @@ public partial class MapPage : ContentPage
     {
         if (_selectedPoi != null)
         {
-            await Navigation.PushAsync(new POIDetailsPage(_geofenceService, _apiService, _databaseService) { POIItem = _selectedPoi });
+            await Navigation.PushAsync(new POIDetailsPage(_geofenceService, _apiService, _databaseService, new AudioService(_apiService)) { POIItem = _selectedPoi });
         }
     }
 

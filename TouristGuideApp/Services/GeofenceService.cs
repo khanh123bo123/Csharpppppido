@@ -14,11 +14,12 @@ namespace TouristGuideApp.Services
     {
         Task InitAsync();
         Task CheckProximity(Microsoft.Maui.Devices.Sensors.Location userLocation);
-        Task PlaySpeechAsync(POI poi, bool ignoreCooldown = false, bool forceOfflineTts = false);
+        Task PlaySpeechAsync(POI poi, bool ignoreCooldown = false);
         List<POI> GetPOIs();
         POI? ActivePOI { get; }
         Task SetLanguageAsync(string languageCode);
         string CurrentLanguage { get; }
+        void ResetPlayHistory();
     }
 
     public class GeofenceService : IGeofenceService
@@ -55,9 +56,9 @@ namespace TouristGuideApp.Services
         public List<POI> GetPOIs() => _pois;
 
         /// <summary>
-        /// Play audio narration for a POI with 4-tier fallback system
+        /// Play audio narration for a POI using API/cached audio.
         /// </summary>
-        public async Task PlaySpeechAsync(POI poi, bool ignoreCooldown = false, bool forceOfflineTts = false)
+        public async Task PlaySpeechAsync(POI poi, bool ignoreCooldown = false)
         {
             double secondsSinceLastPlay = (DateTime.Now - poi.LastPlayedTime).TotalSeconds;
 
@@ -70,8 +71,7 @@ namespace TouristGuideApp.Services
 
                 await _audioService.EnqueueSpeechAsync(
                     textToPlay,
-                    serverLocationId: forceOfflineTts ? null : (poi.ServerLocationId > 0 ? poi.ServerLocationId : null),
-                    forceOfflineTts: forceOfflineTts,
+                    serverLocationId: poi.ServerLocationId > 0 ? poi.ServerLocationId : null,
                     onStarted: () => { poi.IsCurrentlyPlaying = true; },
                     onEnded: () => {
                         poi.IsCurrentlyPlaying = false;
@@ -99,8 +99,11 @@ namespace TouristGuideApp.Services
                     DistanceUnits.Kilometers) * 1000; // Convert to meters
             }
 
-            // 2. Sort by distance (nearest first)
-            _pois = _pois.OrderBy(p => p.DistanceToUser).ToList();
+            // 2. Sort by play history (unplayed first), then by rounded distance (1m precision), then by priority
+            _pois = _pois.OrderBy(p => p.HasBeenPlayed)
+                         .ThenBy(p => Math.Round(p.DistanceToUser))
+                         .ThenByDescending(p => p.Priority)
+                         .ToList();
 
             // 3. Find nearest POI within activation radius (30m default)
             ActivePOI = _pois.FirstOrDefault(p => p.DistanceToUser <= p.Radius);
@@ -110,6 +113,16 @@ namespace TouristGuideApp.Services
                 System.Diagnostics.Debug.WriteLine($"Nearby POI detected: {ActivePOI.Name} ({ActivePOI.DistanceToUser:F1}m away)");
                 await PlaySpeechAsync(ActivePOI, ignoreCooldown: false);
             }
+        }
+
+        public void ResetPlayHistory()
+        {
+            if (_pois == null) return;
+            foreach (var poi in _pois)
+            {
+                poi.HasBeenPlayed = false;
+            }
+            System.Diagnostics.Debug.WriteLine("Play history has been reset for all POIs.");
         }
     }
 }
