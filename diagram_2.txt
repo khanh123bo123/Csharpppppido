@@ -1,0 +1,47 @@
+sequenceDiagram
+    participant OS as Server OS
+    participant MAIN as main.py
+    participant CFG as config.py
+    participant DB as database.py
+    participant ADMIN as AdminService
+    participant LOC as LocalizationService
+    participant WARMUP as WarmupService
+
+    OS->>MAIN: uvicorn app.main:app --port 8000
+    activate MAIN
+    MAIN->>MAIN: lifespan() start
+
+    rect rgb(255, 230, 230)
+        Note over MAIN,CFG: Security Validation (non-dev only)
+        MAIN->>CFG: Check JWT_SECRET
+        MAIN->>CFG: Check REFRESH_TOKEN_SECRET
+        MAIN->>CFG: Check DEFAULT_SUPERADMIN credentials
+        Note over MAIN: Raise ValueError if defaults used in production
+    end
+
+    rect rgb(230, 255, 230)
+        Note over MAIN,DB: Database Connection
+        MAIN->>DB: connect_db()
+        DB->>DB: AsyncIOMotorClient(MONGODB_URI)
+        DB->>DB: client[MONGODB_DB_NAME]
+        DB-->>MAIN: MongoDB connected
+    end
+
+    rect rgb(230, 230, 255)
+        Note over MAIN,ADMIN: Seed Defaults
+        MAIN->>ADMIN: ensure_roles()
+        Note over ADMIN: Upsert 4 default roles:<br/>super_admin, admin,<br/>poi_owner, user
+        MAIN->>ADMIN: ensure_super_admin()
+        Note over ADMIN: Create admin@quan4.vn<br/>if not exists
+    end
+
+    rect rgb(255, 255, 230)
+        Note over MAIN,WARMUP: Ensure Indexes
+        MAIN->>LOC: ensure_indexes()
+        Note over LOC: Compound index:<br/>{poi_id:1, lang:1}
+        MAIN->>WARMUP: ensure_indexes()
+    end
+
+    MAIN->>MAIN: Mount 7 routers + /static
+    Note over MAIN: Server ready on port 8000
+    deactivate MAIN

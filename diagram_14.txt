@@ -1,0 +1,46 @@
+graph TB
+    START["User mo app"] --> SW_REG["Service Worker dang ky\\nWorkbox precache static assets"]
+    SW_REG --> SPLASH["SplashScreen hien\\nChon ngon ngu + cho GPS"]
+    SPLASH --> PRELOAD["preload()\\nIDB fallback + API fetch\\nSong song"]
+
+    PRELOAD --> IDB_READ["getOfflinePOIs(lang)\\nIndexedDB fallback chain:\\ntarget -> en -> vi"]
+    PRELOAD --> API_CALL["loadAllPOIs(true, lang)\\nGET /api/v1/poi/load-all"]
+    IDB_READ --> SHOW_CACHED["Hien data cached ngay lap tuc"]
+    API_CALL --> SAVE_IDB["savePOIs -> IndexedDB"]
+    API_CALL --> UPDATE_STORE["poiStore.set restaurants"]
+
+    SAVE_IDB --> MAIN_VIEW
+    UPDATE_STORE --> MAIN_VIEW["MainAppView render"]
+    SHOW_CACHED --> MAIN_VIEW
+
+    MAIN_VIEW --> MAP["MapContainer\\nMapLibre GL + PMTiles\\nOnline or Offline auto-switch"]
+    MAIN_VIEW --> MARKERS["ClusteredPOILayer\\nPOI markers + clusters"]
+    MAIN_VIEW --> GEOFENCE["useGeofence hook\\nGPS tracking bat dau"]
+
+    GEOFENCE --> GPS_LOOP["GPS Update moi 5s\\nLocationService throttle"]
+    GPS_LOOP --> CHECK["GeofenceEngine\\ncheckGeofences(pos)\\nturf.js distance calc"]
+    GPS_LOOP --> PREFETCH["_prefetchNearbyLocalizations\\nScan store + queue top 3 fallback POIs\\n500m radius, adaptive backoff"]
+
+    CHECK -->|"Vao zone POI"| DEBOUNCE["Debounce 3 giay\\npendingEntries"]
+    DEBOUNCE --> AUDIO_DECIDE["_processAudioDecision\\nSort by priority + distance"]
+    AUDIO_DECIDE --> NARRATE["NarrationEngine\\nqueueNarration(poi)"]
+
+    NARRATE --> TIER1{"Tier 1:\\nPre-gen audio?\\npoi.audio_url"}
+    TIER1 -->|"Co"| PLAY_URL["playAudioUrl()\\nSW CacheFirst\\n0ms latency"]
+    TIER1 -->|"Khong"| TIER2{"Tier 2:\\nOn-demand?"}
+    TIER2 -->|"On-demand available"| ON_DEMAND["requestOnDemandLocalization\\nTranslate + Edge-TTS\\n2-5s"]
+    TIER2 -->|"Offline/Error"| TIER3["Tier 3: playCloudTTS\\nRealtime fallback\\n3-8s"]
+    ON_DEMAND -->|"OK"| PLAY_URL
+    ON_DEMAND -->|"Error"| TIER3
+
+    PLAY_URL --> POPUP["Popup hien ten + anh POI"]
+    TIER3 --> POPUP
+    POPUP -->|"Audio xong"| CLOSE["onFinished -> dong Popup"]
+
+    CHECK -->|"Roi zone POI"| EXIT["handleExit\\nCooldown 5 phut"]
+
+    style START fill:#4CAF50,color:white
+    style PLAY_URL fill:#2196F3,color:white
+    style ON_DEMAND fill:#FF9800,color:white
+    style TIER3 fill:#f44336,color:white
+    style SPLASH fill:#9C27B0,color:white

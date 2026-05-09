@@ -1,0 +1,55 @@
+sequenceDiagram
+    participant Browser as User Browser
+    participant MAIN as main.jsx
+    participant APP as App.jsx
+    participant ROUTER as React Router
+    participant MAPAPP as MapApp.jsx
+    participant SPLASH as SplashScreen
+    participant LOC_SVC as LocationService
+    participant STORE as poiStore (Zustand)
+    participant API as api.js (Axios)
+    participant BACKEND as Backend API
+    participant IDB as IndexedDB (Quan4DB)
+    participant SW as Service Worker
+
+    Browser->>MAIN: Open https://localhost:5173
+    MAIN->>MAIN: Dev mode: unregister old SWs
+    MAIN->>SW: Register production SW (Workbox)
+    MAIN->>APP: Render App in BrowserRouter
+
+    APP->>ROUTER: Match pathname
+    Note over ROUTER: path="/*" catch-all<br/>renders MapApp
+
+    ROUTER->>MAPAPP: Render MapApp
+    MAPAPP->>SPLASH: Show SplashScreen
+    Note over SPLASH: Language selection UI<br/>(vi, en, zh, ja, ko, fr...)
+    SPLASH-->>MAPAPP: onLanguageSelect("en")
+
+    MAPAPP->>MAPAPP: handleSplashLanguageSelect("en")
+    MAPAPP->>MAPAPP: setLanguagePreference("en")
+    MAPAPP->>MAPAPP: NarrationEngine.setUserLanguage("en")
+
+    rect rgb(230, 245, 255)
+        Note over MAPAPP,BACKEND: preload() — Parallel Data Loading
+        par GPS + Offline + Online
+            MAPAPP->>LOC_SVC: waitForPosition()
+            Note over LOC_SVC: navigator.geolocation.getCurrentPosition()
+            LOC_SVC-->>MAPAPP: {lat, lng, accuracy}
+        and
+            MAPAPP->>IDB: getOfflinePOIs("en")
+            Note over IDB: Fallback chain:<br/>en -> vi
+            IDB-->>MAPAPP: cached POI[]
+            Note over MAPAPP: Show cached data immediately
+        and
+            MAPAPP->>API: loadAllPOIs(true, "en")
+            API->>BACKEND: GET /api/v1/poi/load-all?lang=en
+            BACKEND-->>API: POI[] with localizations
+            API-->>MAPAPP: fresh POI[]
+        end
+    end
+
+    MAPAPP->>STORE: set restaurants = fresh POI[]
+    MAPAPP->>IDB: savePOIs(freshPOIs, "en")
+    MAPAPP->>MAPAPP: splashVisible = false
+
+    Note over MAPAPP: Render MainAppView:<br/>MapContainer + ClusteredPOILayer<br/>+ useGeofence hook starts

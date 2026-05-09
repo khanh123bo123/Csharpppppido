@@ -41,16 +41,6 @@ public class DashboardController : Controller
         var authStats = await _authApiService.GetStatsAsync(cancellationToken);
         var totalUsers = authStats?.TotalUsers ?? 0;
 
-        var provinceStats = locations
-            .GroupBy(InferProvince)
-            .Select(group => new ProvinceStatItem
-            {
-                Province = group.Key,
-                Count = group.Count()
-            })
-            .OrderByDescending(item => item.Count)
-            .ThenBy(item => item.Province)
-            .ToList();
 
         var nearestToHanoi = locations
             .Select(location => new NearestLocationItem
@@ -80,7 +70,7 @@ public class DashboardController : Controller
             TotalTours = tours.Count,
             TotalAudios = totalListens,
             TotalUsers = totalUsers,
-            ProvinceStats = provinceStats,
+            ProvinceStats = new(),
             NearestToHanoi = nearestToHanoi,
             RecentRatings = recentRatings,
             OnlineDevicesCount = onlineCount
@@ -89,54 +79,6 @@ public class DashboardController : Controller
         return View(model);
     }
 
-    private static string InferProvince(Location location)
-    {
-        // 1. Prioritize Address for actual province
-        if (!string.IsNullOrWhiteSpace(location.Address))
-        {
-            var addr = location.Address.Trim();
-            if (addr.Contains(','))
-            {
-                var tokens = addr.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                var province = tokens[^1];
-
-                // Standardize common names
-                if (province.Contains("Hồ Chí Minh", StringComparison.OrdinalIgnoreCase) || province.Contains("HCM", StringComparison.OrdinalIgnoreCase))
-                    return "TP.HCM";
-                if (province.Contains("Hà Nội", StringComparison.OrdinalIgnoreCase))
-                    return "Hà Nội";
-
-                return province.Replace("Tỉnh", "").Replace("TP.", "").Trim();
-            }
-        }
-
-        // 2. Latitude/Longitude check (Approximate)
-        // Hanoi area
-        if (Math.Abs(location.Latitude - HanoiLatitude) <= 0.5 && Math.Abs(location.Longitude - HanoiLongitude) <= 0.5)
-        {
-            return "Hà Nội";
-        }
-        // HCM area (Approx)
-        if (Math.Abs(location.Latitude - 10.76) <= 0.3 && Math.Abs(location.Longitude - 106.66) <= 0.3)
-        {
-            return "TP.HCM";
-        }
-
-        // 3. Fallback to Category if available (more descriptive than "Khac")
-        if (!string.IsNullOrWhiteSpace(location.Category))
-        {
-            return location.Category;
-        }
-
-        // 4. Fallback to Name token if it looks like a city (e.g. "Quan 4 - HCM")
-        if (!string.IsNullOrWhiteSpace(location.Name) && location.Name.Contains('-'))
-        {
-            var tokens = location.Name.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            if (tokens.Length > 1) return tokens[^1];
-        }
-
-        return "Khác";
-    }
 
     private static double CalculateHaversineDistanceKm(double lat1, double lon1, double lat2, double lon2)
     {

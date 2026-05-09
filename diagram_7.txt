@@ -1,0 +1,49 @@
+sequenceDiagram
+    participant Client as Admin/Owner UI
+    participant API as admin/router.py
+    participant DEP as dependencies.py
+    participant SVC as AdminService
+    participant DB as MongoDB admin_users
+    participant JWT as PyJWT
+
+    rect rgb(230, 245, 255)
+        Note over Client,JWT: LOGIN FLOW
+        Client->>API: POST /admin/auth/login<br/>{email, password}
+        API->>SVC: authenticate(login)
+        SVC->>DB: find_one({email})
+        DB-->>SVC: user document
+        SVC->>SVC: verify_password(bcrypt)
+        SVC->>SVC: _get_user_permissions(user)
+        Note over SVC: Role perms from DB<br/>+ Extra user permissions
+        SVC->>JWT: create_access_token<br/>{sub, role, permissions[]}<br/>expire: 30 min
+        SVC->>JWT: create_refresh_token<br/>{sub, type: refresh}<br/>expire: 7 days
+        JWT-->>SVC: tokens
+        SVC-->>API: tokens
+        API->>Client: Set-Cookie: access_token<br/>HttpOnly, Secure, SameSite=Lax
+        API->>Client: Set-Cookie: refresh_token<br/>HttpOnly, Secure, SameSite=Lax
+        Note over Client: JS CANNOT read cookies<br/>XSS protection
+    end
+
+    rect rgb(255, 245, 230)
+        Note over Client,JWT: AUTHENTICATED REQUEST
+        Client->>API: GET /admin/me<br/>Cookies auto-sent
+        API->>DEP: get_current_admin(request)
+        DEP->>DEP: request.cookies.get access_token
+        DEP->>SVC: verify_admin_token(token)
+        SVC->>JWT: decode(token, JWT_SECRET)
+        JWT-->>SVC: {sub, role, permissions}
+        SVC-->>DEP: AdminUser
+        DEP-->>API: current_user
+        API-->>Client: {id, email, role, permissions}
+    end
+
+    rect rgb(230, 255, 230)
+        Note over Client,JWT: TOKEN REFRESH
+        Client->>API: POST /admin/auth/refresh<br/>Cookies auto-sent
+        API->>DEP: read refresh_token cookie
+        DEP->>SVC: verify_refresh_token(token)
+        SVC->>JWT: decode with REFRESH_TOKEN_SECRET
+        SVC->>DB: find user — still active?
+        SVC->>SVC: create new access_token
+        API->>Client: Set-Cookie: new access_token
+    end

@@ -1,0 +1,15 @@
+
+<html>
+<body>
+  <i data-lucide="non-existent-icon"></i>
+  <script src="https://cdn.jsdelivr.net/npm/lucide-static@0.321.0/lib/lucide.min.js"></script>
+  <script>
+    try {
+      lucide.createIcons();
+      console.log('Success');
+    } catch (e) {
+      console.error('Error:', e.message);
+    }
+  </script>
+</body>
+</html>

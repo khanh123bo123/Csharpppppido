@@ -1,0 +1,38 @@
+sequenceDiagram
+    participant User as Admin or Owner
+    participant FE as AIDescriptionButton
+    participant API as ai_advisor/router.py
+    participant SVC as AIAdvisorService
+    participant GEMINI as Google Gemini 2.0 Flash
+    participant DB as MongoDB ai_usage_logs
+
+    User->>FE: Click "Cai thien mo ta bang AI"
+    FE->>API: POST /ai/enhance-description<br/>{name, description, category,<br/>address, price_range}
+
+    API->>SVC: check_rate_limit(user_id, is_admin)
+    SVC->>DB: db.ai_usage_logs.find_one<br/>{user_id, date: today}
+
+    alt Admin user
+        Note over SVC: Unlimited usage
+        SVC->>SVC: _build_gemini_prompt()
+        Note over SVC: Rules:<br/>- Khong bia thong tin<br/>- Them tinh tu tich cuc<br/>- Tone than thien<br/>- 200-300 tu
+    else POI Owner — under limit
+        Note over SVC: Max 10 per day<br/>Current usage: 3/10 OK
+        SVC->>SVC: _build_gemini_prompt()
+        Note over SVC: Rules:<br/>- Khong bia thong tin<br/>- Them tinh tu tich cuc<br/>- Tone than thien<br/>- 200-300 tu
+    else POI Owner — limit exceeded
+        SVC-->>API: Rate limit exceeded
+        API-->>FE: 429 "Het luot hom nay"
+        Note over FE: Show error message
+    end
+
+    SVC->>GEMINI: model.generate_content(prompt)
+    GEMINI-->>SVC: Enhanced description text
+
+    SVC->>DB: increment_usage(user_id)
+    Note over DB: Upsert {user_id, date, count+1}
+
+    SVC-->>API: {enhanced, remaining: 7}
+    API-->>FE: {enhanced_description,<br/>remaining_uses_today: 7}
+
+    Note over FE: Show preview:<br/>Original vs Enhanced<br/>User chooses to accept or discard

@@ -1,0 +1,31 @@
+graph TB
+    ROOT["/ Browser URL"]
+
+    ROOT -->|"path=/*"| PUBLIC["MapApp\\n🗺️ Public Map Portal\\nKhong can auth"]
+    ROOT -->|"path=/admin/login"| LOGIN["LoginPage\\n🔐 GuestRoute\\nRedirect if logged in"]
+    ROOT -->|"path=/admin/*"| ADMIN["AdminLayout\\n🛠️ ProtectedRoute\\nroles: super_admin, admin"]
+    ROOT -->|"path=/owner/*"| OWNER["OwnerLayout\\n🏪 ProtectedRoute\\nroles: super_admin, admin, poi_owner"]
+    ROOT -->|"path=/register/owner"| REG["PublicOwnerRegisterPage\\n📝 GuestRoute\\nPublic registration"]
+
+    subgraph AdminRoutes["Admin Routes — Lazy Loaded"]
+        ADMIN --> DASH["DashboardPage\\nThong ke tong quan"]
+        ADMIN --> POIS["POIManagementPage\\nCRUD POI"]
+        ADMIN --> USERS["UsersManagementPage\\nCRUD Users"]
+        ADMIN --> ROLES["RoleManagementPage\\nCRUD Roles"]
+        ADMIN --> REGS["RegistrationsPage\\nDuyet don owner"]
+        ADMIN --> SUBS["SubmissionReviewPage\\nDuyet POI submissions"]
+        ADMIN --> AUDIT["AuditLogsPage\\nNhat ky hoat dong"]
+        ADMIN --> CHPW["ChangePasswordPage\\nDoi mat khau"]
+    end
+
+    subgraph OwnerRoutes["Owner Routes — Lazy Loaded"]
+        OWNER --> ODASH["OwnerDashboardPage\\nThong ke POI cua minh"]
+        OWNER --> OPOI["OwnerPOIPage\\nQuan ly POI so huu"]
+        OWNER --> OSUB["OwnerSubmissionsPage\\nXem submissions"]
+    end
+
+    style PUBLIC fill:#4CAF50,color:white
+    style ADMIN fill:#2196F3,color:white
+    style OWNER fill:#FF9800,color:white
+    style LOGIN fill:#9E9E9E,color:white
+    style REG fill:#9E9E9E,color:white

@@ -1,0 +1,40 @@
+graph TB
+    subgraph Static["permissions.py — Static Registry in Code"]
+        POI["poi domain\\npoi:read, poi:create,\\npoi:update, poi:delete,\\npoi:approve, poi:toggle"]
+        MENU["menu domain\\nmenu:read, menu:create,\\nmenu:update, menu:delete"]
+        USER["user domain\\nuser:read, user:create,\\nuser:update, user:delete"]
+        ROLE["role domain\\nrole:read, role:create,\\nrole:update, role:delete"]
+        ANALYTICS["analytics domain\\nanalytics:view,\\nanalytics:export,\\nanalytics:view_own"]
+        AUDIT["audit domain\\naudit:read, audit:manage"]
+        SYSTEM["system domain\\nsystem:config,\\nsystem:logs, system:backup"]
+        OWNER_P["owner domain\\nowner:register, owner:access,\\nowner:submit_poi,\\nowner:manage_own_poi"]
+        CONTENT["content domain\\ncontent:moderate,\\ncontent:publish"]
+    end
+
+    subgraph Dynamic["MongoDB roles collection — Dynamic"]
+        SA["super_admin\\nALL permissions\\npriority: 0\\nis_system: true"]
+        ADMIN_R["admin\\nPOI + Menu + User +\\nAnalytics + Audit + Content\\npriority: 1\\nis_system: true"]
+        OWNER_R["poi_owner\\npoi:read + all owner:* +\\nmenu read/create/update +\\nanalytics:view_own\\npriority: 10\\nis_system: true"]
+        USER_R["user\\npoi:read + menu:read +\\nowner:register\\npriority: 100\\nis_system: true"]
+    end
+
+    subgraph Enforcement["dependencies.py — Route Guards"]
+        DEP1["get_current_admin()\\nVerify JWT from cookie"]
+        DEP2["require_permission(perm)\\nCheck user.permissions\\nincludes perm"]
+        DEP3["require_role(roles...)\\nCheck user.role\\nin allowed list"]
+        DEP4["require_any_permission()\\nAt least one match"]
+    end
+
+    SA --- POI & MENU & USER & ROLE & ANALYTICS & AUDIT & SYSTEM & OWNER_P & CONTENT
+    ADMIN_R --- POI & MENU & USER & ANALYTICS & AUDIT & CONTENT
+    OWNER_R --- OWNER_P & POI & MENU & ANALYTICS
+    USER_R --- OWNER_P & POI & MENU
+
+    DEP1 --> DEP2
+    DEP1 --> DEP3
+    DEP1 --> DEP4
+
+    style SA fill:#f44336,color:white
+    style ADMIN_R fill:#2196F3,color:white
+    style OWNER_R fill:#FF9800,color:white
+    style USER_R fill:#4CAF50,color:white

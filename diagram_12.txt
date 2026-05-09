@@ -1,0 +1,43 @@
+sequenceDiagram
+    participant Owner as POI Owner
+    participant FE as Frontend
+    participant API as admin/router.py
+    participant SVC as AdminService
+    participant DB as MongoDB
+
+    rect rgb(230, 245, 255)
+        Note over Owner,DB: Phase 1 — Registration
+        Owner->>FE: Go to /register/owner
+        FE->>API: POST /admin/auth/register-owner<br/>{name, email, password, phone,<br/>business_name, business_address, id_card_number}
+        Note over API: Public endpoint — no auth needed
+        API->>SVC: hash_password(password)
+        API->>SVC: encrypt_pii(id_card_number)
+        Note over SVC: Fernet encryption: v1:encrypted_data
+        API->>DB: Insert admin_users<br/>{role: poi_owner, is_verified: false}
+        API->>DB: Insert owner_registrations<br/>{status: pending, user_id}
+        API-->>FE: Registration submitted
+    end
+
+    rect rgb(255, 245, 230)
+        Note over Owner,DB: Phase 2 — Admin Approval
+        Note right of DB: Admin sees registration<br/>in RegistrationsPage
+        API->>DB: PATCH /admin/registrations/{id}<br/>{status: approved}
+        DB->>DB: Update admin_users<br/>is_verified = true
+    end
+
+    rect rgb(230, 255, 230)
+        Note over Owner,DB: Phase 3 — Owner Login + Submit POI
+        Owner->>FE: Login at /admin/login
+        FE->>API: POST /admin/auth/login
+        API-->>FE: Set httpOnly cookies
+        FE->>FE: Redirect to /owner
+
+        Owner->>FE: Create new POI
+        FE->>API: POST /owner/submissions<br/>{name, description, category,<br/>address, location, images}
+        API->>DB: Insert poi_submissions<br/>{status: pending, owner_id}
+        API-->>FE: Submission created
+
+        Note right of DB: Admin reviews in<br/>SubmissionReviewPage
+        API->>DB: PATCH /admin/submissions/{id}<br/>{status: approved}
+        DB->>DB: Create actual POI<br/>from submission data
+    end

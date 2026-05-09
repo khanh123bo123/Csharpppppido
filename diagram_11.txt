@@ -1,0 +1,42 @@
+sequenceDiagram
+    participant UI as OfflineMapPanel
+    participant STORE as mapPackStore
+    participant SVC as MapPackService
+    participant SW as Service Worker
+    participant API as maps/router.py
+    participant FS as Server Filesystem
+
+    UI->>STORE: install()
+    STORE->>SVC: install({onProgress})
+
+    SVC->>API: GET /maps/offline-manifest?version=current
+    API->>FS: Read pack dir + compute SHA-256
+    FS-->>API: file list + checksums
+    API-->>SVC: manifest {version, assets}
+
+    Note over SVC: Create new Cache:<br/>map-pack-{version}
+
+    loop Each asset in manifest
+        SVC->>API: GET /maps/packs/v1/q4.pmtiles
+        Note over API: Range request support<br/>Content-Type: application/octet-stream
+        SVC->>API: GET /maps/styles/offline-style.json
+        SVC->>API: GET /maps/fonts/{font}/{range}.pbf
+        SVC->>API: GET /maps/styles/sprite.png
+        SVC->>SVC: Verify SHA-256 hash
+        SVC->>SW: cache.put(url, response)
+        SVC-->>STORE: onProgress({completed, total})
+    end
+
+    SVC->>SW: postMessage MAP_PACK_ACTIVATE<br/>{version, cacheName}
+
+    rect rgb(230, 245, 255)
+        Note over SW: Activate new pack
+        SW->>SW: _activeMapPackCacheName = cacheName
+        SW->>SW: _activeMapPackVersion = version
+        SW->>SW: Delete old map-pack-* caches
+    end
+
+    SVC-->>STORE: {success: true}
+    STORE->>UI: packState = INSTALLED
+
+    Note over UI: Map now renders from<br/>local PMTiles via pmtiles:// protocol

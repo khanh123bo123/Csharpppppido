@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRD Toàn Diện - Đồ án Thuyết minh Vĩnh Khánh (.NET)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 320px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            padding: 2rem;
+            z-index: 1000;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 2rem;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--primary);
+            letter-spacing: -0.5px;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.3rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .nav-link:hover {
+            background: var(--glass);
+            color: var(--text);
+        }
+
+        .nav-link.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Main Content */
+        main {
+            margin-left: 320px;
+            padding: 4rem 5rem;
+            max-width: 1300px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 100px;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            max-width: 800px;
+            margin-bottom: 3rem;
+        }
+
+        section {
+            margin-bottom: 7rem;
+            scroll-margin-top: 4rem;
+        }
+
+        .section-header {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Cards & Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+
+        /* Mermaid */
+        .mermaid-container {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            margin: 2rem 0;
+            overflow-x: auto;
+            text-align: center;
+        }
+
+        /* Lists */
+        ul.custom-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+        
+        ul.custom-list li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        ul.custom-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Thống Kê Nổi Bật */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 1.2rem;
+            margin-top: 1rem;
+            margin-bottom: 5rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: #ea580c;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #ea580c;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar { width: 80px; padding: 1.5rem 0.5rem; }
+            .logo span, .nav-link span { display: none; }
+            .nav-link { justify-content: center; }
+            main { margin-left: 80px; padding: 2rem; }
+            h1 { font-size: 2.5rem; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">
+            <i data-lucide="map-pin"></i>
+            <span>VINH KHANH PRD</span>
+        </div>
+        <nav>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="#tong-quan" class="nav-link active"><i data-lucide="home"></i><span>Tổng Quan Hệ Thống</span></a></li>
+                <li class="nav-item"><a href="#kien-truc" class="nav-link"><i data-lucide="layers"></i><span>1. Kiến Trúc Tổng Quan</span></a></li>
+                <li class="nav-item"><a href="#khoi-dong" class="nav-link"><i data-lucide="power"></i><span>2. Luồng Khởi Động App</span></a></li>
+                <li class="nav-item"><a href="#geofence" class="nav-link"><i data-lucide="target"></i><span>3. GPS & Geofence Engine</span></a></li>
+                <li class="nav-item"><a href="#poi-lifecycle" class="nav-link"><i data-lucide="map"></i><span>4. Quản lý POI & Database</span></a></li>
+                <li class="nav-item"><a href="#audio-tts" class="nav-link"><i data-lucide="volume-2"></i><span>5. Audio & Đa Ngôn Ngữ</span></a></li>
+                <li class="nav-item"><a href="#offline-sync" class="nav-link"><i data-lucide="wifi-off"></i><span>6. Chế độ Offline & Sync</span></a></li>
+                <li class="nav-item"><a href="#auth-rbac" class="nav-link"><i data-lucide="shield"></i><span>7. Phân Quyền (RBAC)</span></a></li>
+                <li class="nav-item"><a href="#e2e-flow" class="nav-link"><i data-lucide="play-circle"></i><span>8. End-to-End Flow</span></a></li>
+                <li class="nav-item"><a href="#roadmap" class="nav-link"><i data-lucide="trending-up"></i><span>9. Tech Stack & Roadmap</span></a></li>
+                <li class="nav-item"><a href="#dashboard-metrics" class="nav-link"><i data-lucide="bar-chart-2"></i><span>10. Web Dashboard Metrics</span></a></li>
+                <li class="nav-item"><a href="#haversine-distance" class="nav-link"><i data-lucide="map-pin"></i><span>11. Thuật toán Khoảng cách</span></a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="tong-quan" data-aos="fade-up">
+            <span class="badge">Đồ án C# .NET MAUI & ASP.NET Core</span>
+            <h1>Tài Liệu Yêu Cầu Sản Phẩm (PRD)<br>Phố Ẩm Thực Vĩnh Khánh</h1>
+            <p class="hero-desc">
+                Hệ thống hướng dẫn viên du lịch số tự động, tận dụng công nghệ định vị GPS, Geofencing và Text-to-Speech (TTS) để tự động thuyết minh các điểm văn hóa, ẩm thực tại Quận 4. Giải pháp được thiết kế tối ưu cho trải nghiệm Offline và đồng bộ linh hoạt.
+            </p>
+        </section>
+
+        <!-- Thống Kê Nổi Bật -->
+        <section id="thong-ke" data-aos="fade-up">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">6</div>
+                    <div class="stat-label">Phân hệ hoạt động</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">~60</div>
+                    <div class="stat-label">API Quản trị</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">29</div>
+                    <div class="stat-label">Quyền RBAC</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">Tầng Audio</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">Lớp Fallback</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">Lớp Offline</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">Chế độ Bản đồ</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">$0</div>
+                    <div class="stat-label">Chi phí API Lõi</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 1. Kiến Trúc Tổng Quan -->
+        <section id="kien-truc" data-aos="fade-up">
+            <div class="section-header">
+                <h2 class="section-title"><i data-lucide="layers" style="color: var(--primary);"></i> 1. Kiến Trúc Tổng Quan (.NET)</h2>
+                <p class="section-subtitle">Mô hình Client-Server với khả năng hoạt động Offline-First</p>
+            </div>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    graph TD
+                        subgraph Client["Client Side (.NET MAUI)"]
+                            UI["UI Layer (MainPage, MapControl)"]
+                            LOC["LocationService (GPS)"]
+                            GEO["GeofenceService (Bán kính POI)"]
+                            TTS["AudioService (Native TTS)"]
+                            SQL_L[("SQLite Local (Offline)")]
+                        end
+                        
+                        subgraph Server["Server Side (ASP.NET Core)"]
+                            API["Web API (REST + JWT)"]
+                            WEB["Admin/Owner Web Portal"]
+                            SQL_S[("SQL Server (Cloud DB)")]
+                            BLOB[("File Storage (Images/Audio)")]
+                        end
+                        
+                        UI <--> LOC
+                        LOC --> GEO
+                        GEO --> TTS
+                        UI <--> SQL_L
+                        SQL_L <-->|"SyncService (JSON)"| API
+                        API <--> SQL_S
+                        API <--> BLOB
+                        WEB <--> API
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Luồng Khởi Động App -->
+        <section id="khoi-dong" data-aos="fade-up">
+            <div class="section-header">
+                <h2 class="section-title"><i data-lucide="power" style="color: var(--secondary);"></i> 2. Luồng Khởi Động App (Bootstrapping)</h2>
+                <p class="section-subtitle">Quy trình cấp quyền và nạp dữ liệu khi mở ứng dụng</p>
+            </div>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant User
+                        participant App as MAUI App
+                        participant GPS as LocationService
+                        participant LocalDB as Database Context (SQLite)
+                        participant Server as LocationsController
+                        
+                        User->>App: LaunchApp()
+                        App->>App: ShowSplashScreen()
+                        App->>LocalDB: CheckExistingPOIs()
+                        alt Database Empty (First Run)
+                            App->>Server: GET /api/locations/sync
+                            Server-->>App: Return List[PoiDto] (JSON)
+                            App->>LocalDB: SaveChangesAsync(POIs)
+                        end
+                        App->>GPS: RequestPermissionsAsync(Permissions.LocationAlways)
+                        GPS-->>App: Return PermissionStatus.Granted
+                        App->>User: RenderMapControl() and StartGeofencing()
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. GPS & Geofence Engine -->
+        <section id="geofence" data-aos="fade-up">
+            <div class="section-header">
+                <h2 class="section-title"><i data-lucide="target" style="color: var(--danger);"></i> 3. GPS & Geofence Engine</h2>
+                <p class="section-subtitle">Luồng xử lý cốt lõi: Tính toán khoảng cách và kích hoạt âm thanh tự động</p>
+            </div>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    stateDiagram-v2
+                        [*] --> Tracking : StartGeofenceService()
+                        Tracking --> CheckDistance : OnLocationChanged(Location)
+                        CheckDistance --> Tracking : Distance > Radius
+                        CheckDistance --> InsidePOI : Distance <= Radius
+                        InsidePOI --> CheckPlayed : ProcessGeofenceEvent()
+                        CheckPlayed --> Tracking : IsAudioPlayed(PoiId) == true
+                        CheckPlayed --> PriorityCheck : IsAudioPlayed(PoiId) == false
+                        PriorityCheck --> StopAndPlay : IsAudioPlaying() == true
+                        PriorityCheck --> PlayNew : IsAudioPlaying() == false
+                        PlayNew --> MarkPlayed : SpeakAsync(PoiContent)
+                        StopAndPlay --> MarkPlayed : CancelCurrentAudio() && SpeakAsync()
+                        MarkPlayed --> Tracking : Await Task.Delay(30000)
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Quản lý POI & Database -->
+        <section id="poi-lifecycle" data-aos="fade-up">
+            <div class="section-header">
+                <h2 class="section-title"><i data-lucide="map" style="color: var(--accent);"></i> 4. Quản lý Vòng đời POI & Database ERD</h2>
+                <p class="section-subtitle">Thiết kế Schema CSDL thống nhất giữa SQL Server và SQLite</p>
+            </div>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    erDiagram
+                        POI ||--o{ AUDIO : has
+                        POI ||--o{ TRANSLATION : has
+                        USER ||--o{ POI : owns
+                        
+                        POI {
+                            int Id PK
+                            string Name
+                            float Latitude
+                            float Longitude
+                            float RadiusInMeters
+                            string Category
+                            bool IsActive
+                        }
+                        AUDIO {
+                            int Id PK
+                            int PoiId FK
+                            string LanguageCode
+                            string FilePath
+                        }
+                        TRANSLATION {
+                            int Id PK
+                            int PoiId FK
+                            string LanguageCode
+                            string Title
+                            string Content
+                        }
+                        USER {
+                            int Id PK
+                            string Username
+                            string PasswordHash
+                            string Role
+                        }
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Audio & Đa Ngôn Ngữ -->
+        <section id="audio-tts" data-aos="fade-up">
+            <div class="section-header">
+                <h2 class="section-title"><i data-lucide="volume-2" style="color: var(--primary);"></i> 5. Audio & Đa Ngôn Ngữ (Localization)</h2>
+                <p class="section-subtitle">Hệ thống chuyển đổi văn bản thành giọng nói (TTS) tối ưu pin và băng thông</p>
+            </div>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    graph LR
+                        subgraph MAUI["Mobile App Context"]
+                            TEXT["GetTranslationAsync(PoiId, Lang)"]
+                            LANG["CultureInfo.CurrentCulture"]
+                        end
+                        
+                        subgraph Engine["Narration Engine"]
+                            TTS["TextToSpeech.SpeakAsync()"]
+                            STREAM["MediaElement.Play()"]
+                        end
+                        
+                        TEXT --> Engine
+                        LANG --> Engine
+                        TTS --> Speaker(("Audio Output"))
+                        STREAM -.-> Speaker
+                </div>
+            </div>
+            <p class="hero-desc" style="margin-top: 1rem; font-size: 1rem;">
+                * Hệ thống ưu tiên dùng Text-to-Speech (TTS) có sẵn của hệ điều hành di động để thuyết minh offline hoàn toàn, không tốn data 4G và phản hồi tức thời.
+            </p>
+        </section>
+
+        <!-- 6. Chế độ Offline & Sync -->
+        <section id="offline-sync" data-aos="fade-up">
+            <div class="section-header">
+                <h2 class="section-title"><i data-lucide="wifi-off" style="color: var(--secondary);"></i> 6. Chế độ Offline & Sync Service</h2>
+                <p class="section-subtitle">Đảm bảo trải nghiệm du khách không bị gián đoạn khi mất sóng</p>
+            </div>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant SyncApp as SyncService
+                        participant LocalDB as SQLite Local
+                        participant API as SyncController
+                        participant CloudDB as SQL Server
+                        
+                        SyncApp->>SyncApp: CheckConnectivity()
+                        alt Connectivity.NetworkAccess != Internet
+                            SyncApp->>LocalDB: GetPoisAsync() / GetAudioAsync()
+                            LocalDB-->>SyncApp: Return Local List[Poi]
+                        else Connectivity.NetworkAccess == Internet
+                            SyncApp->>LocalDB: GetLastSyncTimestamp()
+                            SyncApp->>API: GET /api/sync?lastSync={timestamp}
+                            API->>CloudDB: Query(WHERE UpdatedAt gt lastSync)
+                            CloudDB-->>API: Return SyncResponseDto
+                            API-->>SyncApp: Return SyncResponseDto (JSON)
+                            SyncApp->>LocalDB: UpsertPois(SyncResponseDto.Data)
+                            SyncApp->>LocalDB: UpdateSyncTimestamp(Now)
+                        end
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Phân Quyền (RBAC) -->
+        <section id="auth-rbac" data-aos="fade-up">
+            <div class="section-header">
+                <h2 class="section-title"><i data-lucide="shield" style="color: var(--accent);"></i> 7. Xác thực & Phân Quyền (RBAC)</h2>
+                <p class="section-subtitle">Phân mảnh quyền hạn truy cập an toàn bằng JWT Bearer Token</p>
+            </div>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    flowchart LR
+                        Guest(("Guest User"))
+                        Owner(("Role: Owner"))
+                        Admin(("Role: Admin"))
+                        
+                        subgraph MAUI_App ["Mobile App (Public Access)"]
+                            G1[GeofenceService]
+                            G2[MapControl]
+                        end
+                        
+                        subgraph Web_Portal ["Web Portal (JWT Protected)"]
+                            O1["[Authorize(Roles='Owner')]"]
+                            O2["DashboardController.Index()"]
+                            
+                            A1["[Authorize(Roles='Admin')]"]
+                            A2["PoisController.ApproveAsync()"]
+                            A3["TranslationsController"]
+                        end
+                        
+                        Guest --> MAUI_App
+                        Owner --> O1
+                        Owner --> O2
+                        Admin --> A1
+                        Admin --> A2
+                        Admin --> A3
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. End-to-End Flow -->
+        <section id="e2e-flow" data-aos="fade-up">
+            <div class="section-header">
+                <h2 class="section-title"><i data-lucide="play-circle" style="color: var(--danger);"></i> 8. Trải nghiệm End-to-End (E2E)</h2>
+                <p class="section-subtitle">Hành trình trải nghiệm rảnh tay (Hands-free) của du khách</p>
+            </div>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    sequenceDiagram
+                        actor User
+                        participant App as MainViewModel
+                        participant GPS as GeofenceService
+                        participant TTS as AudioService
+                        
+                        User->>App: SetLanguage(langCode) & StartBackgroundRun()
+                        App->>GPS: StartListeningAsync()
+                        loop Interval = 5000ms
+                            GPS->>App: OnLocationChanged(Location)
+                            App->>App: CalculateHaversineDistanceKm(UserLoc, PoiLoc)
+                            alt Distance <= Poi.RadiusInMeters
+                                App->>TTS: SpeakAsync("Chào mừng đến với Ốc Vũ...")
+                                TTS->>User: System.Speech.Synthesis output
+                                App->>App: MarkPoiAsVisited(Poi.Id)
+                            end
+                        end
+                </div>
+            </div>
+        </section>
+
+        <!-- 9. Tech Stack & Roadmap -->
+        <section id="roadmap" data-aos="fade-up">
+            <div class="section-header">
+                <h2 class="section-title"><i data-lucide="trending-up" style="color: var(--primary);"></i> 9. Công nghệ & Lộ trình (Tech Stack)</h2>
+                <p class="section-subtitle">Bộ công cụ công nghệ và kế hoạch phát triển</p>
+            </div>
+            
+            <div class="grid">
+                <div class="card">
+                    <h3>Frontend (Mobile)</h3>
+                    <ul class="custom-list">
+                        <li><b>Framework:</b> C# .NET MAUI (Đa nền tảng)</li>
+                        <li><b>Bản đồ:</b> Mapsui / Microsoft.Maui.Controls.Maps</li>
+                        <li><b>Database:</b> Entity Framework Core SQLite</li>
+                        <li><b>Dịch vụ nền:</b> MAUI Essentials (Geofence, TTS)</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Backend & Web Portal</h3>
+                    <ul class="custom-list">
+                        <li><b>Framework:</b> ASP.NET Core 8 API / MVC</li>
+                        <li><b>Database:</b> SQL Server</li>
+                        <li><b>Bảo mật:</b> JWT Authentication & Identity</li>
+                        <li><b>Giao diện Admin:</b> Bootstrap 5, Chart.js</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 2rem; border-top: 4px solid var(--primary);">
+                <h3>Lộ Trình Phát Triển Tương Lai (Phase 3)</h3>
+                <ul class="custom-list" style="margin-top: 1rem;">
+                    <li><b>Map Pack Offline:</b> Tải trước bản đồ (Vector Tiles) để không cần Internet load hình bản đồ.</li>
+                    <li><b>Heatmap Dashboard:</b> Vẽ biểu đồ nhiệt cho Chủ Quán thấy khu vực đông khách theo thời gian thực.</li>
+                    <li><b>AI Guide:</b> Tích hợp OpenAI API để trả lời câu hỏi của khách hàng ngay trên App bằng giọng nói.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 10. Web Dashboard Metrics Flow -->
+        <section id="dashboard-metrics" data-aos="fade-up">
+            <div class="section-header">
+                <h2 class="section-title"><i data-lucide="bar-chart-2" style="color: var(--secondary);"></i> 10. Luồng Xử Lý Dữ Liệu (Web Dashboard Metrics)</h2>
+                <p class="section-subtitle">Sơ đồ bóc tách luồng gọi API và Database cho 5 chỉ số hiển thị trên giao diện quản trị</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                
+                <!-- Quán Ăn -->
+                <div>
+                    <h4 style="color: #ff6b35; margin-bottom: 1rem;"><i class="fa-solid fa-store"></i> 10.1 Quán Ăn (Locations)</h4>
+                    <div class="mermaid-container" style="margin: 0;">
+                        <div class="mermaid">
+                            sequenceDiagram
+                                participant Ctrl as DashboardController
+                                participant Service as LocationApiService
+                                participant DB as Database
+                                
+                                Ctrl->>Service: GetAllAsync()
+                                Service->>DB: SELECT * FROM Locations
+                                DB-->>Service: Return List[Location]
+                                Service-->>Ctrl: Return locationsRaw
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lộ Trình -->
+                <div>
+                    <h4 style="color: #3b82f6; margin-bottom: 1rem;"><i class="fa-solid fa-map-location-dot"></i> 10.2 Lộ Trình (Tours)</h4>
+                    <div class="mermaid-container" style="margin: 0;">
+                        <div class="mermaid">
+                            sequenceDiagram
+                                participant Ctrl as DashboardController
+                                participant Service as TourApiService
+                                participant DB as Database
+                                
+                                Ctrl->>Service: GetAllAsync()
+                                Service->>DB: SELECT * FROM Tours
+                                DB-->>Service: Return List[Tour]
+                                Service-->>Ctrl: Return toursRaw
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hội Viên -->
+                <div>
+                    <h4 style="color: #10b981; margin-bottom: 1rem;"><i class="fa-solid fa-users"></i> 10.3 Hội Viên (Users)</h4>
+                    <div class="mermaid-container" style="margin: 0;">
+                        <div class="mermaid">
+                            sequenceDiagram
+                                participant Ctrl as DashboardController
+                                participant Service as AuthApiService
+                                participant DB as Database
+                                
+                                Ctrl->>Service: GetStatsAsync()
+                                Service->>DB: SELECT COUNT(*) FROM Users
+                                DB-->>Service: Return AuthStatsDto
+                                Service-->>Ctrl: Return authStats
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lượt Nghe TTS -->
+                <div>
+                    <h4 style="color: #A855F7; margin-bottom: 1rem;"><i class="fa-solid fa-headphones"></i> 10.4 Lượt Nghe TTS</h4>
+                    <div class="mermaid-container" style="margin: 0;">
+                        <div class="mermaid">
+                            sequenceDiagram
+                                participant Ctrl as DashboardController
+                                participant Service as LocationApiService
+                                participant DB as Database
+                                
+                                Ctrl->>Service: GetListenStatsAsync()
+                                Service->>DB: SELECT COUNT(*) FROM ListenLogs
+                                DB-->>Service: Return int (Count)
+                                Service-->>Ctrl: Return totalListens
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Đang Online -->
+            <div style="margin-top: 3rem;">
+                <h4 style="color: #06b6d4; margin-bottom: 1rem;"><i class="fa-solid fa-wifi"></i> 10.5 Thiết bị Đang Online</h4>
+                <div class="mermaid-container">
+                    <div class="mermaid">
+                        sequenceDiagram
+                            participant UI as Index.cshtml
+                            participant Ctrl as DashboardController
+                            participant Service as LocationApiService
+                            participant Cache as MemoryCache
+                            
+                            UI->>Ctrl: GET /Dashboard/Index
+                            Ctrl->>Service: GetOnlineCountAsync()
+                            Service->>Cache: Count(LastSeen > Now - 5mins)
+                            Cache-->>Service: Return int count
+                            Service-->>Ctrl: Return int count
+                            
+                            Ctrl-->>UI: View("Index", count)
+                    </div>
+                </div>
+            </div>
+
+            <p class="hero-desc" style="margin-top: 1rem; font-size: 1rem;">
+                * Tất cả 5 chỉ số trên đều được gọi đồng thời bên trong hàm `Index()` của `DashboardController.cs` và đóng gói vào biến `DashboardViewModel` trước khi đẩy ra giao diện HTML để hiển thị.
+            </p>
+        </section>
+
+        <!-- 11. Haversine Calculation Flow -->
+        <section id="haversine-distance" data-aos="fade-up">
+            <div class="section-header">
+                <h2 class="section-title"><i data-lucide="map-pin" style="color: var(--tertiary);"></i> 11. Thuật toán Khoảng cách (Haversine)</h2>
+                <p class="section-subtitle">Sơ đồ Sequence mô tả hàm CalculateHaversineDistanceKm tính toán các điểm gần Hà Nội nhất trên Dashboard</p>
+            </div>
+            <div class="mermaid-container">
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant UI as Index.cshtml
+                        participant Ctrl as DashboardController
+                        participant Func as CalculateHaversineDistanceKm()
+                        
+                        UI->>Ctrl: GET /Dashboard/Index
+                        Ctrl->>Ctrl: Lấy danh sách Locations từ API
+                        
+                        loop Cho mỗi Location
+                            Ctrl->>Func: CalculateHaversineDistanceKm(HanoiLat, HanoiLon, loc.Lat, loc.Lon)
+                            Func-->>Ctrl: Trả về khoảng cách (DistanceKm)
+                        end
+                        
+                        Note over Ctrl: Sắp xếp theo khoảng cách
+                        Ctrl->>Ctrl: OrderBy(DistanceKm).Take(5)
+                        
+                        Ctrl-->>UI: Truyền danh sách 5 điểm gần nhất vào View
+                </div>
+            </div>
+        </section>
+
+        <footer style="text-align: center; padding: 4rem 0; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.9rem;">
+            <p>&copy; 2024 Vĩnh Khánh Tourist Guide System. Thiết kế riêng cho nền tảng C# .NET.</p>
+        </footer>
+    </main>
+
+    <script>
+        // Init Lucide Icons safely
+        try {
+            lucide.createIcons();
+        } catch (error) {
+            console.warn('Lucide initialization error:', error);
+            document.querySelectorAll('[data-lucide]').forEach(el => {
+                if (!el.hasChildNodes()) {
+                    el.innerHTML = '🔹'; 
+                }
+            });
+        }
+
+        // Init AOS safely
+        try {
+            AOS.init({
+                duration: 800,
+                once: true,
+                offset: 50
+            });
+        } catch (error) {
+            console.warn('AOS error:', error);
+            document.querySelectorAll('[data-aos]').forEach(el => {
+                el.style.opacity = '1';
+                el.style.transform = 'none';
+            });
+        }
+
+        // Init Mermaid safely
+        try {
+            mermaid.initialize({
+                theme: 'dark',
+                fontFamily: 'Outfit',
+                startOnLoad: true,
+                themeVariables: {
+                    primaryColor: '#6366f1',
+                    primaryTextColor: '#fff',
+                    primaryBorderColor: '#6366f1',
+                    lineColor: '#94a3b8',
+                    secondaryColor: '#10b981',
+                    tertiaryColor: '#f59e0b',
+                    mainBkg: '#1e293b',
+                    nodeBorder: '#334155',
+                    clusterBkg: 'rgba(255,255,255,0.02)',
+                    clusterBorder: '#334155'
+                }
+            });
+        } catch (error) {
+            console.warn('Mermaid error:', error);
+        }
+
+        // Smooth Scrolling
+        document.querySelectorAll('.nav-link').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 40,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Active Nav Link Tracker
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 150) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

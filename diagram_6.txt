@@ -1,0 +1,51 @@
+graph TB
+    subgraph Router["audio/router.py"]
+        VOICES["GET /audio/voices\\nEdge-TTS voice catalog"]
+        PACK["GET /audio/pack-manifest\\nOffline pack manifest"]
+        TTS_EP["POST /audio/tts\\nRealtime TTS\\nReturns X-Static-Url"]
+    end
+
+    subgraph TTSService["audio/service.py — TTSService"]
+        CACHE_KEY["get_cache_key()\\nMD5 text+lang"]
+        TRANSLATE["translate_text()\\nGoogle Translate"]
+        GEN_AUDIO["generate_audio()\\nEdge-TTS synthesis"]
+        FIND_VOICE["find_best_voice()\\nPriority based"]
+        VOICE_CACHE["Voice catalog cache\\nTTL + stale fallback"]
+    end
+
+    subgraph TaskManager["audio/task_manager.py — AudioTaskManager"]
+        CREATE_TASK["create_task(poi_id)"]
+        EXEC["execute_task()\\nParallel semaphore max=3"]
+        SSE["subscribe_task()\\nServer-Sent Events"]
+    end
+
+    subgraph Storage["File System"]
+        STATIC["app/static/audio/\\n{md5_hash}.mp3"]
+    end
+
+    subgraph DB["MongoDB"]
+        LOC_COL[("poi_localizations\\naudio_url per lang")]
+    end
+
+    subgraph Decoration["URL Enhancement"]
+        H_V["Runtime URL decoration\\n?v=version&l=lang"]
+    end
+
+    TTS_EP --> CACHE_KEY
+    CACHE_KEY -->|"HIT"| STATIC
+    CACHE_KEY -->|"MISS"| FIND_VOICE
+    FIND_VOICE --> GEN_AUDIO
+    GEN_AUDIO --> STATIC
+    GEN_AUDIO --> LOC_COL
+    STATIC --> H_V
+    VOICES --> VOICE_CACHE
+    PACK --> LOC_COL
+    PACK --> STATIC
+    CREATE_TASK --> EXEC
+    EXEC --> TRANSLATE
+    TRANSLATE --> GEN_AUDIO
+    EXEC --> SSE
+
+    style STATIC fill:#4CAF50,color:white
+    style LOC_COL fill:#2196F3,color:white
+    style H_V fill:#FF9800,color:white

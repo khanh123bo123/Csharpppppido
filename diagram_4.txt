@@ -1,0 +1,74 @@
+sequenceDiagram
+    participant GPS as LocationService<br/>watchPosition throttle 5s
+    participant HOOK as useGeofence hook
+    participant GEO as GeofenceEngine<br/>reconcileLoop 1s
+    participant NAR as NarrationEngine<br/>3-Tier Hybrid
+    participant QUEUE as AudioQueueManager<br/>Priority Queue
+    participant SW as Service Worker<br/>CacheFirst
+    participant API as Backend API
+    participant STORE as poiStore
+    participant UI as Map UI Popup
+
+    GPS->>GPS: navigator.geolocation.watchPosition()
+    loop Every 5s (throttled)
+        GPS->>HOOK: gpsCallback(pos)
+        HOOK->>STORE: setUserPosition(pos) — move blue dot
+        HOOK->>GEO: checkGeofences(pos)
+
+        Note over GEO: For each POI:<br/>distance = turf.distance(pos, poi.coords)
+
+        alt distance <= geofence_radius AND not inside
+            GEO->>GEO: pendingEntries.set(poiId, now)
+            Note over GEO: Start 3s debounce
+        else distance > geofence_radius AND is inside
+            GEO->>GEO: _handleExit(poiId)
+            GEO->>HOOK: notifyExit(poi)
+            HOOK->>UI: setCurrentPoiId(null) — close popup
+            Note over GEO: Reset cooldown immediately
+        end
+
+        HOOK->>HOOK: _prefetchNearbyLocalizations(pos)
+        Note over HOOK: Background: scan store POIs,<br/>queue top 3 fallback POIs within 500m,<br/>then drain sequentially
+    end
+
+    Note over GEO: reconcileLoop() every 1s
+
+    GEO->>GEO: _processDebounce(now)
+    Note over GEO: 3s elapsed → confirm ENTER<br/>insideZones.set(poiId, poi)
+
+    GEO->>GEO: _processAudioDecision()
+    Note over GEO: Sort active zones by:<br/>1. audio_priority (low=high)<br/>2. distance (near=high)
+
+    GEO->>NAR: queueNarration(poi, false)
+    GEO->>HOOK: notifyEnter(poi)
+    HOOK->>UI: setCurrentPoiId(poiId) — show popup
+
+    NAR->>QUEUE: enqueue(track)
+    NAR->>NAR: processQueue()
+    NAR->>NAR: playWithFallback(poi, lang, text)
+
+    alt Tier 1: Pre-generated Audio (0ms)
+        Note over NAR: poi.audio_url exists
+        NAR->>SW: fetch(audio_url)
+        SW->>SW: CacheFirst match
+        SW-->>NAR: cached MP3
+        NAR->>NAR: new Audio().play()
+    else Tier 2: On-demand (2-5s)
+        NAR->>API: POST /localizations/on-demand
+        Note over API: translate vi→en<br/>Edge-TTS → save MP3
+        API-->>NAR: {audio_url, description}
+        NAR->>STORE: updatePOI(poiId, {audio_url})
+        NAR->>NAR: playAudioUrl(new_url)
+    else Tier 3: Realtime Cloud TTS (3-8s)
+        NAR->>API: POST /audio/tts {text, lang}
+        API-->>NAR: MP3 stream
+        NAR->>NAR: play stream
+    end
+
+    NAR-->>HOOK: subscribe → isPlaying=true
+    Note over UI: Popup shows POI name + image
+    
+    NAR->>NAR: audio.onended
+    NAR-->>HOOK: onFinished(track)
+    HOOK->>UI: setCurrentPoiId(null) — close popup
+    NAR->>NAR: processQueue() — next track

@@ -1,0 +1,42 @@
+graph LR
+    subgraph Router["content/router.py"]
+        R_LOAD["GET /poi/load-all\\nload_all_pois()\\nPublic"]
+        R_NEARBY["GET /poi/nearby\\nget_nearby_pois()\\nPublic"]
+        R_DETAIL["GET /poi/{id}\\nget_poi_detail()\\nPublic"]
+        R_CREATE["POST /poi/\\ncreate_poi()\\npoi:create"]
+        R_UPDATE["PUT /poi/{id}\\nupdate_poi()\\npoi:update"]
+        R_DELETE["DELETE /poi/{id}\\ndelete_poi()\\npoi:delete"]
+    end
+
+    subgraph Service["content/service.py\\nContentService"]
+        S_ALL["get_all_pois(is_active)"]
+        S_NEARBY["get_nearby_pois(lat, lng, radius)"]
+        S_ONE["get_poi_by_id(poi_id)"]
+        S_CREATE["create_poi(data)"]
+        S_UPDATE["update_poi(poi_id, data)\\n+ cleanup orphan images"]
+        S_DELETE["delete_poi(poi_id)\\n+ cascade delete"]
+    end
+
+    subgraph DB["MongoDB Collections"]
+        COL_POI[("POI\\nname, description, category,\\nlocation, images, audio_status,\\ngeofence_radius, audio_priority")]
+        COL_LOC[("poi_localizations\\npoi_id, lang, name,\\ndescription, audio_url, updated_at")]
+    end
+
+    subgraph Hydration["load-all & nearby Hydration\\n?lang=xx"]
+        H1["1. Requested Language\\n(Special: Self-heal if EN)"]
+        H2["2. English Fallback\\n(Use existing EN docs)"]
+        H3["3. Vietnamese/Original\\n(Audio = None)"]
+        H_V["Runtime URL decoration\\n?v=version&l=lang"]
+    end
+
+    R_LOAD --> S_ALL --> COL_POI
+    R_NEARBY --> S_NEARBY --> COL_POI
+    R_LOAD --> H1 --> H2 --> H3 --> H_V
+    R_NEARBY --> H1
+    H1 --> COL_LOC
+    R_DETAIL --> S_ONE --> COL_POI
+    R_CREATE --> S_CREATE --> COL_POI
+    R_UPDATE --> S_UPDATE --> COL_POI
+    R_DELETE --> S_DELETE
+    S_DELETE --> COL_POI
+    S_DELETE -->|"cascade"| COL_LOC

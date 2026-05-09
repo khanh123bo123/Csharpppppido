@@ -1,0 +1,69 @@
+sequenceDiagram
+    participant User as User Phone
+    participant FE as Frontend
+    participant API as localization/router.py
+    participant LOC as LocalizationService
+    participant TTS as TTSService
+    participant WU as WarmupService
+    participant DB as MongoDB<br/>poi_localizations
+
+    Note over User: User selects language "ja"
+
+    rect rgb(230, 245, 255)
+        Note over FE,DB: Flow 1 — Bulk Load at Startup
+        FE->>API: GET /poi/load-all?lang=ja
+        API->>DB: get_by_lang_for_pois(all_ids, "ja")
+        DB-->>API: localizations[]
+        Note over API: Hydrate each POI with<br/>localized_name, description, audio_url
+        API-->>FE: POI[] with Japanese content
+    end
+
+    rect rgb(255, 230, 255)
+        Note over FE,DB: Flow 2.1 — Prepare Hotset (Nearby POIs)
+        FE->>API: POST /localizations/prepare-hotset<br/>{poi_ids, lang: "ja"}
+        Note over API: Concurrency: 3 semaphore
+        API->>TTS: Batch translate + TTS
+        API-->>FE: {ready_count, pending_count, items[]}
+    end
+
+    rect rgb(255, 245, 230)
+        Note over FE,DB: Flow 2.2 — On-demand for single POI
+        FE->>API: POST /localizations/on-demand<br/>{poi_id, lang: "ja"}
+        API->>DB: Check existing localization
+
+        alt Already has description + audio_url
+            API-->>FE: {status: "cached", localization}
+        else Missing — generate now
+            API->>TTS: translate_text(vi_text, "ja")
+            TTS-->>API: Japanese text
+            API->>TTS: generate_audio(jp_text, "ja")
+            Note over TTS: Edge-TTS synthesis<br/>Save MP3 to disk
+            TTS-->>API: audio_url
+            API->>LOC: upsert(poi_id, "ja",<br/>name, desc, audio_url)
+            LOC->>DB: $set + $setOnInsert
+            API-->>FE: {status: "generated", localization}
+        end
+
+        FE->>FE: updatePOI(poiId, {audio_url, description})
+        Note over FE: POI now has Japanese content<br/>Next geofence trigger = Tier 1
+    end
+
+    rect rgb(230, 255, 230)
+        Note over FE,DB: Flow 3 — Warmup for entire language
+        FE->>API: POST /localizations/warmup<br/>{lang: "ja"}
+        API->>WU: enqueue_or_get("ja")
+        Note over WU: Idempotent:<br/>running? return status<br/>not started? start background
+
+        loop For each active POI
+            WU->>TTS: translate(vi_desc, "ja")
+            WU->>TTS: generate_audio(ja_text, "ja")
+            WU->>LOC: upsert(poi_id, "ja", ...)
+        end
+
+        FE->>API: GET /localizations/warmup/ja/status
+        API->>WU: get_status("ja")
+        WU-->>API: {status, total_pois, ready, progress}
+        API-->>FE: Poll every 5 seconds
+
+        Note over FE: When ready=true:<br/>Reload POI data with ?lang=ja
+    end

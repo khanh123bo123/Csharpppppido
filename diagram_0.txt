@@ -1,0 +1,51 @@
+graph TB
+    subgraph Frontend["Frontend — React + Vite PWA"]
+        MAIN["main.jsx\\nEntry Point"]
+        APP["App.jsx\\nRouter"]
+        MAPAPP["MapApp.jsx\\nPublic Map UI\\n952 lines"]
+        ADMIN["AdminLayout\\nAdmin Dashboard"]
+        OWNER["OwnerLayout\\nOwner Portal"]
+    end
+
+    subgraph Backend["Backend — FastAPI + MongoDB"]
+        FASTAPI["main.py\\nFastAPI App\\nLifespan Manager"]
+        CONTENT["content module\\n/api/v1/poi\\nPOI CRUD"]
+        AUDIO["audio module\\n/api/v1/audio\\nEdge-TTS + Task Manager"]
+        ADMIN_BE["admin module\\n/api/v1/admin\\nAuth + RBAC + CRUD"]
+        AI["ai_advisor module\\n/api/v1/ai\\nGemini AI"]
+        LOC["localization module\\n/api/v1/localizations\\ni18n + Warmup"]
+        MAPS["maps module\\n/api/v1/maps\\nPMTiles + Styles"]
+    end
+
+    subgraph Data["Data Layer"]
+        MONGO[("MongoDB\\nquan4_culinary\\n9 collections")]
+        IDB[("IndexedDB\\nQuan4DB\\npois_by_lang")]
+        SW["Service Worker\\nsw.js Workbox\\n584 lines"]
+        CACHE[("Cache API\\naudio-lang-{lang}\\nmap-pack-{version}")]
+    end
+
+    MAIN --> APP
+    APP --> MAPAPP
+    APP --> ADMIN
+    APP --> OWNER
+    MAPAPP -->|"axios /api/v1/poi"| CONTENT
+    MAPAPP -->|"axios /api/v1/audio"| AUDIO
+    MAPAPP -->|"axios /api/v1/localizations"| LOC
+    MAPAPP -->|"axios /api/v1/maps"| MAPS
+    ADMIN -->|"axios /api/v1/admin"| ADMIN_BE
+    ADMIN -->|"axios /api/v1/ai"| AI
+    OWNER -->|"axios /api/v1/owner"| ADMIN_BE
+    FASTAPI --> CONTENT
+    FASTAPI --> AUDIO
+    FASTAPI --> ADMIN_BE
+    FASTAPI --> AI
+    FASTAPI --> LOC
+    FASTAPI --> MAPS
+    CONTENT --> MONGO
+    AUDIO --> MONGO
+    ADMIN_BE --> MONGO
+    LOC --> MONGO
+    AI --> MONGO
+    MAPAPP -->|"idb library"| IDB
+    MAPAPP -->|"postMessage"| SW
+    SW --> CACHE

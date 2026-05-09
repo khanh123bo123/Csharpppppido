@@ -1,0 +1,44 @@
+graph TB
+    subgraph SW["Service Worker — sw.js (Workbox)"]
+        PRECACHE["precacheAndRoute()\\nStatic assets"]
+        API_ROUTE["API /api/v1/poi/*\\nNetworkFirst 8s timeout\\ncache: api-data-cache"]
+        VOICE_ROUTE["Voices /audio/voices\\nNetworkFirst 12s timeout"]
+        AUDIO_ROUTE["Audio /static/audio/*.mp3\\nCacheFirst per-language"]
+        IMAGE_ROUTE["Images /static/poi-images/*\\nCacheFirst 30 days"]
+        MAP_ROUTE["Map assets\\nCustom pack-cache matching"]
+    end
+
+    subgraph AudioSharding["Audio Cache Sharding"]
+        AUDIO_VI["audio-lang-vi"]
+        AUDIO_EN["audio-lang-en"]
+        AUDIO_JA["audio-lang-ja"]
+        LRU["LRU Eviction\\nMAX = 3 languages\\nDelete least-recently-used"]
+    end
+
+    subgraph IDB["IndexedDB — Quan4DB v2"]
+        LANE_STORE["pois_by_lang store\\nkey: lang:poiId\\nindex: by_lang, by_poi_id"]
+        FALLBACK["Offline fallback chain:\\ntarget lang → en → vi"]
+    end
+
+    subgraph AudioPack["AudioPackService"]
+        MANIFEST["GET /audio/pack-manifest\\nURLs + SHA-256 hashes"]
+        DOWNLOAD["Download all MP3s\\nconcurrency limited"]
+        VERIFY["Verify checksums"]
+        PACK_CACHE["audio-pack-{lang}-{version}"]
+    end
+
+    subgraph MapPack["MapPackService"]
+        MAP_MANIFEST["GET /maps/offline-manifest\\nPMTiles + styles + fonts"]
+        MAP_DOWNLOAD["Download all assets"]
+        MAP_VERIFY["Verify SHA-256"]
+        MAP_CACHE["map-pack-{version}"]
+    end
+
+    AUDIO_ROUTE --> AUDIO_VI & AUDIO_EN & AUDIO_JA
+    AUDIO_VI & AUDIO_EN & AUDIO_JA --> LRU
+    MANIFEST --> DOWNLOAD --> VERIFY --> PACK_CACHE
+    MAP_MANIFEST --> MAP_DOWNLOAD --> MAP_VERIFY --> MAP_CACHE
+    LANE_STORE --> FALLBACK
+
+    style LRU fill:#f44336,color:white
+    style FALLBACK fill:#FF9800,color:white
